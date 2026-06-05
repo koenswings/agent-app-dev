@@ -22,7 +22,7 @@ services:
     build:
       context: ./app
       dockerfile: Dockerfile
-    image: koenswings/milkwise:1.0.9
+    image: koenswings/milkwise:1.0.10
     init: true
     restart: unless-stopped
     pull_policy: never
