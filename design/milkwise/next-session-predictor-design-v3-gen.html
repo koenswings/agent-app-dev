@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>@font-face{font-display:block;font-family:KaTeX_AMS;font-style:normal;font-weight:400;src:url(fonts/KaTeX_AMS-Regular.woff2) format("woff2"),url(fonts/KaTeX_AMS-Regular.woff) format("woff"),url(fonts/KaTeX_AMS-Regular.ttf) format("truetype")}@font-face{font-display:block;font-family:KaTeX_Caligraphic;font-style:normal;font-weight:700;src:url(fonts/KaTeX_Caligraphic-Bold.woff2) format("woff2"),url(fonts/KaTeX_Caligraphic-Bold.woff) format("woff"),url(fonts/KaTeX_Caligraphic-Bold.ttf) format("truetype")}@font-face{font-display:block;font-family:KaTeX_Caligraphic;font-style:normal;font-weight:400;src:url(fonts/KaTeX_Caligraphic-Regular.woff2) format("woff2"),url(fonts/KaTeX_Caligraphic-Regular.woff) format("woff"),url(fonts/KaTeX_Caligraphic-Regular.ttf) format("truetype")}@font-face{font-display:block;font-family:KaTeX_Fraktur;font-style:normal;font-weight:700;src:url(fonts/KaTeX_Fraktur-Bold.woff2) format("woff2"),url(fonts/KaTeX_Fraktur-Bold.woff) format("woff"),url(fonts/KaTeX_Fraktur-Bold.ttf) format("truetype")}@font-face{font-display:block;font-family:KaTeX_Fraktur;font-style:normal;font-weight:400;src:url(fonts/KaTeX_Fraktur-Regular.woff2) format("woff2"),url(fonts/KaTeX_Fraktur-Regular.woff) format("woff"),url(fonts/KaTeX_Fraktur-Regular.ttf) format("truetype")}@font-face{font-display:block;font-family:KaTeX_Main;font-style:normal;font-weight:700;src:url(fonts/KaTeX_Main-Bold.woff2) format("woff2"),url(fonts/KaTeX_Main-Bold.woff) format("woff"),url(fonts/KaTeX_Main-Bold.ttf) format("truetype")}@font-face{font-display:block;font-family:KaTeX_Main;font-style:italic;font-weight:700;src:url(fonts/KaTeX_Main-BoldItalic.woff2) format("woff2"),url(fonts/KaTeX_Main-BoldItalic.woff) format("woff"),url(fonts/KaTeX_Main-BoldItalic.ttf) format("truetype")}@font-face{font-display:block;font-family:KaTeX_Main;font-style:italic;font-weight:400;src:url(fonts/KaTeX_Main-Italic.woff2) format("woff2"),url(fonts/KaTeX_Main-Italic.woff) format("woff"),url(fonts/KaTeX_Main-Italic.ttf) format("truetype")}@font-face{font-display:block;font-family:KaTeX_Main;font-style:normal;font-weight:400;src:url(fonts/KaTeX_Main-Regular.woff2) format("woff2"),url(fonts/KaTeX_Main-Regular.woff) format("woff"),url(fonts/KaTeX_Main-Regular.ttf) format("truetype")}@font-face{font-display:block;font-family:KaTeX_Math;font-style:italic;font-weight:700;src:url(fonts/KaTeX_Math-BoldItalic.woff2) format("woff2"),url(fonts/KaTeX_Math-BoldItalic.woff) format("woff"),url(fonts/KaTeX_Math-BoldItalic.ttf) format("truetype")}@font-face{font-display:block;font-family:KaTeX_Math;font-style:italic;font-weight:400;src:url(fonts/KaTeX_Math-Italic.woff2) format("woff2"),url(fonts/KaTeX_Math-Italic.woff) format("woff"),url(fonts/KaTeX_Math-Italic.ttf) format("truetype")}@font-face{font-display:block;font-family:"KaTeX_SansSerif";font-style:normal;font-weight:700;src:url(fonts/KaTeX_SansSerif-Bold.woff2) format("woff2"),url(fonts/KaTeX_SansSerif-Bold.woff) format("woff"),url(fonts/KaTeX_SansSerif-Bold.ttf) format("truetype")}@font-face{font-display:block;font-family:"KaTeX_SansSerif";font-style:italic;font-weight:400;src:url(fonts/KaTeX_SansSerif-Italic.woff2) format("woff2"),url(fonts/KaTeX_SansSerif-Italic.woff) format("woff"),url(fonts/KaTeX_SansSerif-Italic.ttf) format("truetype")}@font-face{font-display:block;font-family:"KaTeX_SansSerif";font-style:normal;font-weight:400;src:url(fonts/KaTeX_SansSerif-Regular.woff2) format("woff2"),url(fonts/KaTeX_SansSerif-Regular.woff) format("woff"),url(fonts/KaTeX_SansSerif-Regular.ttf) format("truetype")}@font-face{font-display:block;font-family:KaTeX_Script;font-style:normal;font-weight:400;src:url(fonts/KaTeX_Script-Regular.woff2) format("woff2"),url(fonts/KaTeX_Script-Regular.woff) format("woff"),url(fonts/KaTeX_Script-Regular.ttf) format("truetype")}@font-face{font-display:block;font-family:KaTeX_Size1;font-style:normal;font-weight:400;src:url(fonts/KaTeX_Size1-Regular.woff2) format("woff2"),url(fonts/KaTeX_Size1-Regular.woff) format("woff"),url(fonts/KaTeX_Size1-Regular.ttf) format("truetype")}@font-face{font-display:block;font-family:KaTeX_Size2;font-style:normal;font-weight:400;src:url(fonts/KaTeX_Size2-Regular.woff2) format("woff2"),url(fonts/KaTeX_Size2-Regular.woff) format("woff"),url(fonts/KaTeX_Size2-Regular.ttf) format("truetype")}@font-face{font-display:block;font-family:KaTeX_Size3;font-style:normal;font-weight:400;src:url(fonts/KaTeX_Size3-Regular.woff2) format("woff2"),url(fonts/KaTeX_Size3-Regular.woff) format("woff"),url(fonts/KaTeX_Size3-Regular.ttf) format("truetype")}@font-face{font-display:block;font-family:KaTeX_Size4;font-style:normal;font-weight:400;src:url(fonts/KaTeX_Size4-Regular.woff2) format("woff2"),url(fonts/KaTeX_Size4-Regular.woff) format("woff"),url(fonts/KaTeX_Size4-Regular.ttf) format("truetype")}@font-face{font-display:block;font-family:KaTeX_Typewriter;font-style:normal;font-weight:400;src:url(fonts/KaTeX_Typewriter-Regular.woff2) format("woff2"),url(fonts/KaTeX_Typewriter-Regular.woff) format("woff"),url(fonts/KaTeX_Typewriter-Regular.ttf) format("truetype")}.katex{font:normal 1.21em KaTeX_Main,Times New Roman,serif;line-height:1.2;position:relative;text-indent:0;text-rendering:auto}.katex *{-ms-high-contrast-adjust:none!important;border-color:currentColor}.katex .katex-version:after{content:"0.17.0"}.katex .katex-mathml{border:0;-webkit-clip-path:inset(50%);clip-path:inset(50%);height:1px;overflow:hidden;padding:0;position:absolute;width:1px}.katex .katex-html>.newline{display:block}.katex .base{position:relative;white-space:nowrap;width:-webkit-min-content;width:-moz-min-content;width:min-content}.katex .base,.katex .strut{display:inline-block}.katex .textbf{font-weight:700}.katex .textit{font-style:italic}.katex .textrm{font-family:KaTeX_Main}.katex .textsf{font-family:KaTeX_SansSerif}.katex .texttt{font-family:KaTeX_Typewriter}.katex .mathnormal{font-family:KaTeX_Math;font-style:italic}.katex .mathit{font-family:KaTeX_Main;font-style:italic}.katex .mathrm{font-style:normal}.katex .mathbf{font-family:KaTeX_Main;font-weight:700}.katex .boldsymbol{font-family:KaTeX_Math;font-style:italic;font-weight:700}.katex .amsrm,.katex .mathbb,.katex .textbb{font-family:KaTeX_AMS}.katex .mathcal{font-family:KaTeX_Caligraphic}.katex .mathfrak,.katex .textfrak{font-family:KaTeX_Fraktur}.katex .mathboldfrak,.katex .textboldfrak{font-family:KaTeX_Fraktur;font-weight:700}.katex .mathtt{font-family:KaTeX_Typewriter}.katex .mathscr,.katex .textscr{font-family:KaTeX_Script}.katex .mathsf,.katex .textsf{font-family:KaTeX_SansSerif}.katex .mathboldsf,.katex .textboldsf{font-family:KaTeX_SansSerif;font-weight:700}.katex .mathitsf,.katex .mathsfit,.katex .textitsf{font-family:KaTeX_SansSerif;font-style:italic}.katex .mainrm{font-family:KaTeX_Main;font-style:normal}.katex .vlist-t{border-collapse:collapse;display:inline-table;table-layout:fixed}.katex .vlist-r{display:table-row}.katex .vlist{display:table-cell;position:relative;vertical-align:bottom}.katex .vlist>span{display:block;height:0;position:relative}.katex .vlist>span>span{display:inline-block}.katex .vlist>span>.pstrut{overflow:hidden;width:0}.katex .vlist-t2{margin-right:-2px}.katex .vlist-s{display:table-cell;font-size:1px;min-width:2px;vertical-align:bottom;width:2px}.katex .vbox{align-items:baseline;display:inline-flex;flex-direction:column}.katex .hbox{width:100%}.katex .hbox,.katex .thinbox{display:inline-flex;flex-direction:row}.katex .thinbox{max-width:0;width:0}.katex .msupsub{text-align:left}.katex .mfrac>span>span{text-align:center}.katex .mfrac .frac-line{border-bottom-style:solid;display:inline-block;width:100%}.katex .hdashline,.katex .hline,.katex .mfrac .frac-line,.katex .overline .overline-line,.katex .rule,.katex .underline .underline-line{min-height:1px}.katex .mspace{display:inline-block}.katex .smash{display:inline;line-height:0}.katex .clap,.katex .llap,.katex .rlap{position:relative;width:0}.katex .clap>.inner,.katex .llap>.inner,.katex .rlap>.inner{position:absolute}.katex .clap>.fix,.katex .llap>.fix,.katex .rlap>.fix{display:inline-block}.katex .llap>.inner{right:0}.katex .clap>.inner,.katex .rlap>.inner{left:0}.katex .clap>.inner>span{margin-left:-50%;margin-right:50%}.katex .rule{border:0 solid;display:inline-block;position:relative}.katex .hline,.katex .overline .overline-line,.katex .underline .underline-line{border-bottom-style:solid;display:inline-block;width:100%}.katex .hdashline{border-bottom-style:dashed;display:inline-block;width:100%}.katex .sqrt>.root{margin-left:.2777777778em;margin-right:-.5555555556em}.katex .fontsize-ensurer.reset-size1.size1,.katex .sizing.reset-size1.size1{font-size:1em}.katex .fontsize-ensurer.reset-size1.size2,.katex .sizing.reset-size1.size2{font-size:1.2em}.katex .fontsize-ensurer.reset-size1.size3,.katex .sizing.reset-size1.size3{font-size:1.4em}.katex .fontsize-ensurer.reset-size1.size4,.katex .sizing.reset-size1.size4{font-size:1.6em}.katex .fontsize-ensurer.reset-size1.size5,.katex .sizing.reset-size1.size5{font-size:1.8em}.katex .fontsize-ensurer.reset-size1.size6,.katex .sizing.reset-size1.size6{font-size:2em}.katex .fontsize-ensurer.reset-size1.size7,.katex .sizing.reset-size1.size7{font-size:2.4em}.katex .fontsize-ensurer.reset-size1.size8,.katex .sizing.reset-size1.size8{font-size:2.88em}.katex .fontsize-ensurer.reset-size1.size9,.katex .sizing.reset-size1.size9{font-size:3.456em}.katex .fontsize-ensurer.reset-size1.size10,.katex .sizing.reset-size1.size10{font-size:4.148em}.katex .fontsize-ensurer.reset-size1.size11,.katex .sizing.reset-size1.size11{font-size:4.976em}.katex .fontsize-ensurer.reset-size2.size1,.katex .sizing.reset-size2.size1{font-size:.8333333333em}.katex .fontsize-ensurer.reset-size2.size2,.katex .sizing.reset-size2.size2{font-size:1em}.katex .fontsize-ensurer.reset-size2.size3,.katex .sizing.reset-size2.size3{font-size:1.1666666667em}.katex .fontsize-ensurer.reset-size2.size4,.katex .sizing.reset-size2.size4{font-size:1.3333333333em}.katex .fontsize-ensurer.reset-size2.size5,.katex .sizing.reset-size2.size5{font-size:1.5em}.katex .fontsize-ensurer.reset-size2.size6,.katex .sizing.reset-size2.size6{font-size:1.6666666667em}.katex .fontsize-ensurer.reset-size2.size7,.katex .sizing.reset-size2.size7{font-size:2em}.katex .fontsize-ensurer.reset-size2.size8,.katex .sizing.reset-size2.size8{font-size:2.4em}.katex .fontsize-ensurer.reset-size2.size9,.katex .sizing.reset-size2.size9{font-size:2.88em}.katex .fontsize-ensurer.reset-size2.size10,.katex .sizing.reset-size2.size10{font-size:3.4566666667em}.katex .fontsize-ensurer.reset-size2.size11,.katex .sizing.reset-size2.size11{font-size:4.1466666667em}.katex .fontsize-ensurer.reset-size3.size1,.katex .sizing.reset-size3.size1{font-size:.7142857143em}.katex .fontsize-ensurer.reset-size3.size2,.katex .sizing.reset-size3.size2{font-size:.8571428571em}.katex .fontsize-ensurer.reset-size3.size3,.katex .sizing.reset-size3.size3{font-size:1em}.katex .fontsize-ensurer.reset-size3.size4,.katex .sizing.reset-size3.size4{font-size:1.1428571429em}.katex .fontsize-ensurer.reset-size3.size5,.katex .sizing.reset-size3.size5{font-size:1.2857142857em}.katex .fontsize-ensurer.reset-size3.size6,.katex .sizing.reset-size3.size6{font-size:1.4285714286em}.katex .fontsize-ensurer.reset-size3.size7,.katex .sizing.reset-size3.size7{font-size:1.7142857143em}.katex .fontsize-ensurer.reset-size3.size8,.katex .sizing.reset-size3.size8{font-size:2.0571428571em}.katex .fontsize-ensurer.reset-size3.size9,.katex .sizing.reset-size3.size9{font-size:2.4685714286em}.katex .fontsize-ensurer.reset-size3.size10,.katex .sizing.reset-size3.size10{font-size:2.9628571429em}.katex .fontsize-ensurer.reset-size3.size11,.katex .sizing.reset-size3.size11{font-size:3.5542857143em}.katex .fontsize-ensurer.reset-size4.size1,.katex .sizing.reset-size4.size1{font-size:.625em}.katex .fontsize-ensurer.reset-size4.size2,.katex .sizing.reset-size4.size2{font-size:.75em}.katex .fontsize-ensurer.reset-size4.size3,.katex .sizing.reset-size4.size3{font-size:.875em}.katex .fontsize-ensurer.reset-size4.size4,.katex .sizing.reset-size4.size4{font-size:1em}.katex .fontsize-ensurer.reset-size4.size5,.katex .sizing.reset-size4.size5{font-size:1.125em}.katex .fontsize-ensurer.reset-size4.size6,.katex .sizing.reset-size4.size6{font-size:1.25em}.katex .fontsize-ensurer.reset-size4.size7,.katex .sizing.reset-size4.size7{font-size:1.5em}.katex .fontsize-ensurer.reset-size4.size8,.katex .sizing.reset-size4.size8{font-size:1.8em}.katex .fontsize-ensurer.reset-size4.size9,.katex .sizing.reset-size4.size9{font-size:2.16em}.katex .fontsize-ensurer.reset-size4.size10,.katex .sizing.reset-size4.size10{font-size:2.5925em}.katex .fontsize-ensurer.reset-size4.size11,.katex .sizing.reset-size4.size11{font-size:3.11em}.katex .fontsize-ensurer.reset-size5.size1,.katex .sizing.reset-size5.size1{font-size:.5555555556em}.katex .fontsize-ensurer.reset-size5.size2,.katex .sizing.reset-size5.size2{font-size:.6666666667em}.katex .fontsize-ensurer.reset-size5.size3,.katex .sizing.reset-size5.size3{font-size:.7777777778em}.katex .fontsize-ensurer.reset-size5.size4,.katex .sizing.reset-size5.size4{font-size:.8888888889em}.katex .fontsize-ensurer.reset-size5.size5,.katex .sizing.reset-size5.size5{font-size:1em}.katex .fontsize-ensurer.reset-size5.size6,.katex .sizing.reset-size5.size6{font-size:1.1111111111em}.katex .fontsize-ensurer.reset-size5.size7,.katex .sizing.reset-size5.size7{font-size:1.3333333333em}.katex .fontsize-ensurer.reset-size5.size8,.katex .sizing.reset-size5.size8{font-size:1.6em}.katex .fontsize-ensurer.reset-size5.size9,.katex .sizing.reset-size5.size9{font-size:1.92em}.katex .fontsize-ensurer.reset-size5.size10,.katex .sizing.reset-size5.size10{font-size:2.3044444444em}.katex .fontsize-ensurer.reset-size5.size11,.katex .sizing.reset-size5.size11{font-size:2.7644444444em}.katex .fontsize-ensurer.reset-size6.size1,.katex .sizing.reset-size6.size1{font-size:.5em}.katex .fontsize-ensurer.reset-size6.size2,.katex .sizing.reset-size6.size2{font-size:.6em}.katex .fontsize-ensurer.reset-size6.size3,.katex .sizing.reset-size6.size3{font-size:.7em}.katex .fontsize-ensurer.reset-size6.size4,.katex .sizing.reset-size6.size4{font-size:.8em}.katex .fontsize-ensurer.reset-size6.size5,.katex .sizing.reset-size6.size5{font-size:.9em}.katex .fontsize-ensurer.reset-size6.size6,.katex .sizing.reset-size6.size6{font-size:1em}.katex .fontsize-ensurer.reset-size6.size7,.katex .sizing.reset-size6.size7{font-size:1.2em}.katex .fontsize-ensurer.reset-size6.size8,.katex .sizing.reset-size6.size8{font-size:1.44em}.katex .fontsize-ensurer.reset-size6.size9,.katex .sizing.reset-size6.size9{font-size:1.728em}.katex .fontsize-ensurer.reset-size6.size10,.katex .sizing.reset-size6.size10{font-size:2.074em}.katex .fontsize-ensurer.reset-size6.size11,.katex .sizing.reset-size6.size11{font-size:2.488em}.katex .fontsize-ensurer.reset-size7.size1,.katex .sizing.reset-size7.size1{font-size:.4166666667em}.katex .fontsize-ensurer.reset-size7.size2,.katex .sizing.reset-size7.size2{font-size:.5em}.katex .fontsize-ensurer.reset-size7.size3,.katex .sizing.reset-size7.size3{font-size:.5833333333em}.katex .fontsize-ensurer.reset-size7.size4,.katex .sizing.reset-size7.size4{font-size:.6666666667em}.katex .fontsize-ensurer.reset-size7.size5,.katex .sizing.reset-size7.size5{font-size:.75em}.katex .fontsize-ensurer.reset-size7.size6,.katex .sizing.reset-size7.size6{font-size:.8333333333em}.katex .fontsize-ensurer.reset-size7.size7,.katex .sizing.reset-size7.size7{font-size:1em}.katex .fontsize-ensurer.reset-size7.size8,.katex .sizing.reset-size7.size8{font-size:1.2em}.katex .fontsize-ensurer.reset-size7.size9,.katex .sizing.reset-size7.size9{font-size:1.44em}.katex .fontsize-ensurer.reset-size7.size10,.katex .sizing.reset-size7.size10{font-size:1.7283333333em}.katex .fontsize-ensurer.reset-size7.size11,.katex .sizing.reset-size7.size11{font-size:2.0733333333em}.katex .fontsize-ensurer.reset-size8.size1,.katex .sizing.reset-size8.size1{font-size:.3472222222em}.katex .fontsize-ensurer.reset-size8.size2,.katex .sizing.reset-size8.size2{font-size:.4166666667em}.katex .fontsize-ensurer.reset-size8.size3,.katex .sizing.reset-size8.size3{font-size:.4861111111em}.katex .fontsize-ensurer.reset-size8.size4,.katex .sizing.reset-size8.size4{font-size:.5555555556em}.katex .fontsize-ensurer.reset-size8.size5,.katex .sizing.reset-size8.size5{font-size:.625em}.katex .fontsize-ensurer.reset-size8.size6,.katex .sizing.reset-size8.size6{font-size:.6944444444em}.katex .fontsize-ensurer.reset-size8.size7,.katex .sizing.reset-size8.size7{font-size:.8333333333em}.katex .fontsize-ensurer.reset-size8.size8,.katex .sizing.reset-size8.size8{font-size:1em}.katex .fontsize-ensurer.reset-size8.size9,.katex .sizing.reset-size8.size9{font-size:1.2em}.katex .fontsize-ensurer.reset-size8.size10,.katex .sizing.reset-size8.size10{font-size:1.4402777778em}.katex .fontsize-ensurer.reset-size8.size11,.katex .sizing.reset-size8.size11{font-size:1.7277777778em}.katex .fontsize-ensurer.reset-size9.size1,.katex .sizing.reset-size9.size1{font-size:.2893518519em}.katex .fontsize-ensurer.reset-size9.size2,.katex .sizing.reset-size9.size2{font-size:.3472222222em}.katex .fontsize-ensurer.reset-size9.size3,.katex .sizing.reset-size9.size3{font-size:.4050925926em}.katex .fontsize-ensurer.reset-size9.size4,.katex .sizing.reset-size9.size4{font-size:.462962963em}.katex .fontsize-ensurer.reset-size9.size5,.katex .sizing.reset-size9.size5{font-size:.5208333333em}.katex .fontsize-ensurer.reset-size9.size6,.katex .sizing.reset-size9.size6{font-size:.5787037037em}.katex .fontsize-ensurer.reset-size9.size7,.katex .sizing.reset-size9.size7{font-size:.6944444444em}.katex .fontsize-ensurer.reset-size9.size8,.katex .sizing.reset-size9.size8{font-size:.8333333333em}.katex .fontsize-ensurer.reset-size9.size9,.katex .sizing.reset-size9.size9{font-size:1em}.katex .fontsize-ensurer.reset-size9.size10,.katex .sizing.reset-size9.size10{font-size:1.2002314815em}.katex .fontsize-ensurer.reset-size9.size11,.katex .sizing.reset-size9.size11{font-size:1.4398148148em}.katex .fontsize-ensurer.reset-size10.size1,.katex .sizing.reset-size10.size1{font-size:.2410800386em}.katex .fontsize-ensurer.reset-size10.size2,.katex .sizing.reset-size10.size2{font-size:.2892960463em}.katex .fontsize-ensurer.reset-size10.size3,.katex .sizing.reset-size10.size3{font-size:.337512054em}.katex .fontsize-ensurer.reset-size10.size4,.katex .sizing.reset-size10.size4{font-size:.3857280617em}.katex .fontsize-ensurer.reset-size10.size5,.katex .sizing.reset-size10.size5{font-size:.4339440694em}.katex .fontsize-ensurer.reset-size10.size6,.katex .sizing.reset-size10.size6{font-size:.4821600771em}.katex .fontsize-ensurer.reset-size10.size7,.katex .sizing.reset-size10.size7{font-size:.5785920926em}.katex .fontsize-ensurer.reset-size10.size8,.katex .sizing.reset-size10.size8{font-size:.6943105111em}.katex .fontsize-ensurer.reset-size10.size9,.katex .sizing.reset-size10.size9{font-size:.8331726133em}.katex .fontsize-ensurer.reset-size10.size10,.katex .sizing.reset-size10.size10{font-size:1em}.katex .fontsize-ensurer.reset-size10.size11,.katex .sizing.reset-size10.size11{font-size:1.1996142719em}.katex .fontsize-ensurer.reset-size11.size1,.katex .sizing.reset-size11.size1{font-size:.2009646302em}.katex .fontsize-ensurer.reset-size11.size2,.katex .sizing.reset-size11.size2{font-size:.2411575563em}.katex .fontsize-ensurer.reset-size11.size3,.katex .sizing.reset-size11.size3{font-size:.2813504823em}.katex .fontsize-ensurer.reset-size11.size4,.katex .sizing.reset-size11.size4{font-size:.3215434084em}.katex .fontsize-ensurer.reset-size11.size5,.katex .sizing.reset-size11.size5{font-size:.3617363344em}.katex .fontsize-ensurer.reset-size11.size6,.katex .sizing.reset-size11.size6{font-size:.4019292605em}.katex .fontsize-ensurer.reset-size11.size7,.katex .sizing.reset-size11.size7{font-size:.4823151125em}.katex .fontsize-ensurer.reset-size11.size8,.katex .sizing.reset-size11.size8{font-size:.578778135em}.katex .fontsize-ensurer.reset-size11.size9,.katex .sizing.reset-size11.size9{font-size:.6945337621em}.katex .fontsize-ensurer.reset-size11.size10,.katex .sizing.reset-size11.size10{font-size:.8336012862em}.katex .fontsize-ensurer.reset-size11.size11,.katex .sizing.reset-size11.size11{font-size:1em}.katex .delimsizing.size1{font-family:KaTeX_Size1}.katex .delimsizing.size2{font-family:KaTeX_Size2}.katex .delimsizing.size3{font-family:KaTeX_Size3}.katex .delimsizing.size4{font-family:KaTeX_Size4}.katex .delimsizing.mult .delim-size1>span{font-family:KaTeX_Size1}.katex .delimsizing.mult .delim-size4>span{font-family:KaTeX_Size4}.katex .nulldelimiter{display:inline-block;width:.12em}.katex .delimcenter,.katex .op-symbol{position:relative}.katex .op-symbol.small-op{font-family:KaTeX_Size1}.katex .op-symbol.large-op{font-family:KaTeX_Size2}.katex .accent>.vlist-t,.katex .op-limits>.vlist-t{text-align:center}.katex .accent .accent-body{position:relative}.katex .accent .accent-body:not(.accent-full){width:0}.katex .overlay{display:block}.katex .mtable .vertical-separator{display:inline-block;min-width:1px}.katex .mtable .arraycolsep{display:inline-block}.katex .mtable .col-align-c>.vlist-t{text-align:center}.katex .mtable .col-align-l>.vlist-t{text-align:left}.katex .mtable .col-align-r>.vlist-t{text-align:right}.katex .svg-align{text-align:left}.katex svg{fill:currentColor;stroke:currentColor;display:block;height:inherit;position:absolute;width:100%}.katex svg path{stroke:none}.katex svg{fill-rule:nonzero;fill-opacity:1;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1}.katex img{border-style:none;max-height:none;max-width:none;min-height:0;min-width:0}.katex .stretchy{display:block;overflow:hidden;position:relative;width:100%}.katex .stretchy:after,.katex .stretchy:before{content:""}.katex .hide-tail{overflow:hidden;position:relative;width:100%}.katex .halfarrow-left{left:0;overflow:hidden;position:absolute;width:50.2%}.katex .halfarrow-right{overflow:hidden;position:absolute;right:0;width:50.2%}.katex .brace-left{left:0;overflow:hidden;position:absolute;width:25.1%}.katex .brace-center{left:25%;overflow:hidden;position:absolute;width:50%}.katex .brace-right{overflow:hidden;position:absolute;right:0;width:25.1%}.katex .x-arrow-pad{padding:0 .5em}.katex .cd-arrow-pad{padding:0 .55556em 0 .27778em}.katex .mover,.katex .munder,.katex .x-arrow{text-align:center}.katex .boxpad{padding:0 .3em}.katex .fbox,.katex .fcolorbox{border:.04em solid;box-sizing:border-box}.katex .cancel-pad{padding:0 .2em}.katex .cancel-lap{margin-left:-.2em;margin-right:-.2em}.katex .sout{border-bottom-style:solid;border-bottom-width:.08em}.katex .angl{border-right:.049em solid;border-top:.049em solid;box-sizing:border-box;margin-right:.03889em}.katex .anglpad{padding:0 .03889em}.katex .eqn-num:before{content:"(" counter(katexEqnNo) ")";counter-increment:katexEqnNo}.katex .mml-eqn-num:before{content:"(" counter(mmlEqnNo) ")";counter-increment:mmlEqnNo}.katex .mtr-glue{width:50%}.katex .cd-vert-arrow{display:inline-block;position:relative}.katex .cd-label-left{display:inline-block;position:absolute;right:calc(50% + .3em);text-align:left}.katex .cd-label-right{display:inline-block;left:calc(50% + .3em);position:absolute;text-align:right}.katex-display{display:block;margin:1em 0;text-align:center}.katex-display>.katex{display:block;text-align:center;white-space:nowrap}.katex-display>.katex>.katex-html{display:block;position:relative}.katex-display>.katex>.katex-html>.tag{position:absolute;right:0}.katex-display.leqno>.katex>.katex-html>.tag{left:0;right:auto}.katex-display.fleqn>.katex{padding-left:2em;text-align:left}body{counter-reset:katexEqnNo mmlEqnNo}
+</style>
+<style>/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+</style>
+<style>/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}</style>
+<style>/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+</style>
+<style>
+.eq-block { margin: 14px 0; }
+.eq-block .katex-display { margin: 0; }
+.eq-note { text-align: center; font-size: 9pt; color: #666; margin-top: -6px; margin-bottom: 10px; }
+img { max-width: 100%; display: block; margin: 12px 0; }
+</style>
+</head>
+<body class="vscode-body">
+<h1 id="milkwise-feeding-predictor-design-document">MilkWise Feeding Predictor — Design Document</h1>
+<p><strong>Status:</strong> Current<br />
+<strong>Last updated:</strong> 2026-07-14<br />
+<strong>Authors:</strong> Kit + Koen  </p>
+<hr />
+<h2 id="1-objective">1. Objective</h2>
+<p>After every logged feed, MilkWise gives parents three concrete recommendations:</p>
+<ul>
+<li><strong>Next Feed</strong> — when to feed next, assuming the ideal rhythm (standard interval, preferred bottle size)</li>
+<li><strong>Should Take</strong> — a timeline of when each standard bottle size should be given, combining stomach readiness and intake balance</li>
+<li><strong>Status card</strong> — a real-time view of 24h intake and current stomach room</li>
+</ul>
+<p>Together these answer: <em>Is the baby on track? When should the next feed happen? How much can the stomach take, and when?</em></p>
+<hr />
+<h2 id="2-foundations">2. Foundations</h2>
+<h3 id="21-water-vs-prepared-formula">2.1 Water vs Prepared Formula</h3>
+<p>Formula is prepared by mixing powder into water. Parents measure water ml; nutrition comes from prepared formula ml. All energy calculations use prepared formula ml. The conversion follows the manufacturer table:</p>
+<table>
+<thead>
+<tr>
+<th>Water ml</th>
+<th>Formula ml</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>30</td>
+<td>35</td>
+</tr>
+<tr>
+<td>60</td>
+<td>70</td>
+</tr>
+<tr>
+<td>90</td>
+<td>100</td>
+</tr>
+<tr>
+<td>120</td>
+<td>135</td>
+</tr>
+<tr>
+<td>150</td>
+<td>170</td>
+</tr>
+<tr>
+<td>180</td>
+<td>200</td>
+</tr>
+<tr>
+<td>210</td>
+<td>240</td>
+</tr>
+</tbody>
+</table>
+<p>For intermediate values, interpolate linearly between adjacent table entries. Throughout the app, water-based bottle sizes are shown with a 🍼 icon; formula ml values are shown in plain ml.</p>
+<h3 id="22-daily-target-and-hourly-rate">2.2 Daily Target and Hourly Rate</h3>
+<p>The clinical guideline is 150 ml of prepared formula per kilogram of body weight per day, endorsed by Kind en Gezin, NHS, AAP, and WHO/ESPGHAN.</p>
+<div class="eq-block"><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">D</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.4445em;"></span><span class="mord mathnormal" style="margin-right:0.0269em;">w</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">r</span><span class="mspace" style="margin-right:2em;"></span><span class="mord mathnormal">λ</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.0463em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3603em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">24</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0278em;">D</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></div>
+
+<p>The baby's weight is tracked via a weight history. MilkWise fits a WHO LMS z-score model to the recorded weights and predicts today's weight, so the daily target grows automatically as the baby gains weight.</p>
+<h3 id="23-feed-logs">2.3 Feed Logs</h3>
+<p>Each log entry records:
+- <strong>Timestamp</strong> — when the feed started (ms since epoch)
+- <strong>Volume</strong> — water ml given (the app converts this to formula ml for all calculations)</p>
+<hr />
+<h2 id="3-the-24-hour-intake-model">3. The 24-Hour Intake Model</h2>
+<h3 id="31-what-we-measure">3.1 What We Measure</h3>
+<p>The central metric is the <strong>smoothed 24h intake</strong>: the total formula milk the baby has received over a rolling 24-hour window, with partial credit given to bottles just older than 24 hours so that the curve never drops abruptly when an old feed rolls off.</p>
+<p>This aligns exactly with how the clinical guideline is stated — 150 ml per kg per <em>24 hours</em> — and naturally forgets history: a week of illness-era underfeeding leaves no lasting offset once 24 hours of normal feeding resumes.</p>
+<h3 id="32-the-intake-function">3.2 The Intake Function</h3>
+<div class="eq-block"><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal">c</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.1389em;">T</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:3.6em;vertical-align:-1.55em;"></span><span class="minner"><span class="mopen"><span class="delimsizing mult"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-2.5em;"><span class="pstrut" style="height:3.15em;"></span><span class="delimsizinginner delim-size4"><span>⎩</span></span></span><span style="top:-2.492em;"><span class="pstrut" style="height:3.15em;"></span><span style="height:0.016em;width:0.8889em;"><svg xmlns="http://www.w3.org/2000/svg" width="0.8889em" height="0.016em" style="width:0.8889em" viewBox="0 0 888.89 16" preserveAspectRatio="xMinYMin"><path d="M384 0 H504 V16 H384z M384 0 H504 V16 H384z"/></svg></span></span><span style="top:-3.15em;"><span class="pstrut" style="height:3.15em;"></span><span class="delimsizinginner delim-size4"><span>⎨</span></span></span><span style="top:-4.292em;"><span class="pstrut" style="height:3.15em;"></span><span style="height:0.016em;width:0.8889em;"><svg xmlns="http://www.w3.org/2000/svg" width="0.8889em" height="0.016em" style="width:0.8889em" viewBox="0 0 888.89 16" preserveAspectRatio="xMinYMin"><path d="M384 0 H504 V16 H384z M384 0 H504 V16 H384z"/></svg></span></span><span style="top:-4.3em;"><span class="pstrut" style="height:3.15em;"></span><span class="delimsizinginner delim-size4"><span>⎧</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span></span><span class="mord"><span class="mtable"><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.99em;"><span style="top:-3.99em;"><span class="pstrut" style="height:3.008em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal">m</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-1.95em;"><span class="pstrut" style="height:3.008em;"></span><span class="mord"><span class="mop">max</span><span class="mspace" style="margin-right:-0.1667em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;">(</span><span class="mord">0</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">m</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">λ</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.1389em;">T</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord">24</span><span class="mclose">)</span><span class="mclose delimcenter" style="top:0em;">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.49em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:1em;"></span><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.99em;"><span style="top:-3.99em;"><span class="pstrut" style="height:3.008em;"></span><span class="mord"><span class="mord text"><span class="mord">if </span></span><span class="mord mathnormal" style="margin-right:0.1389em;">T</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord">24</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord text"><span class="mord">h</span></span></span></span><span style="top:-1.95em;"><span class="pstrut" style="height:3.008em;"></span><span class="mord"><span class="mord text"><span class="mord">if </span></span><span class="mord mathnormal" style="margin-right:0.1389em;">T</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">&gt;</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord">24</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord text"><span class="mord">h</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.49em;"><span></span></span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></div>
+<div class="eq-block"><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0785em;">I</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.1389em;">T</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.9291em;vertical-align:-1.2777em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.6514em;"><span style="top:-1.8723em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">i</span><span class="mrel mtight">=</span><span class="mord mtight">1</span></span></span></span><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span><span style="top:-4.3em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">n</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.2777em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">c</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.1389em;">T</span><span class="mclose">)</span></span></span></span></span></div>
+
+<p>Each bottle contributes its full formula volume for the first 24 hours. After that, its credit erodes at exactly <code>hourlyRate</code> per hour — the same rate at which the baby consumes energy — until it reaches zero. In steady-state feeding, exactly one bottle is always in the decay zone, producing a gentle continuous downward slope between feeds.</p>
+<p><strong>At equilibrium</strong> (regular feeds, consistent bottle size): <code>intake(T)</code> oscillates between <code>dailyTarget</code> (just before each feed) and <code>dailyTarget + preferredBottleMilkMl</code> (just after). The standard interval <code>SI</code> is the natural period of this oscillation.</p>
+<h3 id="33-standard-interval">3.3 Standard Interval</h3>
+<div class="eq-block"><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord"><span class="mord mathit">SI</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.7936em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.1076em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">λ</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal">m</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></div>
+
+<p>If the baby were fed exactly one preferred bottle every SI hours, intake would stay in perfect equilibrium. The standard interval is the reference rhythm for this baby and bottle size.</p>
+<p><em>Example: 6.9 kg baby, 90 🍼 preferred bottle (100 ml formula):</em><br />
+<code>hourlyRate = 43.1 ml/h</code> · <code>SI ≈ 2h 19m</code></p>
+<h3 id="34-surplus-and-deficit">3.4 Surplus and Deficit</h3>
+<div class="eq-block"><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord text"><span class="mord">surplus</span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.1389em;">T</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0785em;">I</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.1389em;">T</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">D</span></span></span></span></span></div>
+
+<ul>
+<li><strong>surplus &gt; 0</strong> — baby has received more than the 24h target; well fed</li>
+<li><strong>surplus = 0</strong> — exactly on track; ready for the next preferred bottle at the standard time</li>
+<li><strong>surplus &lt; 0</strong> — behind; the baby is underfed relative to the 24h target</li>
+</ul>
+<hr />
+<h2 id="4-gastric-emptying-model">4. Gastric Emptying Model</h2>
+<h3 id="41-clinical-basis">4.1 Clinical Basis</h3>
+<p>Gastric emptying of standard infant formula in healthy term infants follows <strong>first-order (monoexponential) kinetics</strong>: the fraction of milk leaving the stomach per unit time is constant, independent of how full the stomach is.</p>
+<pre><code>G(t) = G₀ × e^(−k × t)
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Symbol</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>G(t)</code></td>
+<td>Formula remaining in stomach t hours after the feed (ml)</td>
+</tr>
+<tr>
+<td><code>G₀</code></td>
+<td>Volume given at the feed (formula ml)</td>
+</tr>
+<tr>
+<td><code>k</code></td>
+<td>Decay constant = ln(2) / t½</td>
+</tr>
+<tr>
+<td><code>t½</code></td>
+<td>Gastric half-emptying time</td>
+</tr>
+</tbody>
+</table>
+<p>Multiple studies using gastric scintigraphy and real-time ultrasound in healthy term neonates place <strong>t½ at 45–65 minutes</strong> for standard formula (Van Den Driessche et al., 2003; Husband &amp; Husband 1969; Cavell 1981). MilkWise uses <strong>t½ = 60 min</strong> as a conservative central estimate, giving:</p>
+<pre><code>k = ln(2) / 1h = 0.6931 h⁻¹
+</code></pre>
+<p>Full gastric emptying (&gt;95% cleared) occurs at approximately 4 × t½ ≈ 4 hours. Feeds older than 7 hours contribute less than 1% of their original volume and are excluded from calculations for efficiency.</p>
+<h3 id="42-stomach-load">4.2 Stomach Load</h3>
+<p>The total formula currently in the stomach at time T:</p>
+<pre><code>stomachLoad(T) = Σᵢ feed_i.milkMl × e^(−k × (T − feed_i.timestamp))
+</code></pre>
+<p>where the sum is over all feeds within the last 7 hours.</p>
+<h3 id="43-stomach-capacity">4.3 Stomach Capacity</h3>
+<p>The stomach's maximum comfortable capacity is the <strong>steady-state peak load</strong> reached in a perfect feeding cycle with the preferred bottle at the standard interval. This is the highest the stomach ever reaches under ideal conditions — the physical maximum stretch point without overloading.</p>
+<p>In steady-state feeding, the stomach load just after each feed converges to:</p>
+<pre><code>stomachCap = preferredBottleMilkMl / (1 − e^(−k × SI))
+</code></pre>
+<p>where <code>SI</code> is the standard interval (§3.3), itself derived from the two core settings:</p>
+<pre><code>SI            = preferredBottleMilkMl / hourlyRate
+hourlyRate    = weightKg × mlPerKgPerDay / 24
+stomachCap    = preferredBottleMilkMl / (1 − e^(−k × preferredBottleMilkMl × 24 / (weightKg × mlPerKgPerDay)))
+</code></pre>
+<p>Both <code>preferredBottleMilkMl</code> and <code>mlPerKgPerDay</code> are user-configurable settings (§9). The stomach cap therefore updates automatically when either the preferred bottle size, the baby's weight, or the clinical target changes.</p>
+<p><strong>Rationale:</strong> Any compensation strategy (giving a larger bottle to recover a deficit) must not stretch the stomach beyond the point it would naturally reach in a perfect preferred-bottle cycle. Using the steady-state peak as the hard ceiling is the tightest physically grounded bound — it permits no more stretch than normal preferred feeding already implies.</p>
+<p><strong>Example values</strong> (default <code>mlPerKgPerDay = 150</code>):</p>
+<table>
+<thead>
+<tr>
+<th>Baby weight</th>
+<th>Preferred bottle</th>
+<th>SI</th>
+<th>Stomach cap</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>4 kg</td>
+<td>90 🍼 (101 ml)</td>
+<td>3h 37m</td>
+<td>~115 ml</td>
+</tr>
+<tr>
+<td>4 kg</td>
+<td>120 🍼 (135 ml)</td>
+<td>4h 50m</td>
+<td>~144 ml</td>
+</tr>
+<tr>
+<td>6 kg</td>
+<td>90 🍼 (101 ml)</td>
+<td>2h 25m</td>
+<td>~121 ml</td>
+</tr>
+<tr>
+<td>6 kg</td>
+<td>120 🍼 (135 ml)</td>
+<td>3h 14m</td>
+<td>~148 ml</td>
+</tr>
+</tbody>
+</table>
+<p>Note: these values differ from the old lookup table. The old table was a coarse approximation (next bottle size up); this formula is derived directly from the feeding model.</p>
+<h3 id="44-when-does-a-given-bottle-size-fit">4.4 When Does a Given Bottle Size Fit?</h3>
+<p>For a bottle of size <code>m_new</code> (formula ml), the earliest time at which it can be given without exceeding the stomach capacity is found by solving:</p>
+<pre><code>stomachLoad(T) + m_new ≤ stomachCapMilk
+</code></pre>
+<p>If this is already satisfied at the current time, the bottle fits now. Otherwise, since <code>stomachLoad</code> decays exponentially:</p>
+<pre><code>stomachLoad(now) × e^(−k × dt) + m_new ≤ stomachCapMilk
+dt_min = −ln((stomachCapMilk − m_new) / stomachLoad(now)) / k
+</code></pre>
+<p>If <code>stomachCapMilk − m_new ≤ 0</code> (the bottle fills the stomach completely), the load must decay to near-zero (&lt; 5 ml), giving a longer wait. Bottle sizes where <code>m_new ≥ stomachCapMilk</code> are never shown — they cannot physically fit.</p>
+<hr />
+<h2 id="5-next-feed-card">5. Next Feed Card</h2>
+<p>The <strong>Next Feed</strong> card is the rhythm anchor. It always shows:</p>
+<ul>
+<li><strong>Time:</strong> <code>T_standard = lastFeed.timestamp + SI</code></li>
+<li><strong>Volume:</strong> the preferred bottle size</li>
+</ul>
+<p>No adjustments for surplus or deficit. This is what the baby expects based on the established feeding rhythm; many parents choose to stick to this regardless of the balance calculations. The Should Take card (§7) handles the corrective view.</p>
+<hr />
+<h2 id="6-status-card">6. Status Card</h2>
+<p>The Status card shows two measurements side by side, updated after every logged feed:</p>
+<h3 id="61-24h-intake-at-last-feed">6.1 24h Intake · At Last Feed</h3>
+<p><code>intake(lastFeed.timestamp)</code> — the smoothed 24h intake frozen at the moment of the last feed. Frozen by design: the app shows the energy state at the last known event, not a number that drifts between feeds.</p>
+<p>Displayed as ml and as a percentage of <code>dailyTarget</code>. The gauge bar runs from 0 to 130% of target; a white marker sits at 100%. Green when within ±5% of target, blue when below, orange when above.</p>
+<h3 id="62-stomach-room-now">6.2 Stomach Room · Now</h3>
+<p><code>stomachCapMilk − stomachLoad(now)</code> — the formula volume currently available in the stomach. This updates live (60-second clock tick), because the stomach empties continuously regardless of when the last feed was logged.</p>
+<p>Displayed as ml free, of-cap ml, and digesting ml. The vessel graphic fills from the bottom: teal-tinted empty space above, amber-to-red digesting load below. Green/teal means room available; orange means filling up; red means very little room left.</p>
+<hr />
+<h2 id="7-should-take-card">7. Should Take Card</h2>
+<p>The <strong>Should Take</strong> card answers: <em>taking into account both the intake balance and the stomach, when should each standard bottle size be given?</em></p>
+<h3 id="71-unified-constraint">7.1 Unified Constraint</h3>
+<p>For each bottle size X, the earliest appropriate time is the <strong>later</strong> of two constraints:</p>
+<pre><code>readyAt(X) = max(stomachReadyAt(X), intakeReadyAt(X))
+</code></pre>
+<p><strong>stomachReadyAt(X):</strong> when has the stomach digested enough to hold X without exceeding the cap? (computed by the formula in §4.4)</p>
+<p><strong>intakeReadyAt(X):</strong> when has the 24h intake decayed low enough that giving X brings it back to the daily target? Formally, find T_B such that:</p>
+<pre><code>intake(T_B) = dailyTarget − milkMl(X)
+</code></pre>
+<p>i.e. intake has decayed to the point where giving X restores it to <code>dailyTarget</code>. If intake is already at or below this threshold, <code>intakeReadyAt = now</code> (underfed case: give as soon as the stomach allows). Found by binary search; capped at 48 hours.</p>
+<h3 id="72-which-sizes-to-show">7.2 Which Sizes to Show</h3>
+<ul>
+<li>Include all standard bottle sizes from 30 🍼 up to and including the preferred bottle size. Sizes above preferred are excluded (the preferred is the ceiling; giving more than preferred is a recovery measure handled by the parent's discretion).</li>
+<li>Exclude any size where <code>milkMl(X) ≥ stomachCapMilk</code> (physically cannot fit).</li>
+<li><strong>Noise-cut rule:</strong> show only from the <strong>largest size available now</strong> upward. If 60 🍼 already fits now, there is no reason to show 30 🍼.</li>
+</ul>
+<h3 id="73-overfed-case">7.3 Overfed Case</h3>
+<p>When the baby is well fed, the intake constraint pushes all sizes into the future — none are available now. The timeline shows all markers to the right of the "now" position, with a note: <em>"Well fed — all sizes available later."</em></p>
+<h3 id="74-display">7.4 Display</h3>
+<p>A horizontal timeline spans from now to the furthest <code>readyAt</code> time. Each bottle size is a marker (dot + tick) on the line, positioned proportionally to its <code>readyAt</code> time. The bottle size (e.g. <code>60 🍼</code>) is labelled above the marker; the clock time and relative time (e.g. <code>14:32 · in 23m</code>) are below. Available-now markers are green; future markers are rose-coloured.</p>
+<h3 id="75-relationship-to-next-feed">7.5 Relationship to Next Feed</h3>
+<p>At equilibrium (baby on track, regular feeds): <code>intakeReadyAt(preferred) = T_standard</code>, so the preferred bottle marker on the Should Take timeline aligns with the Next Feed time. When they diverge, it is meaningful: Next Feed anchors to the rhythm; Should Take reflects the correction.</p>
+<hr />
+<h2 id="8-edge-cases">8. Edge Cases</h2>
+<h3 id="81-no-feed-history">8.1 No Feed History</h3>
+<p>Both intake and stomachLoad are zero. Should Take shows all sizes available now. Next Feed shows a time based on an assumed last feed of "now". The Status card shows 0 ml intake (0%) and full stomach room.</p>
+<h3 id="82-long-gap-24h-since-last-feed">8.2 Long Gap (&gt; 24h Since Last Feed)</h3>
+<p><code>intake(now)</code> approaches zero. The Status card shows 0% intake. Should Take shows all sizes immediately available. The app surfaces a note: <em>"Long gap detected — if the baby has been unwell, resume normal feeding gradually."</em></p>
+<h3 id="83-deficit-larger-than-one-bottle-can-cover">8.3 Deficit Larger Than One Bottle Can Cover</h3>
+<p>When the intake-optimal volume at T_standard exceeds the stomach cap, Predictor A is not directly surfaced (it has been replaced by the Should Take approach). The Should Take card naturally handles this: only sizes that actually fit in the stomach are shown, ordered by when they can be given.</p>
+<h3 id="84-very-early-re-feed">8.4 Very Early Re-feed</h3>
+<p>If the parent logs a new feed very shortly after the previous one (e.g. the baby resumed a split feed), the stomach capacity constraint ensures the next markers on Should Take cannot be before the stomach is ready.</p>
+<h3 id="85-different-bottle-sizes-in-history">8.5 Different Bottle Sizes in History</h3>
+<p>The <code>intake()</code> function uses each feed's actual formula ml, so mixed bottle sizes in history are handled correctly. The predictors always target the current <code>preferredBottleMilkMl</code> setting. Changing the preferred size in settings immediately updates the Should Take timeline and the Next Feed card.</p>
+<h3 id="86-why-the-gap-between-bottle-sizes-grows-when-the-baby-is-underfed">8.6 Why the Gap Between Bottle Sizes Grows When the Baby is Underfed</h3>
+<p><strong>Intuition:</strong> The stomach empties exponentially. At high stomach load, decay is fast — 30 ml disappears quickly. At low stomach load, the same 30 ml takes much longer. So when the stomach is already nearly empty, waiting for even a modest amount of additional room takes disproportionately long.</p>
+<p><strong>Worked example (screenshot, July 2026):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Preferred bottle</td>
+<td>120 🍼 (137 ml milk)</td>
+</tr>
+<tr>
+<td>Baby weight</td>
+<td>~5.5 kg</td>
+</tr>
+<tr>
+<td>Stomach cap</td>
+<td>~146 ml milk</td>
+</tr>
+<tr>
+<td>Stomach load at observation time</td>
+<td>63 ml milk</td>
+</tr>
+<tr>
+<td>Stomach room available</td>
+<td>91 ml milk</td>
+</tr>
+<tr>
+<td>24h intake at last feed</td>
+<td>−376 ml (severely underfed)</td>
+</tr>
+</tbody>
+</table>
+<p>The 90 🍼 bottle (101 ml milk) fits immediately: 63 + 101 = 164 ml, which is within the cap + 10% buffer (161 ml).</p>
+<p>The 120 🍼 bottle (137 ml milk) does not fit: 63 + 137 = 200 ml, exceeds the 161 ml effective cap by 39 ml.</p>
+<p>The stomach must decay from 63 ml down to ~24 ml before the 120 🍼 bottle can be given:</p>
+<pre><code>remainder = cap − m_new = 146 − 137 = 9 ml (without buffer)
+dt = ln(63 / 9) / k = ln(7) / 0.693 × 60 min ≈ 105 min
+</code></pre>
+<p>With the 10% buffer applied (<code>cap × 1.1 = 161 ml</code>):</p>
+<pre><code>remainder = 161 − 137 = 24 ml
+dt = ln(63 / 24) / 0.693 × 60 min ≈ 53 min
+</code></pre>
+<p>This matches the timeline exactly: the 90 🍼 shows <em>now</em>, the 120 🍼 shows <em>in ~53 min</em>.</p>
+<p><strong>Why the gap seems large despite a small decay target:</strong></p>
+<p>A parent might expect that if the stomach only needs to shed ~39 ml of load, and 30 ml takes ~27 minutes at full cap, then 39 ml should take around 35 minutes. That reasoning applies only at the top of the decay curve, where decay is fastest. At 63 ml load — far from the cap — the exponential has slowed considerably. The same 39 ml shed now takes 53 minutes, not 35.</p>
+<p>This is not a bug. It is the correct, physiologically grounded behaviour of exponential gastric emptying. The gap between bottle sizes on the timeline accurately reflects how long the stomach actually needs — and that gap widens the more the stomach has already emptied.</p>
+<p><strong>Key takeaway:</strong> The minimum label-spacing heuristic on the Should Take timeline ("30 ml decay time from cap") is a display minimum, not a physical prediction. When the stomach is well below cap, real gaps between sizes will be larger than this minimum, and this is physically correct.</p>
+<hr />
+<h2 id="9-settings">9. Settings</h2>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>weightKg</code></td>
+<td>—</td>
+<td>Baby weight in kg; kept in sync with weight history</td>
+</tr>
+<tr>
+<td><code>mlPerKgPerDay</code></td>
+<td>150</td>
+<td>Daily target formula per kg</td>
+</tr>
+<tr>
+<td><code>preferredBottleWaterMl</code></td>
+<td>90</td>
+<td>Parent's preferred bottle size (water ml)</td>
+</tr>
+<tr>
+<td><code>yellowThresholdPct</code></td>
+<td>5</td>
+<td>Status gauge on-track band (±% of target)</td>
+</tr>
+<tr>
+<td><code>redThresholdPct</code></td>
+<td>10</td>
+<td>Status gauge warning band</td>
+</tr>
+<tr>
+<td><code>timeFormat</code></td>
+<td>24h</td>
+<td>Clock display format</td>
+</tr>
+<tr>
+<td><code>dateOfBirthMs</code></td>
+<td>—</td>
+<td>Baby's date of birth (enables WHO z-score model)</td>
+</tr>
+<tr>
+<td><code>sex</code></td>
+<td>—</td>
+<td>Baby's sex M/F (enables WHO z-score model)</td>
+</tr>
+</tbody>
+</table>
+<p>The stomach capacity is not a direct user setting; it is derived automatically from <code>preferredBottleWaterMl</code>, <code>weightKg</code>, and <code>mlPerKgPerDay</code> using the steady-state peak formula in §4.3. Changing any of these three settings immediately updates the cap.</p>
+<hr />
+<h2 id="10-key-design-decisions">10. Key Design Decisions</h2>
+<table>
+<thead>
+<tr>
+<th>Decision</th>
+<th>Rationale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>24h rolling window, not all-time balance</td>
+<td>Aligns with the clinical guideline; does not try to compensate for illness-era underfeeding; naturally forgets</td>
+</tr>
+<tr>
+<td>Smoothed credit decay past 24h</td>
+<td>Avoids cliff-edge drops when old bottles exit the window; <code>hourlyRate</code> as decay rate mirrors energy consumption rate</td>
+</tr>
+<tr>
+<td>Next Feed = rhythm anchor, no adjustments</td>
+<td>Parents who feed by schedule get a clean, unambiguous next time; corrections are separate (Should Take)</td>
+</tr>
+<tr>
+<td>Should Take = unified stomach + intake constraint</td>
+<td>Both physical and nutritional constraints applied together; no contradictory advice between cards</td>
+</tr>
+<tr>
+<td>Preferred-only ceiling for Should Take</td>
+<td>Giving more than the preferred bottle is outside the app's core advisory role; the parent can always choose to give a larger bottle based on the stomach room shown in the Status card</td>
+</tr>
+<tr>
+<td>Noise-cut: show only from largest-available-now upward</td>
+<td>Smaller available sizes are superseded; showing them is noise</td>
+</tr>
+<tr>
+<td>Stomach cap = steady-state peak of preferred bottle cycle</td>
+<td>Physically grounded: cap equals the highest load the stomach naturally reaches in a perfect preferred cycle; derived from <code>preferredBottleMilkMl</code>, <code>weightKg</code>, and <code>mlPerKgPerDay</code> — no lookup table, no arbitrary multiplier</td>
+</tr>
+<tr>
+<td>Gastric emptying: exponential, t½ = 60 min</td>
+<td>Clinical standard (scintigraphy/ultrasound studies); conservative central estimate within 45–65 min clinical range</td>
+</tr>
+<tr>
+<td>Status card frozen at last feed for intake; live for stomach</td>
+<td>Intake at last feed is the meaningful snapshot (display principle); stomach room should always reflect right now</td>
+</tr>
+<tr>
+<td>WHO LMS z-score for weight prediction</td>
+<td>Globally validated reference (WHO 2006); automatic target growth without manual weight updates</td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>

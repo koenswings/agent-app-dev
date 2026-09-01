@@ -1,0 +1,29 @@
+<svg width="580" height="240" xmlns="http://www.w3.org/2000/svg" style="background:#ffffff;border:1px solid #ccc;border-radius:4px;display:block;margin:12px 0;">
+  <!-- All-time balance — perfect rhythm -->
+  <text x="313" y="14" font-size="9.5" fill="#444" font-family="DejaVu Sans" text-anchor="middle" font-style="italic">All-time balance — perfect rhythm (6.9 kg, 90 ml water / 100 ml milk)</text>
+  <line x1="68.0" y1="16" x2="68.0" y2="180" stroke="#222" stroke-width="2" stroke-linecap="round"/>
+  <polygon points="68.0,14 64.0,26 72.0,26" fill="#222"/>
+  <line x1="66.0" y1="178" x2="564" y2="178" stroke="#222" stroke-width="2" stroke-linecap="round"/>
+  <polygon points="566,178 556,174 556,182" fill="#222"/>
+  <text x="12" y="100" font-size="10" fill="#555" font-family="DejaVu Sans" transform="rotate(-90,12,100)" text-anchor="middle">balance (ml)</text>
+  <text x="568" y="182" font-size="9" fill="#666" font-family="DejaVu Sans">time</text>
+  <line x1="68.0" y1="155.7" x2="558.0" y2="155.7" stroke="#888" stroke-width="1.3" stroke-dasharray="4,3"/>
+  <text x="543.3" y="152.7" font-size="9" fill="#888" font-family="DejaVu Sans" text-anchor="end">balance = 0</text>
+  <polyline points="68.0,155.7 80.8,155.7 80.8,44.3 229.2,155.7 229.2,44.3 377.6,155.7 377.6,44.3 526.0,155.7 526.0,44.3 558.0,68.3" stroke="#2c8a50" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="80.8" cy="44.3" r="4" fill="#2c8a50" stroke="white" stroke-width="1.2"/>
+  <text x="80.8" y="192.0" font-size="9.5" fill="#333" font-family="DejaVu Sans" text-anchor="middle">F1</text>
+  <circle cx="229.2" cy="44.3" r="4" fill="#2c8a50" stroke="white" stroke-width="1.2"/>
+  <text x="229.2" y="192.0" font-size="9.5" fill="#333" font-family="DejaVu Sans" text-anchor="middle">F2</text>
+  <circle cx="377.6" cy="44.3" r="4" fill="#2c8a50" stroke="white" stroke-width="1.2"/>
+  <text x="377.6" y="192.0" font-size="9.5" fill="#333" font-family="DejaVu Sans" text-anchor="middle">F3</text>
+  <circle cx="526.0" cy="44.3" r="4" fill="#2c8a50" stroke="white" stroke-width="1.2"/>
+  <text x="526.0" y="192.0" font-size="9.5" fill="#333" font-family="DejaVu Sans" text-anchor="middle">F4</text>
+  <line x1="64.0" y1="155.7" x2="72.0" y2="155.7" stroke="#555" stroke-width="1"/>
+  <text x="62.0" y="159.7" font-size="9" fill="#555" font-family="DejaVu Sans" text-anchor="end">0</text>
+  <line x1="64.0" y1="44.3" x2="72.0" y2="44.3" stroke="#555" stroke-width="1"/>
+  <text x="62.0" y="48.3" font-size="9" fill="#555" font-family="DejaVu Sans" text-anchor="end">+100</text>
+  <line x1="80.8" y1="171.7" x2="229.2" y2="171.7" stroke="#9a7a40" stroke-width="1.2"/>
+  <line x1="80.8" y1="168.7" x2="80.8" y2="174.7" stroke="#9a7a40" stroke-width="1.2"/>
+  <line x1="229.2" y1="168.7" x2="229.2" y2="174.7" stroke="#9a7a40" stroke-width="1.2"/>
+  <text x="155.0" y="182.7" font-size="8.5" fill="#9a7a40" font-family="DejaVu Sans" text-anchor="middle">SI = 2h 19m</text>
+</svg>

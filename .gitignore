@@ -1,0 +1,29 @@
+# Node
+node_modules/
+dist/
+
+# App repos cloned for work
+apps/app-kolibri/
+apps/app-kiwix/
+apps/app-nextcloud/
+apps/app-kolibri-studio/
+apps/app-seafile/
+
+# varia — separate repos, not tracked here
+varia/baby-milk-tracker/
+varia/milkwise/
+
+# app-milkwise is a separate repo
+apps/app-milkwise/
+
+# app-harness is a separate repo
+apps/app-harness/
+
+# Expo/React Native secrets
+varia/milkwise/AuthKey_*.p8
+varia/milkwise/.env.local
+varia/baby-milk-tracker/.env.local
+
+# Temp / generated
+tmp/
+*.log

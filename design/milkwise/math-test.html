@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @page { margin: 28mm 22mm 28mm 22mm; }
+  body {
+    font-family: 'DejaVu Serif', Georgia, serif;
+    font-size: 11pt;
+    line-height: 1.7;
+    color: #1a1a1a;
+    margin: 0;
+  }
+  h1 { font-size: 17pt; margin-bottom: 4px; font-weight: bold; }
+  h2 { font-size: 13pt; margin-top: 28px; margin-bottom: 6px; border-bottom: 1px solid #ccc; padding-bottom: 3px; }
+  h3 { font-size: 11pt; margin-top: 18px; margin-bottom: 4px; font-style: italic; }
+  p  { margin: 8px 0; }
+  .subtitle { font-size: 10pt; color: #666; font-style: italic; margin-bottom: 24px; }
+  .def-box {
+    background: #f7f7f7;
+    border-left: 3px solid #2c7be5;
+    padding: 10px 16px;
+    margin: 16px 0;
+    border-radius: 0 4px 4px 0;
+  }
+  math[display="block"] {
+    display: block;
+    margin: 14px auto;
+    text-align: center;
+  }
+  .label {
+    font-size: 9pt;
+    color: #666;
+    text-align: center;
+    display: block;
+    margin-top: -10px;
+    margin-bottom: 12px;
+  }
+  code {
+    font-family: 'DejaVu Sans Mono', monospace;
+    font-size: 9.5pt;
+    background: #f0f0f0;
+    padding: 1px 4px;
+    border-radius: 3px;
+  }
+  table { border-collapse: collapse; margin: 12px 0; font-size: 10pt; }
+  th, td { border: 1px solid #ccc; padding: 5px 12px; }
+  th { background: #f0f0f0; }
+</style>
+</head>
+<body>
+
+<h1>Next Feeding Session Predictor</h1>
+<p class="subtitle">Design Document v3 — Mathematical Formulae Preview &nbsp;·&nbsp; Kit + Koen &nbsp;·&nbsp; 2026-06-28</p>
+
+<p>This document shows how the key mathematical definitions of the predictor look when typeset in a LaTeX-style formula layout. All formulae are exact; the prose around them is excerpted from the full design document.</p>
+
+<!-- ═══════════════════════════════════════════
+     §1: Energy model
+     ═══════════════════════════════════════════ -->
+
+<h2>§1 &nbsp; The Energy Model</h2>
+
+<p>The baby's daily nutritional need is derived from the paediatric guideline of 150 ml of prepared formula per kilogram of body weight per 24 hours. This gives a constant hourly drain rate:</p>
+
+<div class="def-box">
+<math display="block">
+  <mrow>
+    <msub><mi>D</mi><mi>target</mi></msub>
+    <mo>=</mo>
+    <msub><mi>w</mi><mi>kg</mi></msub>
+    <mo>&InvisibleTimes;</mo>
+    <mi>r</mi>
+    <mspace width="2em"/>
+    <mtext>(ml / 24 h)</mtext>
+  </mrow>
+</math>
+<math display="block">
+  <mrow>
+    <mi>&#x03BB;</mi>
+    <mo>=</mo>
+    <mfrac>
+      <msub><mi>D</mi><mi>target</mi></msub>
+      <mn>24</mn>
+    </mfrac>
+    <mspace width="2em"/>
+    <mtext>(ml / h,&nbsp; constant)</mtext>
+  </mrow>
+</math>
+<span class="label">where <math><msub><mi>w</mi><mi>kg</mi></msub></math> is the baby's weight in kg and <math><mi>r</mi><mo>=</mo><mn>150</mn></math> ml/kg/day (default). For a 6.9 kg baby: <math><msub><mi>D</mi><mi>target</mi></msub><mo>=</mo><mn>1035</mn></math> ml, <math><mi>&#x03BB;</mi><mo>=</mo><mn>43.1</mn></math> ml/h.</span>
+</div>
+
+<p>Prepared milk is used as the direct proxy for caloric energy: 1 ml of prepared milk = 1 unit of energy. The standard interval — the time for one preferred bottle to be "spent" at rate <math><mi>&#x03BB;</mi></math> — is:</p>
+
+<math display="block">
+  <mrow>
+    <mi>SI</mi>
+    <mo>=</mo>
+    <mfrac>
+      <msub><mi>m</mi><mi>bottle</mi></msub>
+      <mi>&#x03BB;</mi>
+    </mfrac>
+    <mspace width="2em"/>
+    <mtext>(hours)</mtext>
+  </mrow>
+</math>
+<span class="label">For a 90 ml water / 100 ml prepared milk bottle at 43.1 ml/h: <math><mi>SI</mi><mo>&#x2248;</mo><mn>2</mn><mtext>h</mtext><mn>19</mn><mtext>m</mtext></math>.</span>
+
+
+<!-- ═══════════════════════════════════════════
+     §2: Intake function
+     ═══════════════════════════════════════════ -->
+
+<h2>§2 &nbsp; The 24-Hour Intake Function</h2>
+
+<p>Rather than tracking an all-time running balance, the app tracks the total milk received within a rolling 24-hour window. The credit contributed by a bottle of volume <math><msub><mi>m</mi><mi>i</mi></msub></math> given at time <math><msub><mi>t</mi><mi>i</mi></msub></math>, evaluated at time <math><mi>T</mi></math>, is:</p>
+
+<div class="def-box">
+<math display="block">
+  <mrow>
+    <mtext>credit</mtext>
+    <mfenced>
+      <mrow><mi>T</mi><mo>&#x2212;</mo><msub><mi>t</mi><mi>i</mi></msub></mrow>
+      <msub><mi>m</mi><mi>i</mi></msub>
+    </mfenced>
+    <mo>=</mo>
+    <mfenced open="{" close="">
+      <mtable columnalign="left left">
+        <mtr>
+          <mtd><msub><mi>m</mi><mi>i</mi></msub></mtd>
+          <mtd><mtext>if&nbsp;</mtext><mi>T</mi><mo>&#x2212;</mo><msub><mi>t</mi><mi>i</mi></msub><mo>&#x2264;</mo><mn>24</mn><mtext>&nbsp;h</mtext></mtd>
+        </mtr>
+        <mtr>
+          <mtd>
+            <mo>max</mo>
+            <mfenced>
+              <mn>0</mn>
+              <mrow>
+                <msub><mi>m</mi><mi>i</mi></msub>
+                <mo>&#x2212;</mo>
+                <mi>&#x03BB;</mi>
+                <mo>&InvisibleTimes;</mo>
+                <mfenced>
+                  <mrow><mi>T</mi><mo>&#x2212;</mo><msub><mi>t</mi><mi>i</mi></msub><mo>&#x2212;</mo><mn>24</mn></mrow>
+                </mfenced>
+              </mrow>
+            </mfenced>
+          </mtd>
+          <mtd><mtext>if&nbsp;</mtext><mi>T</mi><mo>&#x2212;</mo><msub><mi>t</mi><mi>i</mi></msub><mo>&gt;</mo><mn>24</mn><mtext>&nbsp;h</mtext></mtd>
+        </mtr>
+      </mtable>
+    </mfenced>
+  </mrow>
+</math>
+</div>
+
+<p>The total smoothed 24-hour intake at time <math><mi>T</mi></math> is the sum over all feeds logged before <math><mi>T</mi></math>:</p>
+
+<math display="block">
+  <mrow>
+    <mi>intake</mi>
+    <mo>(</mo><mi>T</mi><mo>)</mo>
+    <mo>=</mo>
+    <munderover>
+      <mo>&#x2211;</mo>
+      <mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow>
+      <mi>n</mi>
+    </munderover>
+    <mtext>credit</mtext>
+    <mfenced>
+      <mrow><mi>T</mi><mo>&#x2212;</mo><msub><mi>t</mi><mi>i</mi></msub></mrow>
+      <msub><mi>m</mi><mi>i</mi></msub>
+    </mfenced>
+  </mrow>
+</math>
+
+<p>The decay rate past 24 h is exactly <math><mi>&#x03BB;</mi></math> — the same rate at which the baby consumes energy. This choice is not arbitrary: it means that a bottle's contribution to the 24-hour window diminishes at exactly the speed at which its nutritional value is consumed. In steady-state feeding, the net change per interval is zero, and intake oscillates between <math><msub><mi>D</mi><mi>target</mi></msub></math> and <math><msub><mi>D</mi><mi>target</mi></msub><mo>+</mo><msub><mi>m</mi><mi>bottle</mi></msub></math>.</p>
+
+
+<!-- ═══════════════════════════════════════════
+     §3: Predictor A
+     ═══════════════════════════════════════════ -->
+
+<h2>§3 &nbsp; Predictor A — Adjusted Volume at Standard Time</h2>
+
+<p>Predictor A answers: <em>"if I feed at the standard time SI after the last feed, how much should I give?"</em> It solves for the volume that restores intake to the equilibrium peak <math><msub><mi>D</mi><mi>target</mi></msub><mo>+</mo><msub><mi>m</mi><mi>bottle</mi></msub></math>.</p>
+
+<div class="def-box">
+<math display="block">
+  <mrow>
+    <msub><mi>T</mi><mi>A</mi></msub>
+    <mo>=</mo>
+    <msub><mi>t</mi><mtext>last</mtext></msub>
+    <mo>+</mo>
+    <mi>SI</mi>
+  </mrow>
+</math>
+<math display="block">
+  <mrow>
+    <msub><mi>V</mi><mi>A</mi></msub>
+    <mo>=</mo>
+    <mfenced>
+      <mrow>
+        <msub><mi>D</mi><mi>target</mi></msub>
+        <mo>+</mo>
+        <msub><mi>m</mi><mi>bottle</mi></msub>
+      </mrow>
+    </mfenced>
+    <mo>&#x2212;</mo>
+    <mi>intake</mi>
+    <mo>(</mo><msub><mi>T</mi><mi>A</mi></msub><mo>)</mo>
+  </mrow>
+</math>
+<span class="label">
+  <math><msub><mi>V</mi><mi>A</mi></msub></math> is converted to water ml via the inverse of the water→milk table and shown to the parent.
+  At equilibrium: <math><mi>intake</mi><mo>(</mo><msub><mi>T</mi><mi>A</mi></msub><mo>)</mo><mo>=</mo><msub><mi>D</mi><mi>target</mi></msub></math>,
+  so <math><msub><mi>V</mi><mi>A</mi></msub><mo>=</mo><msub><mi>m</mi><mi>bottle</mi></msub></math> — the standard bottle.
+</span>
+</div>
+
+<p>If <math><msub><mi>V</mi><mi>A</mi></msub><mo>&#x2264;</mo><mn>0</mn></math>, the baby is still above the equilibrium ceiling at the standard time — Predictor A is greyed out and Predictor B takes over. If <math><msub><mi>V</mi><mi>A</mi></msub><mo>&gt;</mo><msub><mi>m</mi><mi>cap</mi></msub></math>, the value is capped at the stomach capacity limit (§5).</p>
+
+
+<!-- ═══════════════════════════════════════════
+     §4: Predictor B
+     ═══════════════════════════════════════════ -->
+
+<h2>§4 &nbsp; Predictor B — Standard Volume at Adjusted Time</h2>
+
+<p>Predictor B answers: <em>"when should I give my preferred standard bottle?"</em> It finds the time <math><msub><mi>T</mi><mi>B</mi></msub></math> at which the 24-hour intake has decayed back to exactly the daily target, so that adding one standard bottle restores intake to the equilibrium peak:</p>
+
+<div class="def-box">
+<math display="block">
+  <mrow>
+    <mi>intake</mi>
+    <mo>(</mo><msub><mi>T</mi><mi>B</mi></msub><mo>)</mo>
+    <mo>=</mo>
+    <msub><mi>D</mi><mi>target</mi></msub>
+  </mrow>
+</math>
+<span class="label">Feed when the 24-hour intake returns to <math><msub><mi>D</mi><mi>target</mi></msub></math>. Adding <math><msub><mi>m</mi><mi>bottle</mi></msub></math> then restores intake to <math><msub><mi>D</mi><mi>target</mi></msub><mo>+</mo><msub><mi>m</mi><mi>bottle</mi></msub></math>.</span>
+</div>
+
+<p><math><msub><mi>T</mi><mi>B</mi></msub></math> is found by binary search on the interval <math><mo>[</mo><msub><mi>t</mi><mtext>last</mtext></msub><mo>,</mo><msub><mi>t</mi><mtext>last</mtext></msub><mo>+</mo><msub><mi>T</mi><mi>max</mi></msub><mo>]</mo></math>, where <math><msub><mi>T</mi><mi>max</mi></msub></math> is the search horizon (default 48 h). Three cases:</p>
+
+<table>
+  <tr><th>Condition</th><th>Result</th><th>Meaning</th></tr>
+  <tr>
+    <td><math><mi>intake</mi><mo>(</mo><msub><mi>t</mi><mtext>last</mtext></msub><mo>)</mo><mo>&#x2264;</mo><msub><mi>D</mi><mi>target</mi></msub></math></td>
+    <td><math><msub><mi>T</mi><mi>B</mi></msub><mo>=</mo><msub><mi>t</mi><mtext>last</mtext></msub></math></td>
+    <td>Feed now — baby is at or below target</td>
+  </tr>
+  <tr>
+    <td><math><mi>intake</mi><mo>(</mo><msub><mi>T</mi><mi>max</mi></msub><mo>)</mo><mo>&gt;</mo><msub><mi>D</mi><mi>target</mi></msub></math></td>
+    <td><math><msub><mi>T</mi><mi>B</mi></msub><mo>=</mo><msub><mi>T</mi><mi>max</mi></msub></math></td>
+    <td>Still in surplus at horizon — cap applies</td>
+  </tr>
+  <tr>
+    <td>otherwise</td>
+    <td>binary search</td>
+    <td>until <math><mo>|</mo><mi>intake</mi><mo>(</mo><msub><mi>T</mi><mi>B</mi></msub><mo>)</mo><mo>&#x2212;</mo><msub><mi>D</mi><mi>target</mi></msub><mo>|</mo><mo>&lt;</mo><mn>1</mn><mtext> ml</mtext></math></td>
+  </tr>
+</table>
+
+<p>At equilibrium <math><msub><mi>T</mi><mi>B</mi></msub><mo>=</mo><msub><mi>t</mi><mtext>last</mtext></msub><mo>+</mo><mi>SI</mi></math> — the standard rhythm. With a deficit, <math><msub><mi>T</mi><mi>B</mi></msub><mo>&lt;</mo><msub><mi>t</mi><mtext>last</mtext></msub><mo>+</mo><mi>SI</mi></math>; with a surplus, <math><msub><mi>T</mi><mi>B</mi></msub><mo>&gt;</mo><msub><mi>t</mi><mtext>last</mtext></msub><mo>+</mo><mi>SI</mi></math>.</p>
+
+
+<!-- ═══════════════════════════════════════════
+     §5: Stomach capacity
+     ═══════════════════════════════════════════ -->
+
+<h2>§5 &nbsp; Stomach Capacity Constraint</h2>
+
+<p>The total undigested milk in the stomach at time <math><mi>T</mi></math> — the milk not yet metabolised — is modelled as:</p>
+
+<math display="block">
+  <mrow>
+    <msub><mi>S</mi><mi>load</mi></msub>
+    <mo>(</mo><mi>T</mi><mo>)</mo>
+    <mo>=</mo>
+    <munderover>
+      <mo>&#x2211;</mo>
+      <mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow>
+      <mi>n</mi>
+    </munderover>
+    <mo>max</mo>
+    <mfenced>
+      <mn>0</mn>
+      <mrow>
+        <msub><mi>m</mi><mi>i</mi></msub>
+        <mo>&#x2212;</mo>
+        <mi>&#x03BB;</mi>
+        <mo>&InvisibleTimes;</mo>
+        <mfenced><mrow><mi>T</mi><mo>&#x2212;</mo><msub><mi>t</mi><mi>i</mi></msub></mrow></mfenced>
+      </mrow>
+    </mfenced>
+  </mrow>
+</math>
+
+<p>The constraint is that the stomach load immediately after a feed must not exceed the capacity <math><msub><mi>m</mi><mi>cap</mi></msub></math> (one standard bottle size up from preferred). This gives a minimum elapsed time before the next feed:</p>
+
+<math display="block">
+  <mrow>
+    <msub><mi>&#x0394;t</mi><mi>min</mi></msub>
+    <mo>=</mo>
+    <mo>max</mo>
+    <mfenced>
+      <mn>0</mn>
+      <mfrac>
+        <mrow>
+          <msub><mi>m</mi><mtext>last</mtext></msub>
+          <mo>+</mo>
+          <msub><mi>m</mi><mi>bottle</mi></msub>
+          <mo>&#x2212;</mo>
+          <msub><mi>m</mi><mi>cap</mi></msub>
+        </mrow>
+        <mi>&#x03BB;</mi>
+      </mfrac>
+    </mfenced>
+  </mrow>
+</math>
+<span class="label">For a 6.9 kg baby with 90 ml water (100 ml milk) preferred bottle and stomach cap of 135 ml:
+  <math>
+    <msub><mi>&#x0394;t</mi><mi>min</mi></msub>
+    <mo>=</mo>
+    <mfrac><mrow><mn>100</mn><mo>+</mo><mn>100</mn><mo>&#x2212;</mo><mn>135</mn></mrow><mn>43.1</mn></mfrac>
+    <mo>&#x2248;</mo>
+    <mn>1</mn><mtext>h </mtext><mn>30</mn><mtext>m</mtext>
+  </math>
+</span>
+
+<p>If Predictor B's <math><msub><mi>T</mi><mi>B</mi></msub></math> falls before <math><msub><mi>t</mi><mtext>last</mtext></msub><mo>+</mo><msub><mi>&#x0394;t</mi><mi>min</mi></msub></math>, it is clamped upward with a note: <em>"Stomach not ready — baby is underfed but needs time to digest."</em></p>
+
+</body>
+</html>
