@@ -276,6 +276,36 @@ Both intake and stomachLoad are zero. Should Take shows all sizes available now.
 
 When the intake-optimal volume at T_standard exceeds the stomach cap, Predictor A is not directly surfaced (it has been replaced by the Should Take approach). The Should Take card naturally handles this: only sizes that actually fit in the stomach are shown, ordered by when they can be given.
 
+### 8.7 Deep Deficit — Bottle Cannot Restore 100% Status (⚠️ KNOWN ISSUE — requires fix)
+
+**Observed:** 2026-09-01. Baby had a 250 ml deficit at 15:00. The preferred bottle is 120 🍼 (~135 ml formula). Adding 135 ml to I=960 ml gives 1095 ml, still well below D=1210.5 ml. The app proposed a feed time of ~18:15 (stomach/intake constraint), but at that time the status screen would only show ~89%, not 100%.
+
+Koen fed at 17:55 and the status showed 100% — because by 17:55 enough earlier feeds had dropped out of the 24h rolling window, reducing the effective `I(T)` such that 120 ml was finally sufficient to reach `D`.
+
+**Root cause:** The current `intakeReadyAt` definition assumes that bottle size X can always bring intake back to `dailyTarget`. It returns `now` when `I(T) < dailyTarget − milkMl(X)` (underfed case). But this is only correct when `milkMl(X) >= dailyTarget − I(T)`. When the deficit exceeds the bottle size, the formula silently falls back to stomach-readiness alone — and proposes a time that will NOT result in 100% status.
+
+**Required behaviour (Koen, 2026-09-01):** The timeline must show, for each bottle size X, the **earliest time at which feeding X results in the status screen showing 100%** (i.e. `I(T_feed) + milkMl(X) >= dailyTarget`). This is the only semantically meaningful time to show.
+
+**Correct algorithm for `intakeReadyAt(X)`:**
+
+```
+intakeReadyAt(X):
+  needed = dailyTarget − milkMl(X)   // intake must be <= this for X to reach 100%
+  if I(now) <= needed:
+    return now                         // X already covers the remaining deficit
+  else:
+    // I(now) > needed: either overfed, OR deficit > bottle size (I < D but I > needed)
+    // Must wait for I(T) to decay (via feeds dropping out of 24h window) until I(T) <= needed
+    binary search for T such that I(T) = needed
+    return T
+```
+
+Note: when the deficit exceeds the bottle size (`I(now) < D` but `I(now) > D - milkMl(X)`), the baby IS underfed — but the bottle is too small to close the gap alone. The correct response is NOT `now`; it is: wait until enough old feeds drop out of the 24h window such that the bottle finally tips the balance to 100%.
+
+**Implementation note:** `I(T)` is not a smooth exponential — it is a step function that drops discretely when old feeds exit the 24h window. The binary search must account for this: evaluate `I(T)` by summing only feeds within the `[T − 24h, T]` window at the candidate time T.
+
+**Priority:** High. This misleads parents into waiting longer than necessary, or feeding at a time where the status screen does not confirm 100% as expected.
+
 ### 8.4 Very Early Re-feed
 
 If the parent logs a new feed very shortly after the previous one (e.g. the baby resumed a split feed), the stomach capacity constraint ensures the next markers on Should Take cannot be before the stomach is ready.
