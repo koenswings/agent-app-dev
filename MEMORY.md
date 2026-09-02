@@ -250,6 +250,51 @@ The engine assigns the external `${port}` via `.env`. The internal port is fixed
 
 ---
 
+## iOS / TestFlight setup (completed 2026-09-01)
+
+- Apple Developer account: `koen.swings@me.com`
+- Bundle ID: `com.koenswings.milkwise`, ASC App ID: `6796410350`
+- `.p8` key: ID `HYRJUKYMTB`, Issuer `a0b17ef9-b9bc-4c4d-9b27-074fe6587570`, file: `varia/milkwise/AuthKey_HYRJUKYMTB.p8`
+- EAS credentials managed by EAS (dist cert + provisioning profile, valid to Jul 2027)
+- `eas.json` submit block configured with Apple API key
+- Build 3 in TestFlight (build number 3, v1.0.0, preview profile)
+- **TestFlight email invite issue:** Koen not receiving invite emails. Workaround: public link via External Testing group, or Apple Configurator 2 sideload.
+- To re-run EAS build: `EXPO_TOKEN=gDC-sqF9kLgF-k4jfuPzWdQRE-AuUoyBWpFqwItQ EXPO_APPLE_ID=koen.swings@me.com eas build --platform ios --profile preview --non-interactive`
+- To submit: use Transporter on Mac (EAS submit had outage issues)
+
+---
+
+## agent-app-dev git repo (set up 2026-09-01)
+
+Workspace is now a proper git repo pointing to `koenswings/agent-app-dev`.
+- All design docs, identity files, memory tracked there
+- The `idea` monorepo gitignores `agents/` — agent workspaces need their own repos
+- Push after any significant session: `cd /home/pi/idea/agents/agent-app-dev && git add -A && git commit -m "..." && git push origin main`
+
+---
+
+## Ghost marker correctness rule (2026-09-01, hard-won)
+
+Ghost markers on the feeding timeline must:
+1. Use `lastFeed.timestamp` as reference (NOT `now`)
+2. Threshold: `D × 1.005 - milkMl - 0.1` (NOT `D - milkMl`) — Math.round boundary
+3. Return `Math.ceil(hi / 60_000) * 60_000` — ceil to full minute, not midpoint
+
+All three are required. Missing any one causes the displayed time to show 101% instead of 100%.
+
+---
+
+## iOS dashboard rewrite (v1.1.0, build 4, 2026-09-02)
+
+- Full DashboardScreen.tsx rewrite matching web app layout
+- StatusCard: combined intake + stomach, frozen at lastFeed.timestamp
+- FeedingTimeline: react-native-svg scrollable SVG with ghost/advised/future markers
+- store.ts: `USE_API = API_URL.length > 0` (production builds use Pi API)
+- WHO weight model NOT ported to RN — uses `weightKg × mlPerKgPerDay` directly
+- app.json: version 1.1.0, buildNumber 4
+
+---
+
 ## Version bump rule (non-negotiable, 2026-06-18)
 
 Every deploy MUST bump the version in TWO places:
