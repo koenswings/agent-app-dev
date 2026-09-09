@@ -273,6 +273,20 @@ Workspace is now a proper git repo pointing to `koenswings/agent-app-dev`.
 
 ---
 
+## Ghost marker ordering rule (2026-09-09, bug fix)
+
+Ghost markers must appear in ascending bottle-size order (30ml before 60ml before 90ml before 120ml before 150ml) — always. After computing all ghost times, enforce monotonicity: each size's ghost time must be ≥ the previous smaller size's ghost time. Without this, 150ml can appear before 120ml when the baby is near D (because 150ml achieves 100% sooner by contributing more).
+
+Fix in: `CanTakeCard.tsx` (web) and `DashboardScreen.tsx` (RN).
+
+---
+
+## intakeReadyAt ≤105% rule (2026-09-09)
+
+The `intakeReadyAtMs` function returns `now` (give immediately) only when `liveSmoothed + milkMl ≤ D × 1.05`. This prevents "Give now" from triggering when the result would overshoot into orange territory. Previously used `liveSmoothed < D - 1ml` which was too loose.
+
+---
+
 ## Ghost marker correctness rule (2026-09-01, hard-won)
 
 Ghost markers on the feeding timeline must:
