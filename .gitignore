@@ -27,3 +27,6 @@ varia/baby-milk-tracker/.env.local
 # Temp / generated
 tmp/
 *.log
+
+# Standalone product repos (not committed in agent-app-dev)
+varia/
