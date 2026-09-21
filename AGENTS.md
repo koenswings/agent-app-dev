@@ -161,7 +161,7 @@ This is a starting point. Add your own conventions, style, and rules as you figu
 ```
 agent-app-dev/
   apps/      ← IDEA app repos cloned here when actively working on them
-  design/    ← design docs, analysis, PDFs (never put docs in apps/ or varia/)
+  proposals/    ← design docs, analysis, PDFs (never put docs in apps/ or varia/)
   varia/     ← non-IDEA side projects (baby-milk-tracker, milkwise)
   memory/    ← daily notes
 ```
