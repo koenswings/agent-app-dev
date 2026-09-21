@@ -26,7 +26,6 @@ Build and maintain Apps — compose.yaml files that assemble Services into App D
 This repo (workspace + harness):
 ```
 apps/
-  app-milkwise/     MilkWise App Disk (to be extracted to koenswings/app-milkwise)
   app-harness/      Integration test framework
 docs/               Authoritative docs — .md, .pdf, .png, .svg ONLY
 proposals/          Proposals and historical design reasoning

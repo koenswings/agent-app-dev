@@ -18,7 +18,6 @@ An App Disk is a USB/SSD drive that the Engine auto-detects when docked. It cont
 ## This repo contains
 
 - `apps/app-harness/` — integration test framework that spawns a real Engine in testMode
-- `apps/app-milkwise/` — MilkWise App Disk (being extracted to its own repo)
 - `proposals/` — past decisions and design reasoning
 
 ## Repos
