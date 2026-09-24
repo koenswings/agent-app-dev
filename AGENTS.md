@@ -63,8 +63,8 @@ docker push koenswings/<app>:<ver>
 ## Test (required before any PR touching an App Disk)
 
 ```bash
-ENGINE_BIN=/home/pi/projects/engine/dist/src/index.js \
-ENGINE_CWD=/home/pi/projects/engine \
+ENGINE_BIN=/home/pi/idea/agents/agent-engine-dev/dist/src/index.js \
+ENGINE_CWD=/home/pi/idea/agents/agent-engine-dev \
 node tests/<app>/smoke.mjs
 ```
 
