@@ -40,6 +40,10 @@ docs/               Authoritative docs for this App
 proposals/          Proposals and reasoning
 ```
 
+## Pi checkout layout
+
+On the Pi, the workspace is `/home/pi/idea/agents/agent-app-dev`. App repos nest under it, for example `/home/pi/idea/agents/agent-app-dev/app-kolibri` (and likewise `app-nextcloud`, `app-kiwix`, and `app-milkwise`); they are not siblings of `agent-app-dev` under `/home/pi/idea/agents/`. The Engine used for harness smoke tests remains at `/home/pi/idea/agents/agent-engine-dev`.
+
 ## Version monitoring
 
 Call `check-app-versions.sh` from `koenswings/idea/tools/quality/`. For each new version found: file a GitHub issue (label: app-update) in the App repo.
@@ -63,8 +67,8 @@ docker push koenswings/<app>:<ver>
 ## Test (required before any PR touching an App Disk)
 
 ```bash
-ENGINE_BIN=/home/pi/projects/engine/dist/src/index.js \
-ENGINE_CWD=/home/pi/projects/engine \
+ENGINE_BIN=/home/pi/idea/agents/agent-engine-dev/dist/src/index.js \
+ENGINE_CWD=/home/pi/idea/agents/agent-engine-dev \
 node tests/<app>/smoke.mjs
 ```
 
