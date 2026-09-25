@@ -6,7 +6,7 @@
  *   2. /api/feeds returns valid JSON array
  *   3. /api/settings returns object with required fields
  *   4. POST /api/feeds → feed logged → GET /api/feeds returns it
- *   5. Offline test: app starts with no outbound network (--network=none)
+ *   5. Key pages (/, /history, /analytics, /settings, /log) return 200
  */
 
 import { runWithFixture } from '../../lib/harness.mjs';
@@ -21,6 +21,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const FIXTURE_PATH   = resolve(__dirname, 'fixture');
 const DEVICE         = 'sdb1';           // fixture device name
 const INSTANCE_NAME  = 'milkwise';       // from compose.yaml x-app.instanceName
+const APP_NAME       = 'app-milkwise';  // App repo; app.yaml at $APP_DIR or /home/pi/idea/agents/agent-app-dev/app-milkwise
 const APP_PORT       = 13334;            // test port (avoid clashing with prod 3333)
 const BASE_URL       = `http://127.0.0.1:${APP_PORT}`;
 
@@ -98,6 +99,10 @@ async function testSuite(port) {
   for (const path of ['/', '/history', '/analytics', '/settings', '/log']) {
     await assertHttp(`${base}${path}`, 200, `GET ${path}`);
   }
+
+  // Counts are returned to the harness, which prints the summary, sets the
+  // exit code and records engine_tested only when failed === 0.
+  return { passed, failed };
 }
 
 // ── Entry point ──────────────────────────────────────────────────────────────
@@ -111,12 +116,14 @@ async function main() {
   // (The engine assigns a port from config, but for smoke tests we run the
   //  container directly against a known port)
   
+  let result;
   try {
-    await runWithFixture({
+    result = await runWithFixture({
       device:       DEVICE,
       fixturePath:  FIXTURE_PATH,
       instanceName: INSTANCE_NAME,
       port:         APP_PORT,
+      appName:      APP_NAME,
       testFn:       testSuite,
     });
   } catch (e) {
@@ -125,10 +132,10 @@ async function main() {
   }
 
   console.log('\n═══════════════════════════════════════════════');
-  console.log(`  Results: ${passed} passed, ${failed} failed`);
+  console.log(`  Results: ${result.passed} passed, ${result.failed} failed`);
   console.log('═══════════════════════════════════════════════\n');
 
-  if (failed > 0) process.exit(1);
+  process.exit(result.ok ? 0 : 1);
 }
 
 main();

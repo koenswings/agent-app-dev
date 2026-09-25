@@ -16,8 +16,9 @@ varia/milkwise/
 # app-milkwise is a separate repo
 apps/app-milkwise/
 
-# app-harness is a separate repo
-apps/app-harness/
+# App repos nested at the workspace root on the Pi
+# (/home/pi/idea/agents/agent-app-dev/app-*) — separate repos, not tracked here
+/app-*/
 
 # Expo/React Native secrets
 varia/milkwise/AuthKey_*.p8

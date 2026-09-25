@@ -25,8 +25,11 @@ Build and maintain Apps — compose.yaml files that assemble Services into App D
 
 This repo (workspace + harness):
 ```
-apps/
-  app-harness/      Integration test framework
+lib/
+  harness.mjs       App Harness — integration test framework (spawns Engine in testMode)
+  engine-tested.mjs Writes compatibility.engine_tested into app.yaml after a passing run
+tests/
+  <app>/smoke.mjs   Per-App smoke test + fixture/ (e.g. tests/app-milkwise/)
 docs/               Authoritative docs — .md, .pdf, .png, .svg ONLY
 proposals/          Proposals and historical design reasoning
 ```
@@ -66,11 +69,15 @@ docker push koenswings/<app>:<ver>
 
 ## Test (required before any PR touching an App Disk)
 
+From the workspace root (`/home/pi/idea/agents/agent-app-dev`, after `npm ci`):
+
 ```bash
 ENGINE_BIN=/home/pi/idea/agents/agent-engine-dev/dist/src/index.js \
 ENGINE_CWD=/home/pi/idea/agents/agent-engine-dev \
 node tests/<app>/smoke.mjs
 ```
+
+The smoke test exits non-zero if any assertion fails. On a passing run the harness writes `compatibility.engine_tested` (Engine short commit, package.json version, date) into the App's `app.yaml` — by default the nested checkout `/home/pi/idea/agents/agent-app-dev/app-<name>`, override with `APP_DIR`. Commit that `app.yaml` change in the App PR. It is never written on failure. See README.md → App Harness.
 
 ## Quality rules (every PR, no exceptions)
 
