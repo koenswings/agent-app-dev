@@ -1,0 +1,19 @@
+x-app:
+  name: milkwise
+  title: MilkWise
+  version: 1.0.0
+  instanceName: milkwise
+
+services:
+  milkwise:
+    image: koenswings/milkwise:1.0.0
+    init: true
+    restart: unless-stopped
+    pull_policy: never
+    volumes:
+      - ./data:/app/data
+    network_mode: "host"
+    environment:
+      - PORT=${port:-3333}
+      - DATA_DIR=/app/data
+      - NODE_ENV=production
