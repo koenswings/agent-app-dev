@@ -27,12 +27,16 @@ BOT_NAME=Kid tools/fleet/update-fleet-state.sh <pi> claim "Kid: <repo>#<issue/PR
 ```
 The bot name goes in the `claim` field (`BOT_NAME` also records it in the audit line). Do not overwrite the Pi's existing `note` field — it holds its isolation details. `find-available-pi.sh` returns only `idle` Pis, so Ops review deploys skip a Pi you have claimed.
 
+**Harness on the claimed Pi:**
+- Stop the pm2 Engine **as pi** (never root) while the App Harness runs.
+- Use the deployed tree `/home/pi/idea/agents/agent-engine-dev` as the harness Engine — **read-only**. Do not modify that tree.
+
 **Clean up before release:**
 - `docker compose down -v` for every harness project you started.
 - Remove the test images you built or pulled.
 - Leave no test disk mounted.
 
-**Release:** restore `main` in every tree you touched, restart the Engine with pm2 **as pi**, then:
+**Release:** restore `main` if needed, restart pm2 **as pi**, then clear claim and set idle:
 ```bash
 BOT_NAME=Kid tools/fleet/update-fleet-state.sh --null <pi> claim
 BOT_NAME=Kid tools/fleet/update-fleet-state.sh <pi> status idle
@@ -87,7 +91,7 @@ proposals/          Proposals and reasoning
 
 ## Pi checkout layout
 
-On a pool Pi, the workspace is `/home/pi/idea/agents/agent-app-dev`. App repos nest under it, for example `/home/pi/idea/agents/agent-app-dev/app-kolibri` (and likewise `app-nextcloud`, `app-kiwix`, and `app-milkwise`); they are not siblings of `agent-app-dev` under `/home/pi/idea/agents/`. The Engine used for harness smoke tests remains at `/home/pi/idea/agents/agent-engine-dev`.
+On a pool Pi, the workspace is `/home/pi/idea/agents/agent-app-dev`. App repos nest under it, for example `/home/pi/idea/agents/agent-app-dev/app-kolibri` (and likewise `app-nextcloud`, `app-kiwix`, and `app-milkwise`); they are not siblings of `agent-app-dev` under `/home/pi/idea/agents/`. The harness Engine is the deployed tree at `/home/pi/idea/agents/agent-engine-dev` — use it read-only; do not modify it.
 
 ## Version monitoring
 
@@ -112,7 +116,7 @@ docker manifest inspect koenswings/<app>:<ver> | grep arm64  # verify every imag
 
 ## Test (required before any PR touching an App Disk)
 
-On a claimed pool Pi (never idea02), from the workspace root (`/home/pi/idea/agents/agent-app-dev`, after `npm ci`):
+On a claimed pool Pi (never idea02): stop the pm2 Engine **as pi**, then from the workspace root (`/home/pi/idea/agents/agent-app-dev`, after `npm ci`) run the harness against the deployed Engine tree (read-only — do not modify it):
 
 ```bash
 ENGINE_BIN=/home/pi/idea/agents/agent-engine-dev/dist/src/index.js \
@@ -120,7 +124,7 @@ ENGINE_CWD=/home/pi/idea/agents/agent-engine-dev \
 node tests/<app>/smoke.mjs
 ```
 
-The smoke test exits non-zero if any assertion fails. On a passing run the harness writes `compatibility.engine_tested` (Engine short commit, package.json version, date) into the App's `app.yaml` — by default the nested checkout `/home/pi/idea/agents/agent-app-dev/app-<name>`, override with `APP_DIR`. Commit that `app.yaml` change in the App PR. It is never written on failure. See README.md → App Harness.
+The smoke test exits non-zero if any assertion fails. On a passing run the harness writes `compatibility.engine_tested` (Engine short commit, package.json version, date) into the App's `app.yaml` — by default the nested checkout `/home/pi/idea/agents/agent-app-dev/app-<name>`, override with `APP_DIR`. Commit that `app.yaml` change in the App PR. It is never written on failure. See README.md → App Harness. After the harness finishes, clean up and release the Pi (claim protocol above).
 
 ## Quality rules (every PR, no exceptions)
 
