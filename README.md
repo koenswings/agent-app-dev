@@ -51,7 +51,8 @@ This matches what `koenswings/idea/tools/quality/quality-scan.sh` expects: it de
 ### Running tests
 
 ```bash
-# On a Pi with the Engine checked out and built (idea02 / idea03)
+# On a claimed pool Pi (idea01 / idea03 / idea04; never golden idea02 — see AGENTS.md
+# claim protocol) with the Engine checked out and built
 cd /home/pi/idea/agents/agent-app-dev
 npm ci
 ENGINE_CWD=/home/pi/idea/agents/agent-engine-dev \
