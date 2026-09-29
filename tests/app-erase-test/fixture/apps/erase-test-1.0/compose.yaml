@@ -1,0 +1,36 @@
+x-app:
+  name: erase-test
+  title: Erase Test App
+  description: >
+    Throwaway ARM64 App for Files Disk hardware erase tests (idea#138).
+    Tiny nginx with a named volume seed so erase summary shows volume data
+    and docker compose down -v removes it. Not a production App.
+  url: https://github.com/koenswings/agent-app-dev
+  category: test
+  icon: erase-test.png
+  author: Kid (App Dev Bot)
+  version: 1.0
+  instanceName: erase-test
+
+services:
+  erase-test:
+    image: nginx:alpine
+    platform: linux/arm64
+    restart: no
+    pull_policy: missing
+    ports:
+      - "${port}:80"
+    volumes:
+      - erase-seed-data:/data
+      - ./seed-volume.sh:/seed-volume.sh:ro
+    entrypoint: ["/bin/sh", "/seed-volume.sh"]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+volumes:
+  erase-seed-data:
+    name: erase-test-seed-data
