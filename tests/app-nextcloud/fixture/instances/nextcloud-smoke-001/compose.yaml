@@ -21,6 +21,7 @@ services:
     restart: no
     pull_policy: never
     entrypoint: ["/idea-files-entrypoint.sh"]
+    command: ["apache2-foreground"]
     volumes:
       - ./data/nextcloud:/var/www/html
       - ./idea-files-entrypoint.sh:/idea-files-entrypoint.sh:ro
