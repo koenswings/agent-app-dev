@@ -128,6 +128,12 @@ node tests/<app>/smoke.mjs
 
 The smoke test exits non-zero if any assertion fails. On a passing run the harness writes `compatibility.engine_tested` (Engine short commit, package.json version, date) into the App's `app.yaml` — by default the nested checkout `/home/pi/idea/agents/agent-app-dev/app-<name>`, override with `APP_DIR`. Commit that `app.yaml` change in the App PR. It is never written on failure. See README.md → App Harness. After the harness finishes, clean up and release the Pi (claim protocol above).
 
+## Files Disk opt-in (idea#137)
+
+Apps that use Files Disks set `x-app.filesMount` and keep `restart: no`. See [docs/files-mount.md](docs/files-mount.md). Nextcloud's wrapper/hook live in `koenswings/app-nextcloud`; unit-test fixture copies are under `tests/fixtures/idea-files/`.
+
+Harness: `INSTANCE_TIMEOUT_MS` (default 180000) can be raised for slow first-starts (Nextcloud). Smoke device names are throwaways; idea03's hardware stick is refused by serial/UUID via `lib/refuse-idea03-stick.mjs` reading `script/hw-roundtrip-disks.json` (fail closed if missing).
+
 ## Quality rules (every PR, no exceptions)
 
 - No source files in docs/ — .md, .pdf, .png, .svg only

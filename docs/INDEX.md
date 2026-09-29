@@ -6,4 +6,6 @@ For organization-wide documentation guidance, see [`koenswings/idea/docs/INDEX.m
 
 Update this file whenever an authoritative doc is added or significantly revised.
 
-No authoritative documentation is present in this repository’s `docs/` directory yet.
+| Doc | Purpose |
+|-----|---------|
+| [files-mount.md](./files-mount.md) | `x-app.filesMount` convention, `restart: no`, Engine Files Disk binds allowed (idea#137) |

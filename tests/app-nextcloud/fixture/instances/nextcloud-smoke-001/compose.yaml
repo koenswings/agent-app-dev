@@ -1,0 +1,53 @@
+x-app:
+  name: nextcloud
+  title: Nextcloud
+  description: Nextcloud Files Disk smoke fixture (idea#137)
+  url: https://nextcloud.com/
+  category: office
+  icon: nextcloud.png
+  author: Koen Swings
+  version: 1.0-smoke
+  instanceName: nextcloud
+  filesMount:
+    path: /mnt/idea-files
+    services: [nextcloud-app]
+
+networks:
+  backend: null
+
+services:
+  nextcloud-app:
+    image: koenswings/nextcloud:1.0-31.0.1
+    restart: no
+    pull_policy: never
+    entrypoint: ["/idea-files-entrypoint.sh"]
+    volumes:
+      - ./data/nextcloud:/var/www/html
+      - ./idea-files-entrypoint.sh:/idea-files-entrypoint.sh:ro
+      - ./docker-entrypoint-hooks.d/before-starting/10-idea-files.sh:/docker-entrypoint-hooks.d/before-starting/10-idea-files.sh:ro
+    ports:
+      - ${port}:80
+    environment:
+      - MYSQL_PASSWORD=${pass}
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=nextcloud
+      - MYSQL_HOST=nextcloud-db
+      - PHP_UPLOAD_LIMIT=10G
+      - PHP_MEMORY_LIMIT=512M
+    networks:
+      - backend
+  nextcloud-db:
+    image: koenswings/nextcloud-mariadb:1.0-11.7.2-MariaDB-ubu2404
+    restart: no
+    pull_policy: never
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
+      --innodb-file-per-table=1 --skip-innodb-read-only-compressed
+    volumes:
+      - ./data/db:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${pass}
+      - MYSQL_PASSWORD=${pass}
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=nextcloud
+    networks:
+      - backend

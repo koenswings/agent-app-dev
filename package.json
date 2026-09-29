@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "for f in tests/*/smoke.mjs; do node \"$f\" || exit 1; done",
-    "test:unit": "node --test lib/"
+    "test:unit": "node --test lib/ tests/unit/*.test.mjs"
   },
   "dependencies": {
     "@automerge/automerge-repo": "^2.1.0",
