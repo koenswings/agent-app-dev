@@ -1,0 +1,50 @@
+[
+  {
+    "file": "q_720p.mp4",
+    "path": "/workspace/i159/content/qualities/q_720p.mp4",
+    "md5": "99ad895daf5c1aeb216c5c2e7b8cfd3f",
+    "duration_s": 180.0,
+    "size_b": 20307193,
+    "bitrate_bps": 902541,
+    "width": 1280,
+    "height": 720,
+    "v_bitrate_bps": 799532,
+    "a_bitrate_bps": 96292
+  },
+  {
+    "file": "q_high_1080p.mp4",
+    "path": "/workspace/i159/content/qualities/q_high_1080p.mp4",
+    "md5": "b560d819c0dce857f0b5b4f705dd7a77",
+    "duration_s": 180.0,
+    "size_b": 47999027,
+    "bitrate_bps": 2133290,
+    "width": 1920,
+    "height": 1080,
+    "v_bitrate_bps": 1998837,
+    "a_bitrate_bps": 128245
+  },
+  {
+    "file": "q_low_360p.mp4",
+    "path": "/workspace/i159/content/qualities/q_low_360p.mp4",
+    "md5": "cc504c3e88edddc3d2e2566888e76055",
+    "duration_s": 180.0,
+    "size_b": 8336007,
+    "bitrate_bps": 370489,
+    "width": 640,
+    "height": 360,
+    "v_bitrate_bps": 299312,
+    "a_bitrate_bps": 64463
+  },
+  {
+    "file": "q_med_480p.mp4",
+    "path": "/workspace/i159/content/qualities/q_med_480p.mp4",
+    "md5": "f64eb550e9670ff93a99559b5fe3ae75",
+    "duration_s": 180.0,
+    "size_b": 16917240,
+    "bitrate_bps": 751877,
+    "width": 854,
+    "height": 480,
+    "v_bitrate_bps": 649044,
+    "a_bitrate_bps": 96292
+  }
+]
