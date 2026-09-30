@@ -1,0 +1,61 @@
+# Stable logical content IDs for duration-tests walks (idea#166).
+# Class-instance selectors (Console data-testid) are Pixel's job — fixtures
+# only guarantee these disk/instance/content names stay stable across packs.
+#
+# Live Kolibri UUIDs are filled by seed (see seed-notes.md) when the instance
+# first runs. Walkers should prefer the logical ids below; adapters may map
+# logical → live UUID from CONTENT.seeded.json after seed.
+
+pack: duration-kolibri-grade5a
+version: "1.0"
+diskId: duration-kolibri-grade5a-001
+instanceId: kolibri-grade5a-001
+instanceName: kolibri
+
+facility:
+  name: Duration Tests Facility
+  logicalId: facility-duration-grade5a
+
+class:
+  name: Grade 5A
+  logicalId: class-grade5a
+
+learners:
+  - username: learner01
+    logicalId: learner-grade5a-01
+    displayName: Learner One
+  - username: learner02
+    logicalId: learner-grade5a-02
+    displayName: Learner Two
+  - username: learner03
+    logicalId: learner-grade5a-03
+    displayName: Learner Three
+
+coach:
+  username: teacher
+  logicalId: coach-grade5a
+  displayName: Grade 5A Teacher
+
+lesson:
+  title: Grade 5A Duration Lesson
+  logicalId: lesson-grade5a-video-exercise
+  resources:
+    - kind: video
+      title: Open video target
+      logicalId: video-grade5a-01
+      # Prefer idea#159-style storage path once seeded; MD5 filled by seed.
+      # Do NOT treat Playwright browser-watcher concurrency caps as idea#159
+      # HTTP stream planning Ns (64@360p / 32@480–720p / 12@1080p).
+      storageHint: "content/storage/<md5[0]>/<md5[1]>/<md5>.mp4"
+      walkerAction: Open video
+    - kind: exercise
+      title: Open exercise target
+      logicalId: exercise-grade5a-01
+      walkerAction: Open exercise
+
+urls:
+  # Host-network Kolibri; Engine/harness may publish on :18080 when :8080 busy.
+  learnerHome: "http://<engine-host>:18080/learn/#/topics"
+  coachHome: "http://<engine-host>:18080/coach/#/classes"
+  openVideo: "logical:video-grade5a-01"
+  openExercise: "logical:exercise-grade5a-01"

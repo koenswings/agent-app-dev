@@ -1,0 +1,47 @@
+# Illustrative walker fixture references for Axle / Pixel (idea#166).
+# Not executed by agent-app-dev — documents stable IDs the scenario YAML
+# should point at. Real schema lives in agent-engine-dev duration runner.
+
+name: duration-tests-fixture-refs
+idea: 166
+pack_version: "1.0"
+
+# Design Review: these are App Disk / content IDs only.
+# Console class-instance selectors (data-testid) are Pixel's job.
+# Do not equate Playwright browser-watcher caps with idea#159 HTTP stream Ns.
+
+fixtures:
+  kolibri:
+    tree: tests/duration-tests/fixtures/kolibri
+    diskId: duration-kolibri-grade5a-001
+    diskName: "Duration Tests — Kolibri Grade 5A"
+    instanceId: kolibri-grade5a-001
+    instanceName: kolibri
+    contentCatalogue: tests/duration-tests/fixtures/kolibri/content/CONTENT.yaml
+    actions:
+      Open video: { contentLogicalId: video-grade5a-01 }
+      Open exercise: { contentLogicalId: exercise-grade5a-01 }
+      Browse classes: { classLogicalId: class-grade5a }
+
+  nextcloud:
+    tree: tests/duration-tests/fixtures/nextcloud
+    diskId: duration-nextcloud-grade5a-001
+    diskName: "Duration Tests — Nextcloud Grade 5A"
+    instanceId: nextcloud-grade5a-001
+    instanceName: nextcloud
+    contentCatalogue: tests/duration-tests/fixtures/nextcloud/CONTENT.yaml
+    filesMount: true
+    actions:
+      Share to class:
+        folderLogicalId: folder-materials-grade5a
+        group: Grade 5A
+        permission: view-only
+      Open File Drop: { folderLogicalId: folder-drop-grade5a }
+      Open collab doc:
+        collabLogicalId: collab-grade5a-01
+        status: placeholder-doc  # Collabora not in this pack
+
+  kiwix:
+    included: false
+    note: "Phase 3 / optional — omit from Phase 1–2 YAML"
+    see: tests/duration-tests/fixtures/kiwix/README.md

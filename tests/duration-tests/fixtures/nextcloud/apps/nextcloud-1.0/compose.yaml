@@ -1,0 +1,58 @@
+x-app:
+  name: nextcloud
+  title: Nextcloud
+  description: >
+    Duration-tests fixture (idea#166): Grade 5A Nextcloud App+Files Disk for
+    unified Markov walks. Groups / File Drop / collab stub documented under
+    files/ and CONTENT.yaml. Collabora omitted tonight — collab is a placeholder
+    document until a later pack wires koenswings/nextcloud-code.
+  url: https://nextcloud.com/
+  category: office
+  icon: nextcloud.png
+  author: Kid (App Dev Bot)
+  version: 1.0-duration
+  instanceName: nextcloud
+  filesMount:
+    path: /mnt/idea-files
+    services: [nextcloud-app]
+
+networks:
+  backend: null
+
+services:
+  nextcloud-app:
+    image: koenswings/nextcloud:1.0-31.0.1
+    restart: no
+    pull_policy: never
+    entrypoint: ["/idea-files-entrypoint.sh"]
+    command: ["apache2-foreground"]
+    volumes:
+      - ./data/nextcloud:/var/www/html
+      - ./idea-files-entrypoint.sh:/idea-files-entrypoint.sh:ro
+      - ./docker-entrypoint-hooks.d/before-starting/10-idea-files.sh:/docker-entrypoint-hooks.d/before-starting/10-idea-files.sh:ro
+    ports:
+      - ${port}:80
+    environment:
+      - MYSQL_PASSWORD=${pass}
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=nextcloud
+      - MYSQL_HOST=nextcloud-db
+      - PHP_UPLOAD_LIMIT=10G
+      - PHP_MEMORY_LIMIT=512M
+    networks:
+      - backend
+  nextcloud-db:
+    image: koenswings/nextcloud-mariadb:1.0-11.7.2-MariaDB-ubu2404
+    restart: no
+    pull_policy: never
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
+      --innodb-file-per-table=1 --skip-innodb-read-only-compressed
+    volumes:
+      - ./data/db:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${pass}
+      - MYSQL_PASSWORD=${pass}
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=nextcloud
+    networks:
+      - backend

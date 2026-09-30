@@ -1,0 +1,24 @@
+x-app:
+  name: kolibri
+  title: Kolibri
+  description: >
+    Duration-tests fixture (idea#166): Grade 5A Kolibri App Disk for unified
+    Markov walks. Preload notes live in fixtures/kolibri/content/.
+  url: https://learningequality.org/kolibri/
+  category: education
+  icon: icon.png
+  author: Kid (App Dev Bot)
+  version: 1.0-duration
+  instanceName: kolibri
+services:
+  kolibri:
+    image: koenswings/kolibri:1.0-0.15.5-dev
+    init: true
+    restart: no
+    pull_policy: never
+    volumes:
+      - ./data/docker:/docker/mnt
+      - ./data/kolibri:/root/.kolibri
+    network_mode: "host"
+    environment:
+      - KOLIBRI_RUN_MODE=docker
