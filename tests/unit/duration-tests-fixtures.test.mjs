@@ -43,8 +43,8 @@ describe('duration-tests fixtures (idea#166)', () => {
     assert.match(content, /logicalId:\s*class-grade5a/);
     assert.match(content, /logicalId:\s*video-grade5a-01/);
     assert.match(content, /logicalId:\s*exercise-grade5a-01/);
-    assert.match(content, /walkerAction:\s*Open video/);
-    assert.match(content, /walkerAction:\s*Open exercise/);
+    assert.match(content, /walkerAction:\s*open_video/);
+    assert.match(content, /walkerAction:\s*open_exercise/);
 
     const compose = readFileSync(join(k, 'apps/kolibri-1.0/compose.yaml'), 'utf8');
     assert.match(compose, /name:\s*kolibri/);
@@ -94,7 +94,7 @@ describe('duration-tests fixtures (idea#166)', () => {
     assert.equal(existsSync(join(FIX, 'kiwix/META.yaml')), false);
   });
 
-  it('walker-ref.yaml points at stable diskIds and notes #159 vs browser watchers', () => {
+  it('walker-ref.yaml points at stable diskIds, locked Phase 1–2 keys, and notes #159', () => {
     const ref = read('walker-ref.yaml');
     assert.match(ref, /duration-kolibri-grade5a-001/);
     assert.match(ref, /duration-nextcloud-grade5a-001/);
@@ -102,15 +102,38 @@ describe('duration-tests fixtures (idea#166)', () => {
     assert.match(ref, /folder-drop-grade5a/);
     assert.match(ref, /idea#159/);
     assert.match(ref, /kiwix:[\s\S]*included:\s*false/);
+    // Axle-locked Phase 1–2 action keys
+    for (const key of [
+      'open_console_as_teacher',
+      'open_console_as_learner',
+      'open_console_as_operator',
+      'enter_infra_fleet_walk',
+      'return_to_start',
+      'stay_on_teacher_overview',
+      'stay_on_learner_overview',
+      'infra_undock_fixtures',
+      'infra_dock_fixture',
+      'infra_move_disk',
+      'infra_reboot_engine',
+    ]) {
+      assert.match(ref, new RegExp(key));
+    }
+    // Future deeper Intents are snake_case
+    assert.match(ref, /open_video:/);
+    assert.match(ref, /open_file_drop:/);
   });
 
-  it('README documents paths and Design Review gates', () => {
+  it('README documents paths, Design Review gates, and locked Phase 1–2 keys', () => {
     const md = read('README.md');
     assert.match(md, /duration-kolibri-grade5a-001/);
     assert.match(md, /duration-nextcloud-grade5a-001/);
     assert.match(md, /Versioned App fixtures/);
     assert.match(md, /idea#159/);
     assert.match(md, /Class-instance selectors/);
+    assert.match(md, /infra_dock_fixture/);
+    assert.match(md, /open_console_as_teacher/);
+    assert.match(md, /return_to_start/);
+    assert.match(md, /stay_on_learner_overview/);
   });
 
   it('fixture trees contain only expected top-level packs', () => {

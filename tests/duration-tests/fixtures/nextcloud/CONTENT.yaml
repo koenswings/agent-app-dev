@@ -28,18 +28,18 @@ folders:
     logicalId: folder-materials-grade5a
     share: view-only
     shareToGroup: Grade 5A
-    walkerAction: Share to class
+    walkerAction: share_to_class
   - path: Drop Zone
     logicalId: folder-drop-grade5a
     share: file-request
-    walkerAction: Open File Drop
+    walkerAction: open_file_drop
   - path: Collab
     logicalId: folder-collab-grade5a
 
 collab:
   - path: Collab/Grade5A-collab-notes.md
     logicalId: collab-grade5a-01
-    walkerAction: Open collab doc
+    walkerAction: open_collab_doc
     status: placeholder-doc
     notes: >
       Collabora omitted in this pack. Treat as browse/open stub until a later

@@ -1,14 +1,31 @@
-# Illustrative walker fixture references for Axle / Pixel (idea#166).
-# Not executed by agent-app-dev — documents stable IDs the scenario YAML
-# should point at. Real schema lives in agent-engine-dev duration runner.
+# Fixture references for Axle / Pixel (idea#166).
+# Not executed by agent-app-dev — documents stable IDs + locked Phase 1–2
+# action keys. Real schema lives in agent-engine-dev duration runner.
 
 name: duration-tests-fixture-refs
 idea: 166
-pack_version: "1.0"
+pack_version: "1.1"
 
 # Design Review: these are App Disk / content IDs only.
 # Console class-instance selectors (data-testid) are Pixel's job.
 # Do not equate Playwright browser-watcher caps with idea#159 HTTP stream Ns.
+
+# --- Axle-locked Phase 1–2 action keys (exact names) ---
+phase_1_2_actions:
+  hub:
+    - open_console_as_teacher
+    - open_console_as_learner
+    - open_console_as_operator
+    - enter_infra_fleet_walk
+    - return_to_start
+  minimal_usage:
+    - stay_on_teacher_overview
+    - stay_on_learner_overview
+  infra:
+    - infra_undock_fixtures
+    - infra_dock_fixture
+    - infra_move_disk
+    - infra_reboot_engine
 
 fixtures:
   kolibri:
@@ -18,10 +35,14 @@ fixtures:
     instanceId: kolibri-grade5a-001
     instanceName: kolibri
     contentCatalogue: tests/duration-tests/fixtures/kolibri/content/CONTENT.yaml
-    actions:
-      Open video: { contentLogicalId: video-grade5a-01 }
-      Open exercise: { contentLogicalId: exercise-grade5a-01 }
-      Browse classes: { classLogicalId: class-grade5a }
+    phase_1_2:
+      # Dockable target for infra_dock_fixture / infra_move_disk / infra_undock_fixtures
+      infra_disk: true
+    # Future deeper Intents (proposal snake_case) — not Phase 1–2 walker keys
+    future_actions:
+      open_video: { contentLogicalId: video-grade5a-01 }
+      open_exercise: { contentLogicalId: exercise-grade5a-01 }
+      browse_classes: { classLogicalId: class-grade5a }
 
   nextcloud:
     tree: tests/duration-tests/fixtures/nextcloud
@@ -31,13 +52,15 @@ fixtures:
     instanceName: nextcloud
     contentCatalogue: tests/duration-tests/fixtures/nextcloud/CONTENT.yaml
     filesMount: true
-    actions:
-      Share to class:
+    phase_1_2:
+      infra_disk: true
+    future_actions:
+      share_to_class:
         folderLogicalId: folder-materials-grade5a
         group: Grade 5A
         permission: view-only
-      Open File Drop: { folderLogicalId: folder-drop-grade5a }
-      Open collab doc:
+      open_file_drop: { folderLogicalId: folder-drop-grade5a }
+      open_collab_doc:
         collabLogicalId: collab-grade5a-01
         status: placeholder-doc  # Collabora not in this pack
 

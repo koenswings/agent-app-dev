@@ -12,6 +12,17 @@ Logical IDs in `CONTENT.yaml` must remain stable; write live Kolibri UUIDs to
 `CONTENT.seeded.json` (gitignored locally / optional CI artefact) so Pixel /
 Axle adapters can resolve `logical:*` → real content IDs.
 
+## Phase 1–2 vs deeper Intents
+
+Phase 1–2 walker actions that touch this disk are infra only
+(`infra_dock_fixture`, `infra_undock_fixtures`, `infra_move_disk`). Hub /
+minimal-usage keys (`open_console_as_*`, `stay_on_*_overview`,
+`return_to_start`, …) do not open Kolibri content yet.
+
+Deeper usage Intents (`open_video`, `open_exercise`, `browse_classes`) are
+**proposal snake_case** for later phases — mapped in `CONTENT.yaml` /
+`walker-ref.yaml` today so docs do not need a rename.
+
 ## Cheap path tonight
 
 - Reuse `koenswings/app-kolibri` image `koenswings/kolibri:1.0-0.15.5-dev`.
@@ -24,16 +35,17 @@ Axle adapters can resolve `logical:*` → real content IDs.
 ## Walker references
 
 ```yaml
-# illustrative — Axle owns real scenario schema
+# Phase 1–2 — Axle locked infra keys
 fixtures:
   kolibri:
     path: tests/duration-tests/fixtures/kolibri
     diskId: duration-kolibri-grade5a-001
     instanceId: kolibri-grade5a-001
-    content: fixtures/kolibri/content/CONTENT.yaml
-actions:
-  Open video: { contentLogicalId: video-grade5a-01 }
-  Open exercise: { contentLogicalId: exercise-grade5a-01 }
+# infra_dock_fixture → diskId duration-kolibri-grade5a-001
+
+# Future deeper Intents (snake_case) — not Phase 1–2
+# open_video:    { contentLogicalId: video-grade5a-01 }
+# open_exercise: { contentLogicalId: exercise-grade5a-01 }
 ```
 
 ## idea#159 note
