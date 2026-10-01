@@ -2,15 +2,50 @@
   "logicalId": "exercise-grade5a-01",
   "sourceId": "exercise-grade5a-01",
   "title": "Open exercise target",
-  "mastery": { "model": "m_of_n", "m": 1, "n": 1 },
+  "mastery": {
+    "model": "m_of_n",
+    "m": 1,
+    "n": 1
+  },
   "questions": [
     {
       "id": "q1",
+      "assessmentId": "104093750f815c9f855231c6ff2d5f16",
       "type": "single_select",
       "question": "What is 2 + 2?",
       "correct_answer": "4",
-      "all_answers": ["3", "4", "5"],
-      "hints": ["Count on your fingers"]
+      "all_answers": [
+        "3",
+        "4",
+        "5"
+      ],
+      "hints": [
+        "Count on your fingers"
+      ]
+    },
+    {
+      "id": "q2",
+      "assessmentId": "b722fc608e8a52ffae897539d2664b59",
+      "type": "single_select",
+      "question": "What is 3 + 1?",
+      "correct_answer": "4",
+      "all_answers": [
+        "2",
+        "4",
+        "5"
+      ],
+      "hints": [
+        "Add one to three"
+      ]
     }
-  ]
+  ],
+  "perseus": {
+    "path": "content/seed/exercise-grade5a-01.perseus",
+    "md5": "202c3336b37b013ff7d67267df8d7045",
+    "size": 3363,
+    "assessmentItemIds": [
+      "104093750f815c9f855231c6ff2d5f16",
+      "b722fc608e8a52ffae897539d2664b59"
+    ]
+  }
 }

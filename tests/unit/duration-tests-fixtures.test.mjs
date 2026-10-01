@@ -59,6 +59,17 @@ describe('duration-tests fixtures (idea#166)', () => {
     assert.match(seeded.intentResolution.open_video.storagePath, /content\/storage\//);
     mustExist(join(k, seeded.intentResolution.open_video.storagePath), 'seeded video storage blob');
 
+    // Perseus open_exercise (pinned contentId + non-empty assessment items)
+    assert.equal(
+      seeded.intentResolution.open_exercise.contentId,
+      '7eb9de46-96eb-53d0-bcc1-2fb270b96f03',
+    );
+    assert.ok(Array.isArray(seeded.intentResolution.open_exercise.assessmentItemIds));
+    assert.equal(seeded.intentResolution.open_exercise.assessmentItemIds.length, 2);
+    mustExist(join(k, 'content/seed/exercise-grade5a-01.perseus'), 'kolibri perseus archive');
+    mustExist(join(k, 'content/seed/build_perseus_exercise.py'), 'kolibri perseus builder');
+    mustExist(join(k, seeded.intentResolution.open_exercise.storagePath), 'seeded perseus storage blob');
+
     const compose = readFileSync(join(k, 'apps/kolibri-1.0/compose.yaml'), 'utf8');
     assert.match(compose, /name:\s*kolibri/);
     assert.match(compose, /koenswings\/kolibri:1\.0-0\.15\.5-dev/);

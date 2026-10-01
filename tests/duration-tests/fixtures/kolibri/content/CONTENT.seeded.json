@@ -4,12 +4,12 @@
   "diskId": "duration-kolibri-grade5a-001",
   "instanceId": "kolibri-grade5a-001",
   "instanceName": "kolibri",
-  "generatedAt": "2026-10-01T03:02:34Z",
+  "generatedAt": "2026-10-01T03:15:45Z",
   "generator": "content/seed/build_content_seeded.py",
   "idSource": "ricecooker",
   "seedStatus": "ids_pinned_box_local",
-  "liveImportStatus": "imported_idea01_2026-10-01",
-  "note": "Stable content/node IDs for open_video / open_exercise. Facility/class/learner/lesson IDs below updated from idea01 live provision 2026-10-01 (see CONTENT.live.json). Re-provision creates new auth IDs; content IDs stay pinned. Video blob under content/media/ (Kolibri storage layout mirrored).",
+  "liveImportStatus": "imported_idea01_2026-10-01_perseus",
+  "note": "Stable content/node IDs for open_video / open_exercise (contentIds unchanged). Facility/class/learner/lesson IDs from idea01 live provision. Exercise ships with Perseus .perseus (2 MC items) under content/seed/ + storage mirror.",
   "channel": {
     "sourceDomain": "idea.koenswings.local",
     "sourceId": "duration-kolibri-grade5a",
@@ -103,7 +103,15 @@
         "model": "m_of_n",
         "m": 1,
         "n": 1
-      }
+      },
+      "perseusPath": "content/seed/exercise-grade5a-01.perseus",
+      "perseusMd5": "202c3336b37b013ff7d67267df8d7045",
+      "storagePath": "content/storage/2/0/202c3336b37b013ff7d67267df8d7045.perseus",
+      "assessmentItemIds": [
+        "104093750f815c9f855231c6ff2d5f16",
+        "b722fc608e8a52ffae897539d2664b59"
+      ],
+      "numberOfAssessments": 2
     }
   },
   "intentResolution": {
@@ -119,7 +127,13 @@
       "contentLogicalId": "exercise-grade5a-01",
       "contentId": "7eb9de46-96eb-53d0-bcc1-2fb270b96f03",
       "nodeId": "94a47ec7-f30d-5cd1-93f8-ad08c42b6c2a",
-      "channelId": "30b6c263-4b96-5a62-93bd-dcf9a5cad7ca"
+      "channelId": "30b6c263-4b96-5a62-93bd-dcf9a5cad7ca",
+      "assessmentItemIds": [
+        "104093750f815c9f855231c6ff2d5f16",
+        "b722fc608e8a52ffae897539d2664b59"
+      ],
+      "perseusMd5": "202c3336b37b013ff7d67267df8d7045",
+      "storagePath": "content/storage/2/0/202c3336b37b013ff7d67267df8d7045.perseus"
     }
   },
   "regenerate": {

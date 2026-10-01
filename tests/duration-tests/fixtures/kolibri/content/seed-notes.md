@@ -118,7 +118,28 @@ Kolibri container (`koenswings/kolibri:1.0-0.15.5-dev` on port 18080) after:
 2. `kolibri manage provisiondevice` + Classroom/learners via Django ORM
 3. Local channel sqlite (schema v5) with pinned ricecooker IDs → `import_channel_from_local_db`
 4. Lesson **Grade 5A Duration Lesson** with video + exercise nodes
+5. **In-place Perseus patch** (`seed/update_exercise_assessments.py`) — same pinned
+   `contentId` `7eb9de46-96eb-53d0-bcc1-2fb270b96f03`; AssessmentMetaData now lists
+   2 `single_selection` item IDs; `.perseus` blob under
+   `content/storage/2/0/202c3336b37b013ff7d67267df8d7045.perseus`
 
 `open_video` / `open_exercise` verified via
 `/api/content/contentnode/?content_id=<raw32hex>`. No Studio token used.
-Exercise is a stub (empty `assessment_item_ids`); node resolves as available.
+`assessment_item_ids` length **2** (non-empty).
+
+### Regenerate Perseus archive (box-local)
+
+```bash
+python3 tests/duration-tests/fixtures/kolibri/content/seed/build_perseus_exercise.py
+```
+
+Writes `exercise-grade5a-01.perseus` + `.meta.json` + storage mirror from the
+recipe JSON. To re-apply on a Running data dir (idea01 live path example):
+
+```bash
+# inside kolibri container (root), after docker cp of perseus+meta+script:
+PERSEUS_SRC=/tmp/exercise-grade5a-01.perseus \
+PERSEUS_META=/tmp/exercise-grade5a-01.meta.json \
+KOLIBRI_HOME=/root/.kolibri \
+  python3 /tmp/update_exercise_assessments.py
+```

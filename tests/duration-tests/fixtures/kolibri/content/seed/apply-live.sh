@@ -37,6 +37,11 @@ mkdir -p "$dest"
 # copy only files; keep existing channel DBs intact
 cp -an "$STORAGE_SRC"/. "$dest"/
 echo "Copied storage blobs → $dest"
+if [[ -f "$ROOT/seed/exercise-grade5a-01.perseus" ]]; then
+  echo "Perseus exercise archive present: content/seed/exercise-grade5a-01.perseus"
+  echo "  After channel import, run update_exercise_assessments.py inside the"
+  echo "  Kolibri container to attach AssessmentMetaData + exercise file rows."
+fi
 echo
 echo "Next (manual / manage on the Running container):"
 echo "  1. Import channel duration-kolibri-grade5a (Studio upload from seed/build,"

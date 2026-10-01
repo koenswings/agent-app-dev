@@ -4,14 +4,14 @@
   "diskId": "duration-kolibri-grade5a-001",
   "instanceId": "kolibri-grade5a-001",
   "liveImportStatus": "imported_on_idea01_temp",
-  "importedAt": "2026-10-01T03:10:49Z",
+  "importedAt": "2026-10-01T03:15:45Z",
   "importedBy": "Kid (App Dev)",
   "host": "idea01",
   "kolibriHttpPort": 18080,
   "image": "koenswings/kolibri:1.0-0.15.5-dev",
   "tempDataDir": "/home/pi/idea166-kolibri-live/data/kolibri",
-  "method": "apply-live.sh storage copy + provisiondevice + local channel sqlite inject (no Studio) + Lesson ORM",
-  "note": "Facility/class/learner/lesson IDs are Morango 32-hex from this provision (re-provision yields new auth IDs). Content/node/channel IDs match CONTENT.seeded.json pinned ricecooker IDs. open_video/open_exercise resolve via /api/content/contentnode/?content_id=\u2026",
+  "method": "apply-live.sh storage copy + provisiondevice + local channel sqlite inject (no Studio) + Lesson ORM + in-place Perseus assessment patch 2026-10-01",
+  "note": "Facility/class/learner/lesson IDs are Morango 32-hex from this provision (re-provision yields new auth IDs). Content/node/channel IDs match CONTENT.seeded.json pinned ricecooker IDs (unchanged). open_exercise now has 2 Perseus single_selection assessment items + .perseus blob.",
   "channel": {
     "channelId": "30b6c263-4b96-5a62-93bd-dcf9a5cad7ca",
     "channelIdRaw": "30b6c2634b965a6293bddcf9a5cad7ca",
@@ -84,8 +84,15 @@
       "nodeIdRaw": "94a47ec7f30d5cd193f8ad08c42b6c2a",
       "channelId": "30b6c263-4b96-5a62-93bd-dcf9a5cad7ca",
       "available": true,
-      "note": "Stub exercise (mastery m_of_n, empty assessment_item_ids) \u2014 node resolves; Perseus items not authored",
-      "apiVerified": "GET /api/content/contentnode/?content_id=7eb9de4696eb53d0bcc12fb270b96f03 \u2192 200 leaf exercise"
+      "note": "Perseus exercise: 2 single_selection items (m_of_n 1/1); contentId unchanged",
+      "apiVerified": "GET /api/content/contentnode/?content_id=7eb9de4696eb53d0bcc12fb270b96f03 \u2192 200 leaf exercise; assessment_item_ids len=2",
+      "assessmentItemIds": [
+        "104093750f815c9f855231c6ff2d5f16",
+        "b722fc608e8a52ffae897539d2664b59"
+      ],
+      "numberOfAssessments": 2,
+      "perseusMd5": "202c3336b37b013ff7d67267df8d7045",
+      "perseusStorageUrl": "/content/storage/2/0/202c3336b37b013ff7d67267df8d7045.perseus"
     }
   }
 }
