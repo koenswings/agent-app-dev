@@ -54,6 +54,18 @@ describe('duration-tests fixtures (idea#166)', () => {
     assert.match(er, /IDEA_DISKS_ROOT/);
   });
 
+  it('second empty disk pack is META-only for erase-after-backup', () => {
+    const e = join(FIX, 'empty-002');
+    mustExist(join(e, 'META.yaml'), 'empty-002 META');
+    const entries = readdirSync(e);
+    assert.deepEqual(entries.sort(), ['META.yaml']);
+    const meta = readFileSync(join(e, 'META.yaml'), 'utf8');
+    assert.match(meta, /diskId:\s*duration-empty-002/);
+    for (const absent of ['apps', 'instances', 'FILES.yaml', 'BACKUP.yaml']) {
+      assert.equal(existsSync(join(e, absent)), false, `empty-002 must not have ${absent}`);
+    }
+  });
+
   it('kolibri App Disk tree has META + apps + instance + content catalogue', () => {
     const k = join(FIX, 'kolibri');
     mustExist(join(k, 'META.yaml'), 'kolibri META');
@@ -166,6 +178,7 @@ describe('duration-tests fixtures (idea#166)', () => {
   it('walker-ref.yaml points at stable diskIds, locked Phase 1–2 keys, and notes #159', () => {
     const ref = read('walker-ref.yaml');
     assert.match(ref, /duration-empty-001/);
+    assert.match(ref, /duration-empty-002/);
     assert.match(ref, /duration-kolibri-grade5a-001/);
     assert.match(ref, /duration-kolibri-form3-001/);
     assert.match(ref, /duration-nextcloud-grade5a-001/);
@@ -298,6 +311,9 @@ describe('duration-tests fixtures (idea#166)', () => {
   it('README documents paths, Design Review gates, and locked Phase 1–2 keys', () => {
     const md = read('README.md');
     assert.match(md, /duration-empty-001/);
+    assert.match(md, /duration-empty-002/);
+    assert.match(md, /idea-test-4/);
+    assert.match(md, /empty-002/);
     assert.match(md, /duration-kolibri-grade5a-001/);
     assert.match(md, /duration-kolibri-form3-001/);
     assert.match(md, /duration-nextcloud-grade5a-001/);
@@ -323,6 +339,6 @@ describe('duration-tests fixtures (idea#166)', () => {
 
   it('fixture trees contain only expected top-level packs', () => {
     const packs = readdirSync(FIX).filter((n) => statSync(join(FIX, n)).isDirectory()).sort();
-    assert.deepEqual(packs, ['empty', 'kiwix', 'kolibri', 'kolibri-form3', 'nextcloud']);
+    assert.deepEqual(packs, ['empty', 'empty-002', 'kiwix', 'kolibri', 'kolibri-form3', 'nextcloud']);
   });
 });
