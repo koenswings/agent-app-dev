@@ -35,6 +35,7 @@ describe('duration-tests fixtures (idea#166)', () => {
     mustExist(join(k, 'instances/kolibri-grade5a-001/.env'), 'kolibri instance .env');
     mustExist(join(k, 'content/CONTENT.yaml'), 'kolibri CONTENT.yaml');
     mustExist(join(k, 'content/CONTENT.seeded.json'), 'kolibri CONTENT.seeded.json');
+    mustExist(join(k, 'content/CONTENT.live.json'), 'kolibri CONTENT.live.json');
     mustExist(join(k, 'content/seed-notes.md'), 'kolibri seed-notes');
     mustExist(join(k, 'content/seed/build_content_seeded.py'), 'kolibri seed builder');
     mustExist(join(k, 'content/media/video-grade5a-01.mp4'), 'kolibri video stub');
@@ -69,6 +70,20 @@ describe('duration-tests fixtures (idea#166)', () => {
     mustExist(join(k, 'content/seed/exercise-grade5a-01.perseus'), 'kolibri perseus archive');
     mustExist(join(k, 'content/seed/build_perseus_exercise.py'), 'kolibri perseus builder');
     mustExist(join(k, seeded.intentResolution.open_exercise.storagePath), 'seeded perseus storage blob');
+
+    const live = JSON.parse(readFileSync(join(k, 'content/CONTENT.live.json'), 'utf8'));
+    assert.equal(live.diskId, 'duration-kolibri-grade5a-001');
+    assert.equal(live.instanceId, 'kolibri-grade5a-001');
+    assert.equal(live.channel.channelId, '30b6c263-4b96-5a62-93bd-dcf9a5cad7ca');
+    assert.equal(live.intentResolution.open_video.contentId, 'e60662de-b15c-52f9-b003-359f7d91f8fd');
+    assert.equal(live.intentResolution.open_exercise.contentId, '7eb9de46-96eb-53d0-bcc1-2fb270b96f03');
+    assert.equal(live.intentResolution.open_exercise.numberOfAssessments, 2);
+    assert.equal(live.facility.id, 'f0e1353e8c40d985faab5ead5c91d03f');
+    assert.equal(live.class.id, 'a12df5408d20cbe5fd00c0cb036f48f6');
+    assert.equal(live.lesson.id, '2a955770551f7d583c31104f39653fdf');
+    // Content IDs match seeded (stable); auth IDs are live snapshots (mutable on re-provision)
+    assert.equal(live.intentResolution.open_video.contentId, seeded.intentResolution.open_video.contentId);
+    assert.equal(live.intentResolution.open_exercise.contentId, seeded.intentResolution.open_exercise.contentId);
 
     const compose = readFileSync(join(k, 'apps/kolibri-1.0/compose.yaml'), 'utf8');
     assert.match(compose, /name:\s*kolibri/);
@@ -113,7 +128,7 @@ describe('duration-tests fixtures (idea#166)', () => {
 
   it('kiwix is explicitly deferred (Phase 3 / optional)', () => {
     const readme = readFileSync(join(FIX, 'kiwix/README.md'), 'utf8');
-    assert.match(readme, /Phase 3|optional|omit from Phase 1/i);
+    assert.match(readme, /deferred|Phase 3|Steve deferral|omit/i);
     // No App Disk tree shipped yet
     assert.equal(existsSync(join(FIX, 'kiwix/META.yaml')), false);
   });
@@ -146,7 +161,10 @@ describe('duration-tests fixtures (idea#166)', () => {
     assert.match(ref, /open_video:/);
     assert.match(ref, /open_file_drop:/);
     // Phase 3 App-owned deeper Intent map
-    assert.match(ref, /pack_version:\s*"1\.3"/);
+    assert.match(ref, /pack_version:\s*"1\.4"/);
+    assert.match(ref, /id_stability:/);
+    assert.match(ref, /contentLive:/);
+    assert.match(ref, /mutable_on_reprovision:/);
     assert.match(ref, /phase_3_intents:/);
     for (const key of [
       'open_kolibri_as_teacher',
@@ -166,7 +184,9 @@ describe('duration-tests fixtures (idea#166)', () => {
     assert.match(ref, /blocked_until_collabora|Collabora/);
     assert.match(ref, /Kiwix App Disk omitted/);
     assert.match(ref, /contentSeeded:/);
-    assert.match(ref, /seed_artifact_ready_live_import_pending/);
+    assert.match(ref, /live_imported_idea01_2026-10-01/);
+    assert.match(ref, /CONTENT\.live\.json/);
+    assert.match(ref, /Steve deferral list/);
   });
 
   it('CONTENT catalogues expose phase_3_intent_map', () => {
@@ -194,6 +214,8 @@ describe('duration-tests fixtures (idea#166)', () => {
     assert.match(md, /Phase 3 deeper Intents/);
     assert.match(md, /open_kolibri_as_teacher/);
     assert.match(md, /CONTENT\.seeded\.json/);
+    assert.match(md, /CONTENT\.live\.json/);
+    assert.match(md, /Stable vs mutable|Mutable on re-provision/i);
     assert.match(md, /selector_binding|Pixel Phase 3/);
   });
 

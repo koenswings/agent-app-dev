@@ -41,10 +41,17 @@ Pinned Intent resolution (current artifact):
 | `open_video` | `video-grade5a-01` | see `CONTENT.seeded.json` → `intentResolution.open_video` |
 | `open_exercise` | `exercise-grade5a-01` | see `CONTENT.seeded.json` → `intentResolution.open_exercise` |
 
-Facility / class / learner / lesson UUIDs in the artifact are **uuid5
-placeholders** until `apply-live.sh` + provision on a Running instance fills
-live row IDs (`liveImportStatus: pending`). Content/node/channel IDs are
-already pinned for Pixel adapters.
+### Stable vs mutable IDs (Pixel / Axle — read this)
+
+| Kind | Examples | Stability |
+|------|----------|-----------|
+| **Stable** | `diskId`, `instanceId`, `channelId`, `contentId` / `nodeId` for `open_video` + `open_exercise`, Perseus assessment item IDs, storage md5 paths | Prefer these pins; ricecooker-derived; survive re-provision |
+| **Mutable on re-provision** | `facility.id`, `class.id`, `lesson.id`, coach/learner user Morango IDs | Change if `provisiondevice` / ORM class seed is re-run on idea01; refresh `CONTENT.live.json` + Pixel `DURATION_FIXTURES.kolibri.live` |
+
+Current live auth IDs (mutable) live in [`CONTENT.live.json`](CONTENT.live.json)
+(`liveImportStatus: imported_on_idea01_temp`). Content pins match
+`CONTENT.seeded.json` / Console #134. Medium-confidence prior: idea01 live
+auth IDs **still change on re-provision** — do not treat them as forever-stable.
 
 ### Live apply (free Pi only — never interrupt Atlas dock)
 
@@ -67,7 +74,7 @@ Phase 1–2 walker actions that touch this disk are infra only
 minimal-usage keys (`open_console_as_*`, `stay_on_*_overview`,
 `return_to_start`, …) do not open Kolibri content yet.
 
-Phase 3 deeper usage / coaching Intents are App-documented in
+Phase 3+4 (idea#168) deeper usage / coaching Intents are App-documented in
 `walker-ref.yaml` `phase_3_intents` and `CONTENT.yaml` `phase_3_intent_map`
 (snake_case matching the proposal + Axle `UI_STUB_ACTIONS` /
 `school-day.yaml`). Playwright / Console `data-testid` binding remains
@@ -110,6 +117,8 @@ concurrency separately from those planning figures. The stub video here is
 for Intent wiring only (3s); capacity planning still uses #159 encodes.
 
 ## Live import result (2026-10-01, idea01)
+
+**Auth IDs below are mutable on re-provision.** Content/channel IDs are stable.
 
 `CONTENT.live.json` records Morango facility/class/learner/lesson IDs from a temp
 Kolibri container (`koenswings/kolibri:1.0-0.15.5-dev` on port 18080) after:

@@ -5,7 +5,30 @@
 
 name: duration-tests-fixture-refs
 idea: 166
-pack_version: "1.3"
+pack_version: "1.4"
+
+# --- ID stability (prefer these pins; do not invent alternates) ---
+# STABLE across re-provision / box rebuild:
+#   diskId, instanceId, channelId, contentId, nodeId, storage md5 paths,
+#   Nextcloud folder logicalIds / share name, app login usernames (teacher/learner01…)
+# MUTABLE on idea01 Kolibri re-provision (Morango 32-hex auth rows):
+#   facility.id, class.id, lesson.id, coach.id, learner*.id
+#   → refresh CONTENT.live.json (+ Pixel DURATION_FIXTURES.kolibri.live) after re-provision
+id_stability:
+  stable:
+    diskIds: [duration-kolibri-grade5a-001, duration-nextcloud-grade5a-001]
+    instanceIds: [kolibri-grade5a-001, nextcloud-grade5a-001]
+    channelId: 30b6c263-4b96-5a62-93bd-dcf9a5cad7ca
+    open_video_contentId: e60662de-b15c-52f9-b003-359f7d91f8fd
+    open_exercise_contentId: 7eb9de46-96eb-53d0-bcc1-2fb270b96f03
+    open_exercise_assessment_items: 2
+  mutable_on_reprovision:
+    source: CONTENT.live.json  # idea01 temp import 2026-10-01
+    facilityId: f0e1353e8c40d985faab5ead5c91d03f
+    classId: a12df5408d20cbe5fd00c0cb036f48f6
+    lessonId: 2a955770551f7d583c31104f39653fdf
+    note: "Medium-confidence prior: these auth IDs still change if provisiondevice is re-run"
+
 
 # Design Review: these are App Disk / content IDs only.
 # Console class-instance selectors (data-testid) are Pixel's job.
@@ -369,11 +392,13 @@ phase_3_intents:
       status: Phase 3 Console PR follow-up to #134
       note: "App ships Intent defs + logical IDs; Pixel binds data-testid / in-app selectors"
     - id: kolibri-live-seed
-      blocks: "facility/class/lesson live row IDs + channel import on Running instance (content IDs already pinned in CONTENT.seeded.json)"
-      owner: Kid+Atlas
-      status: seed_artifact_ready_live_import_pending
+      blocks: "none for content pins — CONTENT.live.json records idea01 import; re-provision mutates auth IDs only"
+      owner: Kid
+      status: live_imported_idea01_2026-10-01
       see: fixtures/kolibri/content/seed-notes.md
       seeded: fixtures/kolibri/content/CONTENT.seeded.json
+      live: fixtures/kolibri/content/CONTENT.live.json
+      note: "Facility/class/lesson/user Morango IDs CHANGE on re-provision; content/channel/disk/instance IDs are stable"
 
 fixtures:
   kolibri:
@@ -384,6 +409,7 @@ fixtures:
     instanceName: kolibri
     contentCatalogue: tests/duration-tests/fixtures/kolibri/content/CONTENT.yaml
     contentSeeded: tests/duration-tests/fixtures/kolibri/content/CONTENT.seeded.json
+    contentLive: tests/duration-tests/fixtures/kolibri/content/CONTENT.live.json
     image: koenswings/kolibri:1.0-0.15.5-dev
     phase_1_2:
       # Dockable target for infra_dock_fixture / infra_move_disk / infra_undock_fixtures
@@ -449,5 +475,5 @@ fixtures:
 
   kiwix:
     included: false
-    note: "Phase 3 / optional — omit from Phase 1–2 YAML; Wikipedia Intents blocked"
+    note: "Deferred Phase 3+4 — no minimal ZIM path without App Disk redesign; Wikipedia Intents blocked (Steve deferral list)"
     see: tests/duration-tests/fixtures/kiwix/README.md

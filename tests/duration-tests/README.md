@@ -1,4 +1,4 @@
-# Duration-tests App fixtures (idea#166)
+# Duration-tests App fixtures (idea#166 / #168)
 
 Versioned App Disk trees that Axle’s unified walker and Pixel’s adapters can
 point at for Markov duration tests
@@ -78,10 +78,12 @@ tests/duration-tests/
 
 - Catalogue: [`fixtures/kolibri/content/CONTENT.yaml`](fixtures/kolibri/content/CONTENT.yaml)
 - Seed artifact: [`fixtures/kolibri/content/CONTENT.seeded.json`](fixtures/kolibri/content/CONTENT.seeded.json)
+- Live pins: [`fixtures/kolibri/content/CONTENT.live.json`](fixtures/kolibri/content/CONTENT.live.json) (idea01 import)
 - Seed docs / regenerate: [`fixtures/kolibri/content/seed-notes.md`](fixtures/kolibri/content/seed-notes.md)
 - Image: `koenswings/kolibri:1.0-0.15.5-dev` (host network; walker HTTP often `:18080`)
 - Logical IDs: `class-grade5a`, `video-grade5a-01`, `exercise-grade5a-01`
-- `open_video` / `open_exercise` content IDs pinned in `CONTENT.seeded.json` (box-local); facility/class/lesson live rows still need `apply-live.sh` on a free Pi
+- **Stable pins:** `open_video` `e60662de-…f8fd`, `open_exercise` `7eb9de46-…6f03` (+ 2 Perseus items), channel `30b6c263-…d7ca`, disk/instance IDs
+- **Mutable on re-provision:** facility / class / lesson / user Morango IDs in `CONTENT.live.json` (refresh after re-seed)
 
 ### Nextcloud content notes
 
@@ -95,7 +97,7 @@ tests/duration-tests/
 
 ### Kiwix
 
-See [`fixtures/kiwix/README.md`](fixtures/kiwix/README.md). Phase 3 / optional.
+See [`fixtures/kiwix/README.md`](fixtures/kiwix/README.md). **Deferred Phase 3+4** (no minimal ZIM without App Disk redesign) — Steve deferral list.
 
 ## How walker YAML should reference these
 
@@ -190,7 +192,7 @@ idea03 Intenso hardware Files Disk.
 | Kiwix fixture absent | `open_wikipedia_as_*` | Kid (deferred) |
 | Collabora omitted | `keep_editing` | Kid (deferred) |
 | Pixel Playwright Phase 3 | all usage Playwright adapters | Pixel |
-| Kolibri live import | facility/class/lesson live IDs + channel import (`CONTENT.seeded.json` content IDs already pinned) | Kid+Atlas |
+| Kolibri re-provision | facility/class/lesson/user Morango IDs mutate (`CONTENT.live.json` refresh) | Kid (Pixel re-pin live) |
 
 ## Future deeper Intents (snake_case) — back-compat table
 
@@ -205,6 +207,19 @@ Same keys as Phase 3 above; kept so older notes still resolve:
 | `open_file_drop` | `folder-drop-grade5a` | nextcloud |
 | `open_collab_doc` | `collab-grade5a-01` (placeholder doc) | nextcloud |
 
+## Stable vs mutable IDs (for Steve / Pixel / Axle)
+
+| Stable (prefer) | Mutable on Kolibri re-provision |
+|-----------------|----------------------------------|
+| `duration-kolibri-grade5a-001` / `kolibri-grade5a-001` | facility `f0e1353e…d03f` |
+| `duration-nextcloud-grade5a-001` / `nextcloud-grade5a-001` | class `a12df540…48f6` |
+| channel `30b6c263-4b96-5a62-93bd-dcf9a5cad7ca` | lesson `2a955770…3fdf` |
+| `open_video` contentId `e60662de-b15c-52f9-b003-359f7d91f8fd` | coach/learner user IDs |
+| `open_exercise` contentId `7eb9de46-96eb-53d0-bcc1-2fb270b96f03` (+ 2 Perseus assessments) | (usernames `teacher` / `learner01`… stay) |
+| Nextcloud folder logicalIds + share **Grade 5A Files** | — |
+
+Source of truth for live auth: `CONTENT.live.json`. Medium-confidence prior: these auth IDs still change if idea01 is re-provisioned.
+
 ## Validation (no manual steps)
 
 ```bash
@@ -218,8 +233,8 @@ Does **not** require a Pi, Tailscale, or running Kolibri/Nextcloud.
 ## Out of scope / still deferred
 
 - Collabora live editing (`keep_editing`)
-- Kiwix / Wikipedia fixture + ZIM blobs
+- Kiwix / Wikipedia fixture + ZIM blobs (**deferred Phase 3+4** — not trivial without redesign)
 - Full-length classroom videos (pack ships a 3s stub; #159 encodes stay separate)
-- Live channel import / facility provision on a Running Pi (`apply-live.sh`)
+- Re-running live channel import / facility provision (already done once on idea01; auth IDs mutable)
 - Playwright Console selectors (Pixel Phase 3)
 - Merging this PR (Koen explicit merge only)

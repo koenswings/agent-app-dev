@@ -1,18 +1,17 @@
-# Kiwix — deferred for Phase 1–2
+# Kiwix — deferred (Phase 3+4 / idea#168)
 
-**Status:** omit from Phase 1–2 duration-tests YAML.
+**Status:** omit from duration-tests YAML. **Steve deferral list.**
 
-Offline Wikipedia (Kiwix on idea-A) is a Phase 3 / optional usage path
-(`wiki_browse` / **Search / browse Wikipedia**). Shipping a ZIM + App Disk
-tree tonight is not required for Axle’s infra walker or Pixel’s minimal
-operator/usage adapters.
+Offline Wikipedia (`open_wikipedia_as_teacher` / `open_wikipedia_as_learner`)
+needs a Kiwix App Disk + ZIM. A minimal ZIM path is **not** trivial tonight:
+it needs compose/META/instance redesign (and ZIMs must not be committed to
+`agent-app-dev`). No redesign → **explicitly deferred**.
 
 ## When to add
 
-- Phase 3 usage walks that include `Open Wikipedia as learner/teacher`
-- Cheap path: reuse `koenswings/app-kiwix` compose + a small ZIM already on
-  fleet data disks (e.g. `phet_en_2020-08.zim`); do **not** commit multi‑GB
-  ZIMs into `agent-app-dev`
+- Usage walks that require Wikipedia Intents
+- Cheap path later: reuse `koenswings/app-kiwix` compose + a small fleet-local
+  ZIM (e.g. `phet_en_2020-08.zim`); do **not** commit multi‑GB ZIMs here
 
 ## Suggested future IDs (reserved, not shipped)
 
@@ -23,4 +22,4 @@ operator/usage adapters.
 | instanceName | `kiwix` |
 | placement | idea-A (shared hub) |
 
-Walker YAML for Phase 1–2 should simply omit Kiwix / Wikipedia states.
+Walker YAML should omit Kiwix / Wikipedia states until this pack ships.
