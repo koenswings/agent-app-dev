@@ -53,6 +53,17 @@ Current live auth IDs (mutable) live in [`CONTENT.live.json`](CONTENT.live.json)
 `CONTENT.seeded.json` / Console #134. Medium-confidence prior: idea01 live
 auth IDs **still change on re-provision** — do not treat them as forever-stable.
 
+### Post-dock Running restore (Atlas — after infra_dock_fixture)
+
+Dock strips `instances/`. Overnight Engine will **not** restore Running-in-dock.
+Use the sidecar one-shot (idea01 `:18080`, data under `/home/pi/idea166-kolibri-live`):
+
+```bash
+bash tests/duration-tests/scripts/post-dock-restore-running.sh --mode sidecar
+```
+
+See pack `README.md` § Post-dock Running restore. `apply-live.sh` below is storage-only.
+
 ### Live apply (free Pi only — never interrupt Atlas dock)
 
 ```bash

@@ -60,6 +60,8 @@ snake_case `walkerAction` names. Phase 1–2 locked keys above stay intact.
 tests/duration-tests/
   README.md                 ← this file
   walker-ref.yaml           ← fixture diskIds + Phase 1–2 / future Intent map
+  scripts/
+    post-dock-restore-running.sh  ← Atlas one-shot after dock (sidecar :18080)
   fixtures/
     kolibri/                ← App Disk tree + content catalogue
     nextcloud/              ← App+Files Disk tree + preload folders
@@ -230,6 +232,49 @@ npm run test:unit
 Structure checks only (required META / compose / CONTENT / preload files).
 Does **not** require a Pi, Tailscale, or running Kolibri/Nextcloud.
 
+
+## Post-dock Running restore (Atlas one-shot — idea#168)
+
+RealFleetOps `infra_dock_fixture` is **dock-only** and **strips `instances/`**, so
+live App-open Intents (`open_kolibri_*` / `open_video` / `open_exercise` /
+`open_nextcloud_*`) fail after dock unless a Running Kolibri is restored
+**outside** the dock tree. Engine will **not** restore Running-after-dock overnight
+(by design).
+
+**Recommended overnight path:** sidecar live Kolibri on idea01 (already provisioned;
+pins in `CONTENT.live.json`).
+
+```bash
+# On idea01 (after Atlas claim; never idea02):
+cd /home/pi/idea/agents/agent-app-dev   # App#10 branch synced
+bash tests/duration-tests/scripts/post-dock-restore-running.sh
+# equiv: --mode sidecar --live-root /home/pi/idea166-kolibri-live
+```
+
+What it does:
+
+1. `docker compose up -d` in `/home/pi/idea166-kolibri-live` (ARM64 image already on host)
+2. Checks HTTP `:18080`
+3. Prints stable `open_video` / `open_exercise` contentIds from `CONTENT.live.json`
+
+**Axle / Pixel:** point App-open Intents at this Running sidecar (`:18080`), not at
+the private `IDEA_DISKS_ROOT/idea-test-N/` dock root.
+
+Storage-only helper (blobs into an existing Kolibri home — does not provision):
+`fixtures/kolibri/content/seed/apply-live.sh` with `KOLIBRI_DATA=…/data/kolibri`.
+
+Optional morning prep (compose copy only — still no Engine auto-start):
+
+```bash
+bash tests/duration-tests/scripts/post-dock-restore-running.sh \
+  --mode dock-instances \
+  --dock-root /home/pi/idea/duration-disks/idea-test-1
+```
+
+**Nextcloud Running:** not overnight — no idea01 Nextcloud live sidecar yet.
+`dock-instances` can copy Nextcloud `instances/` compose; App-open Nextcloud
+stays deferred until a live Running path exists.
+
 ## Out of scope / still deferred
 
 - Collabora live editing (`keep_editing`)
@@ -237,4 +282,6 @@ Does **not** require a Pi, Tailscale, or running Kolibri/Nextcloud.
 - Full-length classroom videos (pack ships a 3s stub; #159 encodes stay separate)
 - Re-running live channel import / facility provision (already done once on idea01; auth IDs mutable)
 - Playwright Console selectors (Pixel Phase 3)
+- In-dock Engine Running restore after `infra_dock_fixture` (strips `instances/` by design — use sidecar script overnight)
+- Nextcloud live Running sidecar on idea01 (Kolibri sidecar only tonight)
 - Merging this PR (Koen explicit merge only)

@@ -25,6 +25,7 @@ describe('duration-tests fixtures (idea#166)', () => {
   it('pack root docs exist', () => {
     mustExist(join(ROOT, 'README.md'), 'README');
     mustExist(join(ROOT, 'walker-ref.yaml'), 'walker-ref.yaml');
+    mustExist(join(ROOT, 'scripts/post-dock-restore-running.sh'), 'post-dock restore script');
   });
 
   it('kolibri App Disk tree has META + apps + instance + content catalogue', () => {
