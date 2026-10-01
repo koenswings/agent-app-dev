@@ -1,0 +1,91 @@
+{
+  "pack": "duration-kolibri-grade5a",
+  "version": "1.0",
+  "diskId": "duration-kolibri-grade5a-001",
+  "instanceId": "kolibri-grade5a-001",
+  "liveImportStatus": "imported_on_idea01_temp",
+  "importedAt": "2026-10-01T03:10:49Z",
+  "importedBy": "Kid (App Dev)",
+  "host": "idea01",
+  "kolibriHttpPort": 18080,
+  "image": "koenswings/kolibri:1.0-0.15.5-dev",
+  "tempDataDir": "/home/pi/idea166-kolibri-live/data/kolibri",
+  "method": "apply-live.sh storage copy + provisiondevice + local channel sqlite inject (no Studio) + Lesson ORM",
+  "note": "Facility/class/learner/lesson IDs are Morango 32-hex from this provision (re-provision yields new auth IDs). Content/node/channel IDs match CONTENT.seeded.json pinned ricecooker IDs. open_video/open_exercise resolve via /api/content/contentnode/?content_id=\u2026",
+  "channel": {
+    "channelId": "30b6c263-4b96-5a62-93bd-dcf9a5cad7ca",
+    "channelIdRaw": "30b6c2634b965a6293bddcf9a5cad7ca",
+    "available": true
+  },
+  "facility": {
+    "name": "Duration Tests Facility",
+    "id": "f0e1353e8c40d985faab5ead5c91d03f",
+    "idDashed": "f0e1353e-8c40-d985-faab-5ead5c91d03f",
+    "liveStatus": "provisioned"
+  },
+  "class": {
+    "name": "Grade 5A",
+    "id": "a12df5408d20cbe5fd00c0cb036f48f6",
+    "idDashed": "a12df540-8d20-cbe5-fd00-c0cb036f48f6",
+    "liveStatus": "provisioned"
+  },
+  "coach": {
+    "username": "teacher",
+    "passwordHint": "teacher",
+    "id": "043d490442213bf426cad1e261536ca7",
+    "idDashed": "043d4904-4221-3bf4-26ca-d1e261536ca7",
+    "liveStatus": "provisioned"
+  },
+  "learners": [
+    {
+      "username": "learner01",
+      "id": "699a6ede1943c0e241377d3356d925df",
+      "idDashed": "699a6ede-1943-c0e2-4137-7d3356d925df",
+      "liveStatus": "provisioned"
+    },
+    {
+      "username": "learner02",
+      "id": "cd49828e41739df3553cb43092ec0233",
+      "idDashed": "cd49828e-4173-9df3-553c-b43092ec0233",
+      "liveStatus": "provisioned"
+    },
+    {
+      "username": "learner03",
+      "id": "07127d02113f5ed1a5edf56533473df7",
+      "idDashed": "07127d02-113f-5ed1-a5ed-f56533473df7",
+      "liveStatus": "provisioned"
+    }
+  ],
+  "lesson": {
+    "title": "Grade 5A Duration Lesson",
+    "id": "2a955770551f7d583c31104f39653fdf",
+    "idDashed": "2a955770-551f-7d58-3c31-104f39653fdf",
+    "resourceNodeIds": [
+      "4a1a1b923f6d59eba94c3f91f0011dd5",
+      "94a47ec7f30d5cd193f8ad08c42b6c2a"
+    ],
+    "liveStatus": "provisioned"
+  },
+  "intentResolution": {
+    "open_video": {
+      "contentId": "e60662de-b15c-52f9-b003-359f7d91f8fd",
+      "contentIdRaw": "e60662deb15c52f9b003359f7d91f8fd",
+      "nodeId": "4a1a1b92-3f6d-59eb-a94c-3f91f0011dd5",
+      "nodeIdRaw": "4a1a1b923f6d59eba94c3f91f0011dd5",
+      "channelId": "30b6c263-4b96-5a62-93bd-dcf9a5cad7ca",
+      "available": true,
+      "storageUrl": "/content/storage/4/1/4144ce98fa756d204e0eb8b11c2b6bf2.mp4",
+      "apiVerified": "GET /api/content/contentnode/?content_id=e60662deb15c52f9b003359f7d91f8fd \u2192 200 leaf video"
+    },
+    "open_exercise": {
+      "contentId": "7eb9de46-96eb-53d0-bcc1-2fb270b96f03",
+      "contentIdRaw": "7eb9de4696eb53d0bcc12fb270b96f03",
+      "nodeId": "94a47ec7-f30d-5cd1-93f8-ad08c42b6c2a",
+      "nodeIdRaw": "94a47ec7f30d5cd193f8ad08c42b6c2a",
+      "channelId": "30b6c263-4b96-5a62-93bd-dcf9a5cad7ca",
+      "available": true,
+      "note": "Stub exercise (mastery m_of_n, empty assessment_item_ids) \u2014 node resolves; Perseus items not authored",
+      "apiVerified": "GET /api/content/contentnode/?content_id=7eb9de4696eb53d0bcc12fb270b96f03 \u2192 200 leaf exercise"
+    }
+  }
+}

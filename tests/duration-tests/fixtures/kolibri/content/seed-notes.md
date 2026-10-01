@@ -108,3 +108,17 @@ HTTP Range load-test Ns from idea#159 are **not** Playwright browser-watcher
 caps. Duration usage walks that open video in a real browser must size
 concurrency separately from those planning figures. The stub video here is
 for Intent wiring only (3s); capacity planning still uses #159 encodes.
+
+## Live import result (2026-10-01, idea01)
+
+`CONTENT.live.json` records Morango facility/class/learner/lesson IDs from a temp
+Kolibri container (`koenswings/kolibri:1.0-0.15.5-dev` on port 18080) after:
+
+1. `apply-live.sh` storage copy
+2. `kolibri manage provisiondevice` + Classroom/learners via Django ORM
+3. Local channel sqlite (schema v5) with pinned ricecooker IDs → `import_channel_from_local_db`
+4. Lesson **Grade 5A Duration Lesson** with video + exercise nodes
+
+`open_video` / `open_exercise` verified via
+`/api/content/contentnode/?content_id=<raw32hex>`. No Studio token used.
+Exercise is a stub (empty `assessment_item_ids`); node resolves as available.

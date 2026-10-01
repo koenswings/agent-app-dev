@@ -8,8 +8,8 @@
   "generator": "content/seed/build_content_seeded.py",
   "idSource": "ricecooker",
   "seedStatus": "ids_pinned_box_local",
-  "liveImportStatus": "pending",
-  "note": "Stable content/node IDs for open_video / open_exercise. Facility/class/learner/lesson UUIDs are uuid5 placeholders until apply-live.sh provisions a Running instance. Video blob is the 3s stub under content/media/ (Kolibri storage layout mirrored).",
+  "liveImportStatus": "imported_idea01_2026-10-01",
+  "note": "Stable content/node IDs for open_video / open_exercise. Facility/class/learner/lesson IDs below updated from idea01 live provision 2026-10-01 (see CONTENT.live.json). Re-provision creates new auth IDs; content IDs stay pinned. Video blob under content/media/ (Kolibri storage layout mirrored).",
   "channel": {
     "sourceDomain": "idea.koenswings.local",
     "sourceId": "duration-kolibri-grade5a",
@@ -25,54 +25,54 @@
   "facility": {
     "logicalId": "facility-duration-grade5a",
     "name": "Duration Tests Facility",
-    "id": "4dadd050-9b59-5086-9379-9df963ed9118",
-    "liveStatus": "placeholder_until_provision"
+    "id": "f0e1353e8c40d985faab5ead5c91d03f",
+    "liveStatus": "provisioned_idea01"
   },
   "class": {
     "logicalId": "class-grade5a",
     "name": "Grade 5A",
-    "id": "7c7c055f-8f75-5601-a388-856df4688859",
-    "liveStatus": "placeholder_until_provision"
+    "id": "a12df5408d20cbe5fd00c0cb036f48f6",
+    "liveStatus": "provisioned_idea01"
   },
   "coach": {
     "logicalId": "coach-grade5a",
     "username": "teacher",
     "displayName": "Grade 5A Teacher",
-    "id": "0e4bc839-4d2d-5fbd-9840-378857cba8db",
-    "liveStatus": "placeholder_until_provision"
+    "id": "043d490442213bf426cad1e261536ca7",
+    "liveStatus": "provisioned_idea01"
   },
   "learners": [
     {
       "logicalId": "learner-grade5a-01",
       "username": "learner01",
       "displayName": "Learner One",
-      "id": "ac14200f-032a-55b0-9132-a632e5f2fcf4",
-      "liveStatus": "placeholder_until_provision"
+      "id": "699a6ede1943c0e241377d3356d925df",
+      "liveStatus": "provisioned_idea01"
     },
     {
       "logicalId": "learner-grade5a-02",
       "username": "learner02",
       "displayName": "Learner Two",
-      "id": "cdb8882d-8bd1-552a-9ec3-3bae0379d92b",
-      "liveStatus": "placeholder_until_provision"
+      "id": "cd49828e41739df3553cb43092ec0233",
+      "liveStatus": "provisioned_idea01"
     },
     {
       "logicalId": "learner-grade5a-03",
       "username": "learner03",
       "displayName": "Learner Three",
-      "id": "49f457e4-5f92-53ad-91e6-a5d599886a81",
-      "liveStatus": "placeholder_until_provision"
+      "id": "07127d02113f5ed1a5edf56533473df7",
+      "liveStatus": "provisioned_idea01"
     }
   ],
   "lesson": {
     "logicalId": "lesson-grade5a-video-exercise",
     "title": "Grade 5A Duration Lesson",
-    "id": "3c866dcc-680d-582d-8e3b-be3c39cd4fd7",
+    "id": "2a955770551f7d583c31104f39653fdf",
     "resourceLogicalIds": [
       "video-grade5a-01",
       "exercise-grade5a-01"
     ],
-    "liveStatus": "placeholder_until_provision"
+    "liveStatus": "provisioned_idea01"
   },
   "resources": {
     "video-grade5a-01": {
@@ -130,5 +130,6 @@
     ],
     "media": "content/media/video-grade5a-01.mp4",
     "see": "content/seed-notes.md"
-  }
+  },
+  "liveImportRef": "CONTENT.live.json"
 }
