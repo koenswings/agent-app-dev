@@ -77,16 +77,18 @@ describe('duration-tests fixtures (idea#166)', () => {
     const live = JSON.parse(readFileSync(join(k, 'content/CONTENT.live.json'), 'utf8'));
     assert.equal(live.diskId, 'duration-kolibri-grade5a-001');
     assert.equal(live.instanceId, 'kolibri-grade5a-001');
-    assert.equal(live.channel.channelId, '30b6c263-4b96-5a62-93bd-dcf9a5cad7ca');
-    assert.equal(live.intentResolution.open_video.contentId, 'e60662de-b15c-52f9-b003-359f7d91f8fd');
-    assert.equal(live.intentResolution.open_exercise.contentId, '7eb9de46-96eb-53d0-bcc1-2fb270b96f03');
-    assert.equal(live.intentResolution.open_exercise.numberOfAssessments, 2);
-    assert.equal(live.facility.id, 'f0e1353e8c40d985faab5ead5c91d03f');
-    assert.equal(live.class.id, 'a12df5408d20cbe5fd00c0cb036f48f6');
-    assert.equal(live.lesson.id, '2a955770551f7d583c31104f39653fdf');
-    // Content IDs match seeded (stable); auth IDs are live snapshots (mutable on re-provision)
-    assert.equal(live.intentResolution.open_video.contentId, seeded.intentResolution.open_video.contentId);
-    assert.equal(live.intentResolution.open_exercise.contentId, seeded.intentResolution.open_exercise.contentId);
+    // Intent pins flipped to Khan EN-US remap (idea#168); synthetic smoke kept separate
+    assert.equal(live.channel.channelId, 'c9d7f950-ab6b-5a11-99e3-d6c10d7f0103');
+    assert.equal(live.intentResolution.open_video.contentId, '757e1a6e-9ea1-5168-b99a-0bf7eeb30662');
+    assert.equal(live.intentResolution.open_exercise.contentId, '2f9204d3-af37-58b9-8fa0-fd86a0c03c5d');
+    assert.equal(live.liveImportStatus, 'khan_remap_primary_idea04');
+    assert.ok(live.facility.id);
+    assert.ok(live.class.id);
+    assert.ok(live.lesson.id);
+    assert.equal(live.syntheticSmokeFallback.open_video_contentId, seeded.intentResolution.open_video.contentId);
+    assert.equal(live.syntheticSmokeFallback.open_exercise_contentId, seeded.intentResolution.open_exercise.contentId);
+    assert.equal(live.syntheticSmokeFallback.channelId, '30b6c263-4b96-5a62-93bd-dcf9a5cad7ca');
+    mustExist(join(k, 'content/CONTENT.khan-remap.json'), 'kolibri CONTENT.khan-remap.json');
 
     const compose = readFileSync(join(k, 'apps/kolibri-1.0/compose.yaml'), 'utf8');
     assert.match(compose, /name:\s*kolibri/);
@@ -230,16 +232,31 @@ describe('duration-tests fixtures (idea#166)', () => {
     assert.equal(remap.leaves.exercises.length, 3);
     assert.ok(remap.leaves.videos.every((l) => l.status === 'OK'));
     assert.ok(remap.leaves.exercises.every((l) => l.status === 'OK'));
+    assert.equal(remap.status, 'live_imported_verified_idea04');
+    assert.equal(remap.kolibriHttpPort, 18081);
     // Synthetic smoke pins unchanged
     assert.equal(
       remap.syntheticSmokeFallback.open_video_contentId,
       'e60662de-b15c-52f9-b003-359f7d91f8fd',
     );
 
+    const f3live = JSON.parse(readFileSync(join(f3, 'content/CONTENT.live.json'), 'utf8'));
+    assert.equal(f3live.liveImportStatus, 'imported_on_idea04');
+    assert.equal(f3live.kolibriHttpPort, 18080);
+    assert.equal(f3live.intentResolution.open_video.contentIdRaw, '0a2fdaad532c56b2b90f62f9204e3be8');
+    assert.equal(f3live.intentResolution.open_exercise.contentIdRaw, 'ed0c23b8e517568790ae1bda74ab22ba');
+    assert.ok(f3live.facility.id);
+    assert.ok(f3live.lesson.id);
+
     mustExist(
       join(ROOT, 'scripts/import-khan-topic-slice.sh'),
       'khan topic-slice import script',
     );
+    mustExist(
+      join(ROOT, 'scripts/provision-khan-pack-lesson.py'),
+      'khan pack provision script',
+    );
+    mustExist(join(ROOT, 'SIDECARS.live.md'), 'sidecar docs');
   });
 
   it('CONTENT catalogues expose phase_3_intent_map', () => {

@@ -190,3 +190,10 @@ kolibri manage importcontent --node_ids "$TOPIC" network "$CHANNEL"
 | Full channel | ~68 GB — do not import |
 
 **No Studio token** (public channel). CDN path verified HTTP 206.
+
+## Live Khan remap result (2026-10-01, idea04)
+
+Topic-slice import on `idea168-kolibri-g5a-khan` (:18081) verified 6/6 leaves.
+`CONTENT.live.json` Intent pins flipped to Khan; synthetic smoke retained under
+`syntheticSmokeFallback` + `CONTENT.seeded.json`. See `CONTENT.khan-remap.json`
+(`status: live_imported_verified_idea04`) and `SIDECARS.live.md`.

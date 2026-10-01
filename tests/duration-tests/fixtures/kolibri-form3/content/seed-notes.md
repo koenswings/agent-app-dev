@@ -44,3 +44,9 @@ Then provision facility/class/learners/lesson (same pattern as Grade 5A
 ## Nextcloud Form 3
 
 Defer until Kolibri Form 3 live import + lesson verify is green.
+
+## Live import result (2026-10-01, idea04)
+
+`CONTENT.live.json` updated after topic-slice import + provision on
+`idea168-kolibri-form3` (:18080). All 6 leaves available via
+`/api/content/contentnode/`. Auth IDs mutable. See `SIDECARS.live.md`.
