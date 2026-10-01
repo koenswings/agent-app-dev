@@ -5,7 +5,7 @@
 
 name: duration-tests-fixture-refs
 idea: 166
-pack_version: "1.2"
+pack_version: "1.3"
 
 # Design Review: these are App Disk / content IDs only.
 # Console class-instance selectors (data-testid) are Pixel's job.
@@ -369,10 +369,11 @@ phase_3_intents:
       status: Phase 3 Console PR follow-up to #134
       note: "App ships Intent defs + logical IDs; Pixel binds data-testid / in-app selectors"
     - id: kolibri-live-seed
-      blocks: "live open_video/open_exercise until CONTENT.seeded.json exists on docked instance"
+      blocks: "facility/class/lesson live row IDs + channel import on Running instance (content IDs already pinned in CONTENT.seeded.json)"
       owner: Kid+Atlas
-      status: catalogue_ready_seed_pending
+      status: seed_artifact_ready_live_import_pending
       see: fixtures/kolibri/content/seed-notes.md
+      seeded: fixtures/kolibri/content/CONTENT.seeded.json
 
 fixtures:
   kolibri:
@@ -382,6 +383,7 @@ fixtures:
     instanceId: kolibri-grade5a-001
     instanceName: kolibri
     contentCatalogue: tests/duration-tests/fixtures/kolibri/content/CONTENT.yaml
+    contentSeeded: tests/duration-tests/fixtures/kolibri/content/CONTENT.seeded.json
     image: koenswings/kolibri:1.0-0.15.5-dev
     phase_1_2:
       # Dockable target for infra_dock_fixture / infra_move_disk / infra_undock_fixtures

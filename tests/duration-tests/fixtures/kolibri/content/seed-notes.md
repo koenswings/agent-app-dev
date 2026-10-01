@@ -8,9 +8,57 @@ After the App Disk is docked and the instance is Running, ensure:
 2. Class **Grade 5A** with learners `learner01`…`learner03`
 3. Lesson **Grade 5A Duration Lesson** containing ≥1 video + ≥1 exercise
 
-Logical IDs in `CONTENT.yaml` must remain stable; write live Kolibri UUIDs to
-`CONTENT.seeded.json` (gitignored locally / optional CI artefact) so Pixel /
-Axle adapters can resolve `logical:*` → real content IDs.
+Logical IDs in `CONTENT.yaml` must remain stable. Adapters resolve
+`logical:*` → real content IDs via **`CONTENT.seeded.json`** (committed seed
+artifact in this pack).
+
+## Seed artifact (box-local, regenerable)
+
+| File | Role |
+|------|------|
+| [`CONTENT.seeded.json`](CONTENT.seeded.json) | Pinned `contentId` / `nodeId` / `channelId` for `open_video` + `open_exercise` + storage md5 path |
+| [`media/video-grade5a-01.mp4`](media/video-grade5a-01.mp4) | 3s stub video (also mirrored under `storage/<md5[0]>/<md5[1]>/<md5>.mp4`) |
+| [`seed/exercise-grade5a-01.json`](seed/exercise-grade5a-01.json) | Exercise question recipe |
+| [`seed/build_content_seeded.py`](seed/build_content_seeded.py) | Regenerates `CONTENT.seeded.json` + storage mirror |
+| [`seed/apply-live.sh`](seed/apply-live.sh) | Copies storage blobs into a Running Kolibri data dir |
+
+### Regenerate (no Pi / Docker required)
+
+```bash
+# optional but preferred — Studio/Kolibri-matching IDs via ricecooker
+python3 -m venv .venv-seed && .venv-seed/bin/pip install ricecooker
+.venv-seed/bin/python \
+  tests/duration-tests/fixtures/kolibri/content/seed/build_content_seeded.py
+
+# or plain python3 (uuid5 fallback IDs if ricecooker missing)
+python3 tests/duration-tests/fixtures/kolibri/content/seed/build_content_seeded.py
+```
+
+Pinned Intent resolution (current artifact):
+
+| Intent | contentLogicalId | contentId |
+|--------|------------------|-----------|
+| `open_video` | `video-grade5a-01` | see `CONTENT.seeded.json` → `intentResolution.open_video` |
+| `open_exercise` | `exercise-grade5a-01` | see `CONTENT.seeded.json` → `intentResolution.open_exercise` |
+
+Facility / class / learner / lesson UUIDs in the artifact are **uuid5
+placeholders** until `apply-live.sh` + provision on a Running instance fills
+live row IDs (`liveImportStatus: pending`). Content/node/channel IDs are
+already pinned for Pixel adapters.
+
+### Live apply (free Pi only — never interrupt Atlas dock)
+
+```bash
+# Prefer idea04 when idle. Do NOT run on idea01/idea03 while
+# claim == "Atlas Ops: duration-walk walk-2026-10-01-dock idea#166".
+KOLIBRI_DATA=/path/to/instances/kolibri-grade5a-001/data/kolibri \
+  bash tests/duration-tests/fixtures/kolibri/content/seed/apply-live.sh
+```
+
+Then import the Grade 5A channel (Studio upload from the ricecooker tree, or
+`kolibri manage importchannel` from a peer export), provision facility/class/
+users/lesson, and optionally rewrite placeholder facility IDs in
+`CONTENT.seeded.json`.
 
 ## Phase 1–2 vs Phase 3 Intents
 
@@ -23,17 +71,18 @@ Phase 3 deeper usage / coaching Intents are App-documented in
 `walker-ref.yaml` `phase_3_intents` and `CONTENT.yaml` `phase_3_intent_map`
 (snake_case matching the proposal + Axle `UI_STUB_ACTIONS` /
 `school-day.yaml`). Playwright / Console `data-testid` binding remains
-**Pixel Phase 3**. Live `open_video` / `open_exercise` need this seed
-(`CONTENT.seeded.json`) once the instance has run.
+**Pixel Phase 3**. `open_video` / `open_exercise` resolve through
+`CONTENT.seeded.json` once Console adapters exist (Pixel may still skip
+`keep_watching` / `exit_lesson` for now).
 
 ## Cheap path tonight
 
 - Reuse `koenswings/app-kolibri` image `koenswings/kolibri:1.0-0.15.5-dev`.
+- Box-built: `CONTENT.seeded.json` + stub video + exercise recipe (this pack).
 - Optional: unpack `app-kolibri/init_data.tar.gz` into `instances/.../data/kolibri`
   if that tarball grows past the empty stub; current upstream stub is empty.
-- Manual / scripted seed via Kolibri coach UI or `kolibri manage` once Running
-  (Pi claim required). Box-built fixtures ship the tree + catalogue without a
-  live dock.
+- Live channel import + facility provision on a **free** pool Pi when Atlas
+  dock smoke is done (or idea04 if idle).
 
 ## Walker references
 
@@ -48,8 +97,8 @@ fixtures:
 
 # Phase 3 App bindings (see walker-ref.yaml phase_3_intents)
 # open_kolibri_as_teacher / open_kolibri_as_learner
-# open_video:    { contentLogicalId: video-grade5a-01 }
-# open_exercise: { contentLogicalId: exercise-grade5a-01 }
+# open_video:    { contentLogicalId: video-grade5a-01 } → CONTENT.seeded.json
+# open_exercise: { contentLogicalId: exercise-grade5a-01 } → CONTENT.seeded.json
 # browse_classes / keep_watching / next_resource / exit_lesson / …
 ```
 
@@ -57,4 +106,5 @@ fixtures:
 
 HTTP Range load-test Ns from idea#159 are **not** Playwright browser-watcher
 caps. Duration usage walks that open video in a real browser must size
-concurrency separately from those planning figures.
+concurrency separately from those planning figures. The stub video here is
+for Intent wiring only (3s); capacity planning still uses #159 encodes.

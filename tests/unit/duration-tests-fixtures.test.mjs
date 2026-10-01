@@ -34,7 +34,10 @@ describe('duration-tests fixtures (idea#166)', () => {
     mustExist(join(k, 'instances/kolibri-grade5a-001/compose.yaml'), 'kolibri instance compose');
     mustExist(join(k, 'instances/kolibri-grade5a-001/.env'), 'kolibri instance .env');
     mustExist(join(k, 'content/CONTENT.yaml'), 'kolibri CONTENT.yaml');
+    mustExist(join(k, 'content/CONTENT.seeded.json'), 'kolibri CONTENT.seeded.json');
     mustExist(join(k, 'content/seed-notes.md'), 'kolibri seed-notes');
+    mustExist(join(k, 'content/seed/build_content_seeded.py'), 'kolibri seed builder');
+    mustExist(join(k, 'content/media/video-grade5a-01.mp4'), 'kolibri video stub');
 
     const meta = readFileSync(join(k, 'META.yaml'), 'utf8');
     assert.match(meta, /diskId:\s*duration-kolibri-grade5a-001/);
@@ -45,6 +48,16 @@ describe('duration-tests fixtures (idea#166)', () => {
     assert.match(content, /logicalId:\s*exercise-grade5a-01/);
     assert.match(content, /walkerAction:\s*open_video/);
     assert.match(content, /walkerAction:\s*open_exercise/);
+
+    const seeded = JSON.parse(readFileSync(join(k, 'content/CONTENT.seeded.json'), 'utf8'));
+    assert.equal(seeded.diskId, 'duration-kolibri-grade5a-001');
+    assert.equal(seeded.instanceId, 'kolibri-grade5a-001');
+    assert.ok(seeded.intentResolution?.open_video?.contentId);
+    assert.ok(seeded.intentResolution?.open_exercise?.contentId);
+    assert.equal(seeded.resources['video-grade5a-01'].logicalId, 'video-grade5a-01');
+    assert.equal(seeded.resources['exercise-grade5a-01'].logicalId, 'exercise-grade5a-01');
+    assert.match(seeded.intentResolution.open_video.storagePath, /content\/storage\//);
+    mustExist(join(k, seeded.intentResolution.open_video.storagePath), 'seeded video storage blob');
 
     const compose = readFileSync(join(k, 'apps/kolibri-1.0/compose.yaml'), 'utf8');
     assert.match(compose, /name:\s*kolibri/);
@@ -122,7 +135,7 @@ describe('duration-tests fixtures (idea#166)', () => {
     assert.match(ref, /open_video:/);
     assert.match(ref, /open_file_drop:/);
     // Phase 3 App-owned deeper Intent map
-    assert.match(ref, /pack_version:\s*"1\.2"/);
+    assert.match(ref, /pack_version:\s*"1\.3"/);
     assert.match(ref, /phase_3_intents:/);
     for (const key of [
       'open_kolibri_as_teacher',
@@ -141,6 +154,8 @@ describe('duration-tests fixtures (idea#166)', () => {
     assert.match(ref, /selector_binding:\s*Pixel Phase 3/);
     assert.match(ref, /blocked_until_collabora|Collabora/);
     assert.match(ref, /Kiwix App Disk omitted/);
+    assert.match(ref, /contentSeeded:/);
+    assert.match(ref, /seed_artifact_ready_live_import_pending/);
   });
 
   it('CONTENT catalogues expose phase_3_intent_map', () => {
@@ -167,6 +182,7 @@ describe('duration-tests fixtures (idea#166)', () => {
     assert.match(md, /stay_on_learner_overview/);
     assert.match(md, /Phase 3 deeper Intents/);
     assert.match(md, /open_kolibri_as_teacher/);
+    assert.match(md, /CONTENT\.seeded\.json/);
     assert.match(md, /selector_binding|Pixel Phase 3/);
   });
 

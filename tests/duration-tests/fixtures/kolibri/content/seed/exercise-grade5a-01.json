@@ -1,0 +1,16 @@
+{
+  "logicalId": "exercise-grade5a-01",
+  "sourceId": "exercise-grade5a-01",
+  "title": "Open exercise target",
+  "mastery": { "model": "m_of_n", "m": 1, "n": 1 },
+  "questions": [
+    {
+      "id": "q1",
+      "type": "single_select",
+      "question": "What is 2 + 2?",
+      "correct_answer": "4",
+      "all_answers": ["3", "4", "5"],
+      "hints": ["Count on your fingers"]
+    }
+  ]
+}

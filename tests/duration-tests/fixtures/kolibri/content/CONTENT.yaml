@@ -2,12 +2,13 @@
 # Class-instance selectors (Console data-testid) are Pixel's job — fixtures
 # only guarantee these disk/instance/content names stay stable across packs.
 #
-# Live Kolibri UUIDs are filled by seed (see seed-notes.md) when the instance
-# first runs. Walkers should prefer the logical ids below; adapters may map
-# logical → live UUID from CONTENT.seeded.json after seed.
+# CONTENT.seeded.json (see seed-notes.md) pins content/node/channel IDs for
+# open_video / open_exercise. Walkers prefer the logical ids below; adapters
+# map logical → CONTENT.seeded.json. Facility/class/lesson live row IDs stay
+# placeholders until apply-live.sh + provision on a Running instance.
 
 pack: duration-kolibri-grade5a
-version: "1.1"
+version: "1.2"
 diskId: duration-kolibri-grade5a-001
 instanceId: kolibri-grade5a-001
 instanceName: kolibri
@@ -47,7 +48,7 @@ lesson:
       # Prefer idea#159-style storage path once seeded; MD5 filled by seed.
       # Do NOT treat Playwright browser-watcher concurrency caps as idea#159
       # HTTP stream planning Ns (64@360p / 32@480–720p / 12@1080p).
-      storageHint: "content/storage/<md5[0]>/<md5[1]>/<md5>.mp4"
+      storageHint: "content/storage/4/1/4144ce98fa756d204e0eb8b11c2b6bf2.mp4"  # see CONTENT.seeded.json
       walkerAction: open_video
     - kind: exercise
       title: Open exercise target

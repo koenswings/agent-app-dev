@@ -77,10 +77,11 @@ tests/duration-tests/
 ### Kolibri content notes
 
 - Catalogue: [`fixtures/kolibri/content/CONTENT.yaml`](fixtures/kolibri/content/CONTENT.yaml)
-- Seed: [`fixtures/kolibri/content/seed-notes.md`](fixtures/kolibri/content/seed-notes.md)
+- Seed artifact: [`fixtures/kolibri/content/CONTENT.seeded.json`](fixtures/kolibri/content/CONTENT.seeded.json)
+- Seed docs / regenerate: [`fixtures/kolibri/content/seed-notes.md`](fixtures/kolibri/content/seed-notes.md)
 - Image: `koenswings/kolibri:1.0-0.15.5-dev` (host network; walker HTTP often `:18080`)
 - Logical IDs: `class-grade5a`, `video-grade5a-01`, `exercise-grade5a-01`
-- Live Kolibri UUIDs filled after seed → optional `CONTENT.seeded.json`
+- `open_video` / `open_exercise` content IDs pinned in `CONTENT.seeded.json` (box-local); facility/class/lesson live rows still need `apply-live.sh` on a free Pi
 
 ### Nextcloud content notes
 
@@ -189,7 +190,7 @@ idea03 Intenso hardware Files Disk.
 | Kiwix fixture absent | `open_wikipedia_as_*` | Kid (deferred) |
 | Collabora omitted | `keep_editing` | Kid (deferred) |
 | Pixel Playwright Phase 3 | all usage Playwright adapters | Pixel |
-| Live Kolibri seed | live `open_video` / `open_exercise` until `CONTENT.seeded.json` | Kid+Atlas |
+| Kolibri live import | facility/class/lesson live IDs + channel import (`CONTENT.seeded.json` content IDs already pinned) | Kid+Atlas |
 
 ## Future deeper Intents (snake_case) — back-compat table
 
@@ -218,6 +219,7 @@ Does **not** require a Pi, Tailscale, or running Kolibri/Nextcloud.
 
 - Collabora live editing (`keep_editing`)
 - Kiwix / Wikipedia fixture + ZIM blobs
-- Committing Kolibri video blobs (seed writes `CONTENT.seeded.json` on Pi)
+- Full-length classroom videos (pack ships a 3s stub; #159 encodes stay separate)
+- Live channel import / facility provision on a Running Pi (`apply-live.sh`)
 - Playwright Console selectors (Pixel Phase 3)
 - Merging this PR (Koen explicit merge only)
