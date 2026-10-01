@@ -61,7 +61,7 @@ tests/duration-tests/
   README.md                 ← this file
   walker-ref.yaml           ← fixture diskIds + Phase 1–2 / future Intent map
   scripts/
-    post-dock-restore-running.sh  ← Atlas one-shot after dock (sidecar :18080)
+    post-dock-restore-running.sh  ← Atlas one-shot after dock (sidecar Kolibri :18080 + Nextcloud :18280)
   fixtures/
     kolibri/                ← App Disk tree + content catalogue
     nextcloud/              ← App+Files Disk tree + preload folders
@@ -235,53 +235,78 @@ Does **not** require a Pi, Tailscale, or running Kolibri/Nextcloud.
 
 ## Post-dock Running restore (Atlas one-shot — idea#168)
 
-RealFleetOps `infra_dock_fixture` is **dock-only** and **strips `instances/`**, so
-live App-open Intents (`open_kolibri_*` / `open_video` / `open_exercise` /
-`open_nextcloud_*`) fail after dock unless a Running Kolibri is restored
-**outside** the dock tree. Engine will **not** restore Running-after-dock overnight
-(by design).
+RealFleetOps `infra_dock_fixture` **defaults to stripping `instances/`**, so Engine
+will not auto-start Kolibri/Nextcloud. Console **Open** is clickable only when
+`instanceDB.status == Running` for that `instanceId`.
 
-**Recommended overnight path:** sidecar live Kolibri on idea01 (already provisioned;
-pins in `CONTENT.live.json`).
+### Path A — Console Running cards (preferred)
 
-```bash
-# On idea01 (after Atlas claim; never idea02):
-cd /home/pi/idea/agents/agent-app-dev   # App#10 branch synced
-bash tests/duration-tests/scripts/post-dock-restore-running.sh
-# equiv: --mode sidecar --live-root /home/pi/idea166-kolibri-live
-```
+Engine auto-starts instances on dock when `instances/` is present
+(`CommonTypes`: disk-docked → auto-start).
 
-What it does:
-
-1. `docker compose up -d` in `/home/pi/idea166-kolibri-live` (ARM64 image already on host)
-2. Checks HTTP `:18080`
-3. Prints stable `open_video` / `open_exercise` contentIds from `CONTENT.live.json`
-
-**Axle / Pixel:** point App-open Intents at this Running sidecar (`:18080`), not at
-the private `IDEA_DISKS_ROOT/idea-test-N/` dock root.
-
-Storage-only helper (blobs into an existing Kolibri home — does not provision):
-`fixtures/kolibri/content/seed/apply-live.sh` with `KOLIBRI_DATA=…/data/kolibri`.
-
-Optional morning prep (compose copy only — still no Engine auto-start):
+1. **Axle:** set RealFleetOps `startInstances: true` (constructor opt exists;
+   **CLI `--start-instances` not wired yet** — Axle follow-up).
+2. **Atlas:** claim idea01/idea03; never idea02; never idea03 Intenso `sdb1`.
+3. Dock `duration-kolibri-grade5a-001` / `duration-nextcloud-grade5a-001`.
+4. **Kid** (images + data ready):
 
 ```bash
-bash tests/duration-tests/scripts/post-dock-restore-running.sh \
-  --mode dock-instances \
+cd /home/pi/idea/agents/agent-app-dev   # App#10 synced
+bash tests/duration-tests/scripts/post-dock-restore-running.sh --mode sidecar
+# optional under dock tree after startInstances dock:
+bash tests/duration-tests/scripts/post-dock-restore-running.sh --mode dock-compose \
   --dock-root /home/pi/idea/duration-disks/idea-test-1
 ```
 
-**Nextcloud Running:** not overnight — no idea01 Nextcloud live sidecar yet.
-`dock-instances` can copy Nextcloud `instances/` compose; App-open Nextcloud
-stays deferred until a live Running path exists.
+5. **Pixel:** `data-testid="instance-<id>"` / `open-instance-<id>"` —
+   `kolibri-grade5a-001`, `nextcloud-grade5a-001`.
+
+### Path B — Sidecar HTTP (App-open when dock still strips instances/)
+
+```bash
+bash tests/duration-tests/scripts/post-dock-restore-running.sh --mode sidecar
+# equiv: --apps both (default)
+#         --apps kolibri | --apps nextcloud
+```
+
+| App | diskId | instanceId | Sidecar root | Port / URL |
+|-----|--------|------------|--------------|------------|
+| Kolibri | `duration-kolibri-grade5a-001` | `kolibri-grade5a-001` | `/home/pi/idea166-kolibri-live` | `:18080/` |
+| Nextcloud | `duration-nextcloud-grade5a-001` | `nextcloud-grade5a-001` | `/home/pi/idea166-nextcloud-live` | `:18280/apps/files/` |
+
+**Axle / Pixel:** point App-open Intents at these sidecar URLs, **not** at the
+private `IDEA_DISKS_ROOT/idea-test-N/` tree. Sidecar alone does **not** flip
+Console overview cards to Running — use Path A for Open clickable.
+
+**idea03:** Intenso `nextcloud-files-b` may already own `:18080`. Script skips
+Kolibri sidecar on conflict; use idea01 for Kolibri `:18080`, or
+`--kolibri-port 18081`. Nextcloud `:18280` is free on both Pis.
+
+Pins: `fixtures/kolibri/content/CONTENT.live.json`,
+`fixtures/nextcloud/content/CONTENT.live.json`.
+
+### Lesson chrome Intents
+
+See [`LESSON_CHROME.md`](LESSON_CHROME.md): `keep_watching` / `next_resource` /
+`exit_lesson` / `finish_exercise` / `next_video` remain **impossible without
+App-side Kolibri testids** (CONTENT pins help `open_video`/`open_exercise` only).
+
+### Legacy
+
+```bash
+bash tests/duration-tests/scripts/post-dock-restore-running.sh \
+  --mode dock-instances --dock-root /home/pi/idea/duration-disks/idea-test-1
+```
+
+Storage-only Kolibri helper: `fixtures/kolibri/content/seed/apply-live.sh`.
 
 ## Out of scope / still deferred
 
 - Collabora live editing (`keep_editing`)
-- Kiwix / Wikipedia fixture + ZIM blobs (**deferred Phase 3+4** — not trivial without redesign)
+- Kiwix / Wikipedia fixture + ZIM blobs (**deferred Phase 3+4**)
 - Full-length classroom videos (pack ships a 3s stub; #159 encodes stay separate)
-- Re-running live channel import / facility provision (already done once on idea01; auth IDs mutable)
-- Playwright Console selectors (Pixel Phase 3)
-- In-dock Engine Running restore after `infra_dock_fixture` (strips `instances/` by design — use sidecar script overnight)
-- Nextcloud live Running sidecar on idea01 (Kolibri sidecar only tonight)
+- Re-running live Kolibri channel import (auth IDs mutable on re-provision)
+- Lesson-chrome Intents without Kolibri image `data-testid`s (see LESSON_CHROME.md)
+- Playwright Console selectors / `selector_binding` remain Pixel Phase 3
+- Axle CLI `--start-instances` wiring (constructor opt exists; needed for Path A Console cards)
 - Merging this PR (Koen explicit merge only)

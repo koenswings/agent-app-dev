@@ -11,7 +11,7 @@
   "image": "koenswings/kolibri:1.0-0.15.5-dev",
   "tempDataDir": "/home/pi/idea166-kolibri-live/data/kolibri",
   "method": "apply-live.sh storage copy + provisiondevice + local channel sqlite inject (no Studio) + Lesson ORM + in-place Perseus assessment patch 2026-10-01",
-  "note": "Facility/class/learner/lesson IDs are Morango 32-hex from this provision (re-provision yields new auth IDs). Content/node/channel IDs match CONTENT.seeded.json pinned ricecooker IDs (unchanged). open_exercise now has 2 Perseus single_selection assessment items + .perseus blob.",
+  "note": "Facility/class/learner/lesson IDs are Morango 32-hex from this provision (re-provision yields new auth IDs). Content/node/channel IDs match CONTENT.seeded.json pinned ricecooker IDs (unchanged). open_exercise now has 2 Perseus single_selection assessment items + .perseus blob. idea03 Kolibri sidecar uses :18081 (Intenso conflict on :18080).",
   "channel": {
     "channelId": "30b6c263-4b96-5a62-93bd-dcf9a5cad7ca",
     "channelIdRaw": "30b6c2634b965a6293bddcf9a5cad7ca",
@@ -93,6 +93,17 @@
       "numberOfAssessments": 2,
       "perseusMd5": "202c3336b37b013ff7d67267df8d7045",
       "perseusStorageUrl": "/content/storage/2/0/202c3336b37b013ff7d67267df8d7045.perseus"
+    }
+  },
+  "hosts": {
+    "idea01": {
+      "kolibriHttpPort": 18080,
+      "url": "http://100.99.231.94:18080/"
+    },
+    "idea03": {
+      "kolibriHttpPort": 18081,
+      "url": "http://100.126.117.80:18081/",
+      "note": "18080 owned by Intenso nextcloud-files-b; use 18081"
     }
   }
 }

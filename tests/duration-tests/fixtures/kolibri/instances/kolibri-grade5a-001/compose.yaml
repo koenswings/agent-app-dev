@@ -22,3 +22,5 @@ services:
     network_mode: "host"
     environment:
       - KOLIBRI_RUN_MODE=docker
+      - KOLIBRI_HTTP_PORT=18080
+      - KOLIBRI_LISTEN_PORT=18080

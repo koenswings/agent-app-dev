@@ -26,6 +26,8 @@ describe('duration-tests fixtures (idea#166)', () => {
     mustExist(join(ROOT, 'README.md'), 'README');
     mustExist(join(ROOT, 'walker-ref.yaml'), 'walker-ref.yaml');
     mustExist(join(ROOT, 'scripts/post-dock-restore-running.sh'), 'post-dock restore script');
+    mustExist(join(ROOT, 'LESSON_CHROME.md'), 'lesson chrome Pixel note');
+
   });
 
   it('kolibri App Disk tree has META + apps + instance + content catalogue', () => {
@@ -95,6 +97,7 @@ describe('duration-tests fixtures (idea#166)', () => {
   it('nextcloud App+Files Disk tree has META, FILES, filesMount, preload folders', () => {
     const n = join(FIX, 'nextcloud');
     mustExist(join(n, 'META.yaml'), 'nextcloud META');
+    mustExist(join(n, 'content/CONTENT.live.json'), 'nextcloud CONTENT.live.json');
     mustExist(join(n, 'FILES.yaml'), 'nextcloud FILES');
     mustExist(join(n, 'CONTENT.yaml'), 'nextcloud CONTENT');
     mustExist(join(n, 'apps/nextcloud-1.0/compose.yaml'), 'nextcloud app compose');
