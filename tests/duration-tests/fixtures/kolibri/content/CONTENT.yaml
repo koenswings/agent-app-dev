@@ -7,7 +7,7 @@
 # logical → live UUID from CONTENT.seeded.json after seed.
 
 pack: duration-kolibri-grade5a
-version: "1.0"
+version: "1.1"
 diskId: duration-kolibri-grade5a-001
 instanceId: kolibri-grade5a-001
 instanceName: kolibri
@@ -60,3 +60,45 @@ urls:
   coachHome: "http://<engine-host>:18080/coach/#/classes"
   openVideo: "logical:video-grade5a-01"
   openExercise: "logical:exercise-grade5a-01"
+
+# Phase 3 Intent → content bindings (App-owned). Playwright = Pixel.
+phase_3_intent_map:
+  open_kolibri_as_teacher:
+    login_username: teacher
+    landing: coachHome
+  open_kolibri_as_learner:
+    login_username: learner01
+    landing: learnerHome
+  browse_classes:
+    classLogicalId: class-grade5a
+  open_video:
+    contentLogicalId: video-grade5a-01
+    lessonLogicalId: lesson-grade5a-video-exercise
+  open_exercise:
+    contentLogicalId: exercise-grade5a-01
+    lessonLogicalId: lesson-grade5a-video-exercise
+  keep_watching:
+    contentLogicalId: video-grade5a-01
+  next_resource:
+    from: video-grade5a-01
+    to: exercise-grade5a-01
+  exit_lesson:
+    lessonLogicalId: lesson-grade5a-video-exercise
+  finish_exercise:
+    contentLogicalId: exercise-grade5a-01
+  create_class:
+    classLogicalId: class-grade5a
+  enroll_learners:
+    learnerLogicalIds: [learner-grade5a-01, learner-grade5a-02, learner-grade5a-03]
+  build_lesson:
+    lessonLogicalId: lesson-grade5a-video-exercise
+    resources: [video-grade5a-01, exercise-grade5a-01]
+  create_quiz:
+    classLogicalId: class-grade5a
+    source_exercise: exercise-grade5a-01
+    status: catalogue_ready_quiz_not_preseeded
+  read_reports:
+    classLogicalId: class-grade5a
+    lessonLogicalId: lesson-grade5a-video-exercise
+  preview_as_learner:
+    landing: learnerHome

@@ -49,10 +49,10 @@ these **exact** action keys (do not invent aliases):
 | `infra_move_disk` | Move a docked fixture disk across pool Engines |
 | `infra_reboot_engine` | Reboot a **pool** Engine (never golden idea02) |
 
-Deeper Kolibri / Nextcloud Intents (when Phase 3+ adds them) stay **proposal
-snake_case** — see [Future deeper Intents](#future-deeper-intents-snake_case).
-CONTENT catalogues below already use those snake_case names so later YAML can
-plug in without renaming fixture docs.
+Phase 3 deeper Intents are documented under
+[Phase 3 deeper Intents](#phase-3-deeper-intents-app-owned) and
+`walker-ref.yaml` `phase_3_intents`. CONTENT catalogues keep the same
+snake_case `walkerAction` names. Phase 1–2 locked keys above stay intact.
 
 ## Layout
 
@@ -70,9 +70,9 @@ tests/duration-tests/
 
 | Pack | diskId | instanceId | What walkers get |
 |------|--------|------------|------------------|
-| Kolibri Grade 5A | `duration-kolibri-grade5a-001` | `kolibri-grade5a-001` | Dockable tree for `infra_dock_fixture`; content catalogue for future `open_video` / `open_exercise` |
-| Nextcloud Grade 5A | `duration-nextcloud-grade5a-001` | `nextcloud-grade5a-001` | Dockable App+Files tree; folders for future `share_to_class` / `open_file_drop` / `open_collab_doc` |
-| Kiwix | — | — | **Not included** — omit from Phase 1–2 YAML |
+| Kolibri Grade 5A | `duration-kolibri-grade5a-001` | `kolibri-grade5a-001` | Dockable tree for `infra_dock_fixture`; Phase 3 Intent bindings for `open_kolibri_as_*` / `open_video` / coaching |
+| Nextcloud Grade 5A | `duration-nextcloud-grade5a-001` | `nextcloud-grade5a-001` | Dockable App+Files tree; Phase 3 bindings for `open_nextcloud_as_*` / share / File Drop / collab stub |
+| Kiwix | — | — | **Not included** — Wikipedia Intents blocked |
 
 ### Kolibri content notes
 
@@ -124,10 +124,76 @@ Reuse existing harness patterns: dock like `tests/app-nextcloud/fixture`,
 `tests/app-erase-test/fixture`. Pack trees into `.img` later via
 `script/build-app-disk-image.sh` if Atlas needs stick images (idea#167 hooks).
 
-## Future deeper Intents (snake_case)
+## Phase 3 deeper Intents (App-owned)
 
-Not Phase 1–2 walker actions — catalogue mapping only so later YAML can adopt
-without renaming fixture docs:
+Phase 3 wires usage + operator UI Interactions into Axle’s walker
+([agent-engine-dev#145](https://github.com/koenswings/agent-engine-dev/pull/145)
+`school-day.yaml` already samples several as stubs;
+[ACTIONS.md](https://github.com/koenswings/agent-engine-dev/blob/feat/duration-tests-phase1-2/test/duration/ACTIONS.md)
+`UI_STUB_ACTIONS`). **App owns** Intents depth that fixtures can define:
+routes, expected `instanceId` / `diskId`, fixture roles, content logical IDs,
+and app-login usernames. **Pixel owns** Console `data-testid` binding and
+Playwright adapters ([agent-console-dev#134](https://github.com/koenswings/agent-console-dev/pull/134)
+Phase 3 follow-up). Do not invent Console selectors in this pack.
+
+Full App-side Intent map: [`walker-ref.yaml`](walker-ref.yaml) → `phase_3_intents`.
+
+### Hub → app entry (Axle school-day keys)
+
+| Action key | Pack | instanceId | App route / landing |
+|------------|------|------------|---------------------|
+| `open_kolibri_as_teacher` | kolibri | `kolibri-grade5a-001` | `:18080/coach/#/classes` (user `teacher`) |
+| `open_kolibri_as_learner` | kolibri | `kolibri-grade5a-001` | `:18080/learn/#/topics` (user `learner01`…) |
+| `open_nextcloud_as_teacher` | nextcloud | `nextcloud-grade5a-001` | `:18280/apps/files/` (user `teacher`) |
+| `open_nextcloud_as_learner` | nextcloud | `nextcloud-grade5a-001` | `:18280/apps/files/` (user `student01`…) |
+| `open_wikipedia_as_*` | — | — | **Blocked** — Kiwix fixture deferred |
+
+### Kolibri deeper usage / coaching
+
+| Action key | Content / class logical ID |
+|------------|----------------------------|
+| `browse_classes` | `class-grade5a` |
+| `open_video` | `video-grade5a-01` (lesson `lesson-grade5a-video-exercise`) |
+| `open_exercise` | `exercise-grade5a-01` |
+| `keep_watching` / `next_resource` / `exit_lesson` | same lesson resources (Axle school-day already samples) |
+| `finish_exercise` / `next_video` | exercise ↔ video in same lesson |
+| `create_class` / `enroll_learners` / `build_lesson` | Grade 5A + learners + video+exercise lesson (usually preload) |
+| `create_quiz` / `read_reports` / `preview_as_learner` | coach UI; quiz not pre-seeded in CONTENT |
+| `back_to_console` / `leave_kolibri` | leave app → Console (Pixel nav) |
+
+### Nextcloud deeper usage
+
+| Action key | Content logical ID | Notes |
+|------------|--------------------|-------|
+| `browse_folders` | materials / drop / collab folders | |
+| `share_to_class` | `folder-materials-grade5a` → group Grade 5A, view-only | |
+| `done_sharing` | — | close share dialog |
+| `open_file_drop` | `folder-drop-grade5a` | |
+| `after_upload` / `leave_file_drop` | — | |
+| `open_collab_doc` | `collab-grade5a-01` | **placeholder-doc** (no Collabora) |
+| `close_doc` | — | |
+| `keep_editing` | — | **Blocked** until `nextcloud-code` pack |
+| `leave_nextcloud_as_*` | — | Pixel Console nav |
+
+### Operator fixture refs (Console = Pixel)
+
+`open_disk_inventory` / `open_instance_controls` / `eject_disk` / `stay_on_overview`
+reference locked diskIds / instanceIds above. Console testids already sketched
+in Pixel #134 (`disk-<id>`, `instance-<id>`, `eject-<diskId>`). Never eject the
+idea03 Intenso hardware Files Disk.
+
+### Blockers (documented in walker-ref)
+
+| Blocker | Blocks | Owner |
+|---------|--------|-------|
+| Kiwix fixture absent | `open_wikipedia_as_*` | Kid (deferred) |
+| Collabora omitted | `keep_editing` | Kid (deferred) |
+| Pixel Playwright Phase 3 | all usage Playwright adapters | Pixel |
+| Live Kolibri seed | live `open_video` / `open_exercise` until `CONTENT.seeded.json` | Kid+Atlas |
+
+## Future deeper Intents (snake_case) — back-compat table
+
+Same keys as Phase 3 above; kept so older notes still resolve:
 
 | Future action key | Content logical ID | Pack |
 |-------------------|--------------------|------|
@@ -148,9 +214,10 @@ npm run test:unit
 Structure checks only (required META / compose / CONTENT / preload files).
 Does **not** require a Pi, Tailscale, or running Kolibri/Nextcloud.
 
-## Out of scope tonight
+## Out of scope / still deferred
 
-- Live dock smoke on fleet (Tailscale may be down) — box-built trees only
-- Collabora live editing
-- Committing ZIM files / Kolibri video blobs
+- Collabora live editing (`keep_editing`)
+- Kiwix / Wikipedia fixture + ZIM blobs
+- Committing Kolibri video blobs (seed writes `CONTENT.seeded.json` on Pi)
+- Playwright Console selectors (Pixel Phase 3)
 - Merging this PR (Koen explicit merge only)

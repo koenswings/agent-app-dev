@@ -1,16 +1,17 @@
 # Fixture references for Axle / Pixel (idea#166).
 # Not executed by agent-app-dev — documents stable IDs + locked Phase 1–2
-# action keys. Real schema lives in agent-engine-dev duration runner.
+# action keys + App-owned Phase 3 deeper Intent bindings.
+# Real walker schema lives in agent-engine-dev duration runner (PR #145).
 
 name: duration-tests-fixture-refs
 idea: 166
-pack_version: "1.1"
+pack_version: "1.2"
 
 # Design Review: these are App Disk / content IDs only.
 # Console class-instance selectors (data-testid) are Pixel's job.
 # Do not equate Playwright browser-watcher caps with idea#159 HTTP stream Ns.
 
-# --- Axle-locked Phase 1–2 action keys (exact names) ---
+# --- Axle-locked Phase 1–2 action keys (exact names; keep intact) ---
 phase_1_2_actions:
   hub:
     - open_console_as_teacher
@@ -27,6 +28,352 @@ phase_1_2_actions:
     - infra_move_disk
     - infra_reboot_engine
 
+# --- Phase 3 deeper Intents (App-owned fixture bindings) ---
+# Axle school-day.yaml already samples several of these as UI stubs
+# (agent-engine-dev#145 ACTIONS.md UI_STUB_ACTIONS). Pixel owns Playwright
+# adapters + Console data-testid binding (agent-console-dev#134 Phase 3).
+# App owns: routes, expected instance/disk, fixture roles, content logical IDs,
+# app-login usernames. Do NOT invent Console selectors here.
+phase_3_intents:
+  # Hub → app entry (proposal titles snake_cased; Axle school-day uses these)
+  hub_to_app:
+    open_kolibri_as_teacher:
+      from_state: console_teacher
+      to_state: kolibri_manage
+      role: teacher
+      instanceId: kolibri-grade5a-001
+      diskId: duration-kolibri-grade5a-001
+      app_route: "http://<engine-host>:18080/coach/#/classes"
+      login:
+        username_logicalId: coach-grade5a
+        username: teacher
+      expected:
+        - facility_sidebar_visible
+        - class_logicalId: class-grade5a
+      selector_binding: Pixel Phase 3 (Console instance-kolibri-grade5a-001 → app iframe/tab)
+      app_steps:
+        - "From Console overview open Running instance kolibri-grade5a-001"
+        - "Kolibri login as teacher"
+        - "Land coach/facility UI (Classes sidebar)"
+
+    open_kolibri_as_learner:
+      from_state: console_learner
+      to_state: kolibri_home
+      role: learner
+      instanceId: kolibri-grade5a-001
+      diskId: duration-kolibri-grade5a-001
+      app_route: "http://<engine-host>:18080/learn/#/topics"
+      login:
+        username_logicalId: learner-grade5a-01
+        username: learner01
+        alt_usernames: [learner02, learner03]
+      expected:
+        - learn_tab
+        - enrolled_class: class-grade5a
+        - assigned_lesson: lesson-grade5a-video-exercise
+      selector_binding: Pixel Phase 3
+      app_steps:
+        - "Open Running instance kolibri-grade5a-001"
+        - "Kolibri login as learner01 (or learner02/03)"
+        - "Learn tab → enrolled Grade 5A / assigned lesson"
+
+    open_nextcloud_as_teacher:
+      from_state: console_teacher
+      to_state: nc_browse
+      role: teacher
+      instanceId: nextcloud-grade5a-001
+      diskId: duration-nextcloud-grade5a-001
+      app_route: "http://<engine-host>:18280/apps/files/"
+      login:
+        username_logicalId: nc-teacher-grade5a
+        username: teacher
+      expected:
+        - files_home
+        - folder_logicalIds: [folder-materials-grade5a, folder-drop-grade5a, folder-collab-grade5a]
+      selector_binding: Pixel Phase 3
+      app_steps:
+        - "Open Running instance nextcloud-grade5a-001"
+        - "Nextcloud login as teacher"
+        - "Files home ready for share / browse"
+
+    open_nextcloud_as_learner:
+      from_state: console_learner
+      to_state: nc_browse
+      role: learner
+      instanceId: nextcloud-grade5a-001
+      diskId: duration-nextcloud-grade5a-001
+      app_route: "http://<engine-host>:18280/apps/files/"
+      login:
+        username_logicalId: nc-learner-grade5a-01
+        username: student01
+        alt_usernames: [student02, student03]
+      expected:
+        - files_home
+        - shared_group: group-grade5a
+      selector_binding: Pixel Phase 3
+      app_steps:
+        - "Open Running instance nextcloud-grade5a-001"
+        - "Nextcloud login as student01 (or student02/03)"
+        - "Files → Class Materials / Drop Zone / Collab"
+
+    open_wikipedia_as_teacher:
+      status: blocked
+      reason: "Kiwix App Disk omitted Phase 1–2/3 App pack — see fixtures/kiwix/README.md"
+      to_state: wiki_browse
+      role: teacher
+    open_wikipedia_as_learner:
+      status: blocked
+      reason: "Kiwix App Disk omitted — same as open_wikipedia_as_teacher"
+
+  # Kolibri coaching (teacher; requires open_kolibri_as_teacher first / kolibri_manage)
+  kolibri_coaching:
+    create_class:
+      state: kolibri_manage
+      instanceId: kolibri-grade5a-001
+      target_logicalId: class-grade5a
+      note: "Usually preloaded — Intent is create-or-assert Grade 5A"
+      app_steps: ["Classes → + New class → name Grade 5A → Save"]
+      selector_binding: Pixel Phase 3 (in-app Kolibri DOM; not Console testid)
+    enroll_learners:
+      state: kolibri_manage
+      instanceId: kolibri-grade5a-001
+      class_logicalId: class-grade5a
+      learner_logicalIds: [learner-grade5a-01, learner-grade5a-02, learner-grade5a-03]
+      app_steps: ["Open class → Learners → Enroll → tick learner01..03 → Confirm"]
+      selector_binding: Pixel Phase 3
+    build_lesson:
+      state: kolibri_manage
+      instanceId: kolibri-grade5a-001
+      lesson_logicalId: lesson-grade5a-video-exercise
+      resources: [video-grade5a-01, exercise-grade5a-01]
+      app_steps:
+        - "Class → Lessons → New/open lesson Grade 5A Duration Lesson"
+        - "Add resources: video-grade5a-01 + exercise-grade5a-01"
+        - "Recipients = Grade 5A; toggle Visible"
+      selector_binding: Pixel Phase 3
+    create_quiz:
+      state: kolibri_manage
+      instanceId: kolibri-grade5a-001
+      class_logicalId: class-grade5a
+      source_exercise: exercise-grade5a-01
+      status: catalogue_ready_quiz_not_preseeded
+      note: "CONTENT packs exercise channel target; quiz row created at walk time or later seed"
+      app_steps: ["Class → Quizzes → + New quiz → add questions from exercise → Active"]
+      selector_binding: Pixel Phase 3
+    read_reports:
+      state: kolibri_manage
+      instanceId: kolibri-grade5a-001
+      class_logicalId: class-grade5a
+      lesson_logicalId: lesson-grade5a-video-exercise
+      app_steps: ["Reports → Classes → Grade 5A → Lessons/Quizzes → scan learner table"]
+      selector_binding: Pixel Phase 3
+    preview_as_learner:
+      from_state: kolibri_manage
+      to_state: kolibri_home
+      instanceId: kolibri-grade5a-001
+      app_steps: ["From coaching UI open learner Learn view / preview"]
+      selector_binding: Pixel Phase 3
+    back_to_console:
+      from_state: kolibri_manage
+      to_state: console_teacher
+      note: "Leave Kolibri tab/iframe → Console overview (Pixel Console nav)"
+      selector_binding: Pixel Phase 3 (return_to_start / console-overview)
+
+  # Kolibri learner usage
+  kolibri_usage:
+    browse_classes:
+      state: kolibri_home
+      instanceId: kolibri-grade5a-001
+      class_logicalId: class-grade5a
+      lesson_logicalId: lesson-grade5a-video-exercise
+      app_steps: ["On Learn, open/close Grade 5A; scan Lessons/Quizzes without starting resource"]
+      selector_binding: Pixel Phase 3
+    open_video:
+      from_state: kolibri_home
+      to_state: kolibri_watching
+      instanceId: kolibri-grade5a-001
+      contentLogicalId: video-grade5a-01
+      lesson_logicalId: lesson-grade5a-video-exercise
+      # idea#159 HTTP Ns ≠ Playwright browser-watcher caps
+      concurrency_note: "idea#159 planning Ns are HTTP Range only; browser walks size separately"
+      app_steps:
+        - "Open class Grade 5A → assigned lesson"
+        - "Click video resource video-grade5a-01 → player starts"
+      selector_binding: Pixel Phase 3
+    open_exercise:
+      from_state: kolibri_home
+      to_state: kolibri_exercise
+      instanceId: kolibri-grade5a-001
+      contentLogicalId: exercise-grade5a-01
+      lesson_logicalId: lesson-grade5a-video-exercise
+      app_steps:
+        - "Open class / lesson"
+        - "Click exercise resource exercise-grade5a-01"
+      selector_binding: Pixel Phase 3
+    keep_watching:
+      state: kolibri_watching
+      instanceId: kolibri-grade5a-001
+      contentLogicalId: video-grade5a-01
+      axle_school_day: true  # already sampled in school-day.yaml
+      app_steps: ["Continue play/pause/seek; Kolibri records progress"]
+      selector_binding: Pixel Phase 3
+    next_resource:
+      from_state: kolibri_watching
+      to_state: kolibri_exercise
+      instanceId: kolibri-grade5a-001
+      from_content: video-grade5a-01
+      to_content: exercise-grade5a-01
+      axle_school_day: true
+      app_steps: ["Leave/finish video → open exercise in same lesson"]
+      selector_binding: Pixel Phase 3
+    exit_lesson:
+      from_state: [kolibri_watching, kolibri_exercise]
+      to_state: kolibri_home
+      instanceId: kolibri-grade5a-001
+      axle_school_day: true
+      app_steps: ["Exit lesson / back to Learn or class list"]
+      selector_binding: Pixel Phase 3
+    finish_exercise:
+      from_state: kolibri_exercise
+      to_state: kolibri_home
+      instanceId: kolibri-grade5a-001
+      contentLogicalId: exercise-grade5a-01
+      app_steps: ["Answer remaining items → submit → Learn/class"]
+      selector_binding: Pixel Phase 3
+    next_video:
+      from_state: kolibri_exercise
+      to_state: kolibri_watching
+      instanceId: kolibri-grade5a-001
+      contentLogicalId: video-grade5a-01
+      note: "Only one video in this pack — reopens video-grade5a-01 or no-ops if sole resource done"
+      app_steps: ["From exercise/lesson list open video resource"]
+      selector_binding: Pixel Phase 3
+    leave_kolibri:
+      from_state: [kolibri_home, kolibri_watching, kolibri_exercise]
+      to_state: console_learner
+      note: "Console nav — Pixel"
+      selector_binding: Pixel Phase 3
+
+  # Nextcloud usage
+  nextcloud_usage:
+    browse_folders:
+      state: nc_browse
+      instanceId: nextcloud-grade5a-001
+      folder_logicalIds: [folder-materials-grade5a, folder-drop-grade5a, folder-collab-grade5a]
+      app_steps: ["Navigate Class Materials / Drop Zone / Collab without share/drop/collab"]
+      selector_binding: Pixel Phase 3
+    share_to_class:
+      from_state: nc_browse
+      to_state: nc_share
+      role: teacher
+      instanceId: nextcloud-grade5a-001
+      folderLogicalId: folder-materials-grade5a
+      group: Grade 5A
+      group_logicalId: group-grade5a
+      permission: view-only
+      app_steps:
+        - "Files → hover Class Materials → Share"
+        - "Internal share → group Grade 5A → View only"
+      selector_binding: Pixel Phase 3
+    done_sharing:
+      from_state: nc_share
+      to_state: nc_browse
+      instanceId: nextcloud-grade5a-001
+      app_steps: ["Close Share dialog → Files browse"]
+      selector_binding: Pixel Phase 3
+    open_file_drop:
+      from_state: nc_browse
+      to_state: nc_drop
+      role: learner
+      instanceId: nextcloud-grade5a-001
+      folderLogicalId: folder-drop-grade5a
+      app_steps:
+        - "Open Drop Zone file-request / File Drop link (preload often outside walk)"
+        - "See upload-only UI"
+      selector_binding: Pixel Phase 3
+    after_upload:
+      from_state: nc_drop
+      to_state: nc_browse
+      instanceId: nextcloud-grade5a-001
+      app_steps: ["Choose/drop file(s) → upload completes → Files"]
+      selector_binding: Pixel Phase 3
+    leave_file_drop:
+      from_state: nc_drop
+      to_state: console_learner
+      selector_binding: Pixel Phase 3
+    open_collab_doc:
+      from_state: nc_browse
+      to_state: nc_collab
+      instanceId: nextcloud-grade5a-001
+      collabLogicalId: collab-grade5a-01
+      status: placeholder-doc
+      note: "Collabora/nextcloud-code omitted — treat as open/browse markdown stub"
+      app_steps: ["Files → open Collab/Grade5A-collab-notes.md (placeholder until Collabora pack)"]
+      selector_binding: Pixel Phase 3
+    close_doc:
+      from_state: nc_collab
+      to_state: nc_browse
+      instanceId: nextcloud-grade5a-001
+      app_steps: ["Close editor/viewer → Files"]
+      selector_binding: Pixel Phase 3
+    keep_editing:
+      state: nc_collab
+      instanceId: nextcloud-grade5a-001
+      collabLogicalId: collab-grade5a-01
+      status: blocked_until_collabora
+      reason: "No live Collabora in this pack — keep_editing is a documented no-op/browse stub"
+      selector_binding: Pixel Phase 3
+    leave_nextcloud_as_learner:
+      to_state: console_learner
+      selector_binding: Pixel Phase 3
+    leave_nextcloud_as_teacher:
+      to_state: console_teacher
+      selector_binding: Pixel Phase 3
+
+  # Operator Intents that reference fixture disks/instances (Console = Pixel)
+  operator_fixture_refs:
+    open_disk_inventory:
+      axle_school_day: true
+      diskIds: [duration-kolibri-grade5a-001, duration-nextcloud-grade5a-001]
+      console_testid_hint: "disk-<diskId> (Pixel PR #134)"
+      selector_binding: Pixel Phase 3
+    open_instance_controls:
+      axle_school_day: true
+      instanceIds: [kolibri-grade5a-001, nextcloud-grade5a-001]
+      console_testid_hint: "instance-<id> (Pixel PR #134)"
+      selector_binding: Pixel Phase 3
+    eject_disk:
+      diskIds: [duration-kolibri-grade5a-001, duration-nextcloud-grade5a-001]
+      console_testid_hint: "eject-<diskId> / eject-confirm (Pixel PR #134)"
+      never_eject:
+        - "idea03 Intenso hardware Files Disk (serials in fleet-state note)"
+      selector_binding: Pixel Phase 3
+    stay_on_overview:
+      axle_school_day: true
+      note: "Operator dwell — Pixel Console only; no App fixture binding"
+
+  blockers:
+    - id: kiwix-fixture
+      blocks: [open_wikipedia_as_teacher, open_wikipedia_as_learner, search_browse_wikipedia]
+      owner: Kid
+      status: deferred
+      see: tests/duration-tests/fixtures/kiwix/README.md
+    - id: collabora
+      blocks: [keep_editing]
+      owner: Kid
+      status: deferred
+      note: "open_collab_doc is placeholder-doc; keep_editing needs nextcloud-code"
+    - id: pixel-playwright-phase3
+      blocks: "all hub_to_app / kolibri_* / nextcloud_* Playwright adapters"
+      owner: Pixel
+      status: Phase 3 Console PR follow-up to #134
+      note: "App ships Intent defs + logical IDs; Pixel binds data-testid / in-app selectors"
+    - id: kolibri-live-seed
+      blocks: "live open_video/open_exercise until CONTENT.seeded.json exists on docked instance"
+      owner: Kid+Atlas
+      status: catalogue_ready_seed_pending
+      see: fixtures/kolibri/content/seed-notes.md
+
 fixtures:
   kolibri:
     tree: tests/duration-tests/fixtures/kolibri
@@ -35,14 +382,33 @@ fixtures:
     instanceId: kolibri-grade5a-001
     instanceName: kolibri
     contentCatalogue: tests/duration-tests/fixtures/kolibri/content/CONTENT.yaml
+    image: koenswings/kolibri:1.0-0.15.5-dev
     phase_1_2:
       # Dockable target for infra_dock_fixture / infra_move_disk / infra_undock_fixtures
       infra_disk: true
-    # Future deeper Intents (proposal snake_case) — not Phase 1–2 walker keys
+    # Kept for back-compat with pack_version 1.1 docs (same keys under phase_3_intents)
     future_actions:
       open_video: { contentLogicalId: video-grade5a-01 }
       open_exercise: { contentLogicalId: exercise-grade5a-01 }
       browse_classes: { classLogicalId: class-grade5a }
+    phase_3_primary_actions:
+      - open_kolibri_as_teacher
+      - open_kolibri_as_learner
+      - open_video
+      - open_exercise
+      - browse_classes
+      - keep_watching
+      - next_resource
+      - exit_lesson
+      - finish_exercise
+      - create_class
+      - enroll_learners
+      - build_lesson
+      - create_quiz
+      - read_reports
+      - preview_as_learner
+      - back_to_console
+      - leave_kolibri
 
   nextcloud:
     tree: tests/duration-tests/fixtures/nextcloud
@@ -51,6 +417,8 @@ fixtures:
     instanceId: nextcloud-grade5a-001
     instanceName: nextcloud
     contentCatalogue: tests/duration-tests/fixtures/nextcloud/CONTENT.yaml
+    image: koenswings/nextcloud:1.0-31.0.1
+    db_image: koenswings/nextcloud-mariadb:1.0-11.7.2-MariaDB-ubu2404
     filesMount: true
     phase_1_2:
       infra_disk: true
@@ -63,8 +431,21 @@ fixtures:
       open_collab_doc:
         collabLogicalId: collab-grade5a-01
         status: placeholder-doc  # Collabora not in this pack
+    phase_3_primary_actions:
+      - open_nextcloud_as_teacher
+      - open_nextcloud_as_learner
+      - browse_folders
+      - share_to_class
+      - done_sharing
+      - open_file_drop
+      - after_upload
+      - leave_file_drop
+      - open_collab_doc
+      - close_doc
+      - leave_nextcloud_as_learner
+      - leave_nextcloud_as_teacher
 
   kiwix:
     included: false
-    note: "Phase 3 / optional — omit from Phase 1–2 YAML"
+    note: "Phase 3 / optional — omit from Phase 1–2 YAML; Wikipedia Intents blocked"
     see: tests/duration-tests/fixtures/kiwix/README.md

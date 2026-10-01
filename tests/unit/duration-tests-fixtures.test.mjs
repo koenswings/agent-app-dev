@@ -121,6 +121,37 @@ describe('duration-tests fixtures (idea#166)', () => {
     // Future deeper Intents are snake_case
     assert.match(ref, /open_video:/);
     assert.match(ref, /open_file_drop:/);
+    // Phase 3 App-owned deeper Intent map
+    assert.match(ref, /pack_version:\s*"1\.2"/);
+    assert.match(ref, /phase_3_intents:/);
+    for (const key of [
+      'open_kolibri_as_teacher',
+      'open_kolibri_as_learner',
+      'open_nextcloud_as_teacher',
+      'open_nextcloud_as_learner',
+      'keep_watching',
+      'next_resource',
+      'exit_lesson',
+      'build_lesson',
+      'share_to_class',
+      'open_disk_inventory',
+    ]) {
+      assert.match(ref, new RegExp(key));
+    }
+    assert.match(ref, /selector_binding:\s*Pixel Phase 3/);
+    assert.match(ref, /blocked_until_collabora|Collabora/);
+    assert.match(ref, /Kiwix App Disk omitted/);
+  });
+
+  it('CONTENT catalogues expose phase_3_intent_map', () => {
+    const k = readFileSync(join(FIX, 'kolibri/content/CONTENT.yaml'), 'utf8');
+    assert.match(k, /phase_3_intent_map:/);
+    assert.match(k, /open_kolibri_as_teacher:/);
+    assert.match(k, /open_video:/);
+    const n = readFileSync(join(FIX, 'nextcloud/CONTENT.yaml'), 'utf8');
+    assert.match(n, /phase_3_intent_map:/);
+    assert.match(n, /open_nextcloud_as_learner:/);
+    assert.match(n, /share_to_class:/);
   });
 
   it('README documents paths, Design Review gates, and locked Phase 1–2 keys', () => {
@@ -134,6 +165,9 @@ describe('duration-tests fixtures (idea#166)', () => {
     assert.match(md, /open_console_as_teacher/);
     assert.match(md, /return_to_start/);
     assert.match(md, /stay_on_learner_overview/);
+    assert.match(md, /Phase 3 deeper Intents/);
+    assert.match(md, /open_kolibri_as_teacher/);
+    assert.match(md, /selector_binding|Pixel Phase 3/);
   });
 
   it('fixture trees contain only expected top-level packs', () => {

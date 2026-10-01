@@ -12,16 +12,19 @@ Logical IDs in `CONTENT.yaml` must remain stable; write live Kolibri UUIDs to
 `CONTENT.seeded.json` (gitignored locally / optional CI artefact) so Pixel /
 Axle adapters can resolve `logical:*` → real content IDs.
 
-## Phase 1–2 vs deeper Intents
+## Phase 1–2 vs Phase 3 Intents
 
 Phase 1–2 walker actions that touch this disk are infra only
 (`infra_dock_fixture`, `infra_undock_fixtures`, `infra_move_disk`). Hub /
 minimal-usage keys (`open_console_as_*`, `stay_on_*_overview`,
 `return_to_start`, …) do not open Kolibri content yet.
 
-Deeper usage Intents (`open_video`, `open_exercise`, `browse_classes`) are
-**proposal snake_case** for later phases — mapped in `CONTENT.yaml` /
-`walker-ref.yaml` today so docs do not need a rename.
+Phase 3 deeper usage / coaching Intents are App-documented in
+`walker-ref.yaml` `phase_3_intents` and `CONTENT.yaml` `phase_3_intent_map`
+(snake_case matching the proposal + Axle `UI_STUB_ACTIONS` /
+`school-day.yaml`). Playwright / Console `data-testid` binding remains
+**Pixel Phase 3**. Live `open_video` / `open_exercise` need this seed
+(`CONTENT.seeded.json`) once the instance has run.
 
 ## Cheap path tonight
 
@@ -43,9 +46,11 @@ fixtures:
     instanceId: kolibri-grade5a-001
 # infra_dock_fixture → diskId duration-kolibri-grade5a-001
 
-# Future deeper Intents (snake_case) — not Phase 1–2
+# Phase 3 App bindings (see walker-ref.yaml phase_3_intents)
+# open_kolibri_as_teacher / open_kolibri_as_learner
 # open_video:    { contentLogicalId: video-grade5a-01 }
 # open_exercise: { contentLogicalId: exercise-grade5a-01 }
+# browse_classes / keep_watching / next_resource / exit_lesson / …
 ```
 
 ## idea#159 note

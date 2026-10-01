@@ -1,7 +1,7 @@
 # Stable logical content IDs for duration-tests Nextcloud walks (idea#166).
 
 pack: duration-nextcloud-grade5a
-version: "1.0"
+version: "1.1"
 diskId: duration-nextcloud-grade5a-001
 instanceId: nextcloud-grade5a-001
 instanceName: nextcloud
@@ -50,3 +50,31 @@ urls:
   openFileDrop: "logical:folder-drop-grade5a"
   openCollabDoc: "logical:collab-grade5a-01"
   shareToClass: "logical:folder-materials-grade5a"
+
+# Phase 3 Intent → content bindings (App-owned). Playwright = Pixel.
+phase_3_intent_map:
+  open_nextcloud_as_teacher:
+    login_username: teacher
+    landing: filesHome
+  open_nextcloud_as_learner:
+    login_username: student01
+    landing: filesHome
+  browse_folders:
+    folderLogicalIds: [folder-materials-grade5a, folder-drop-grade5a, folder-collab-grade5a]
+  share_to_class:
+    folderLogicalId: folder-materials-grade5a
+    group: Grade 5A
+    permission: view-only
+  done_sharing:
+    returns: nc_browse
+  open_file_drop:
+    folderLogicalId: folder-drop-grade5a
+  after_upload:
+    folderLogicalId: folder-drop-grade5a
+  open_collab_doc:
+    collabLogicalId: collab-grade5a-01
+    status: placeholder-doc
+  close_doc:
+    returns: nc_browse
+  keep_editing:
+    status: blocked_until_collabora
