@@ -16,12 +16,17 @@ pack_version: "1.4"
 #   → refresh CONTENT.live.json (+ Pixel DURATION_FIXTURES.kolibri.live) after re-provision
 id_stability:
   stable:
-    diskIds: [duration-kolibri-grade5a-001, duration-nextcloud-grade5a-001]
-    instanceIds: [kolibri-grade5a-001, nextcloud-grade5a-001]
-    channelId: 30b6c263-4b96-5a62-93bd-dcf9a5cad7ca
+    diskIds: [duration-kolibri-grade5a-001, duration-kolibri-form3-001, duration-nextcloud-grade5a-001]
+    instanceIds: [kolibri-grade5a-001, kolibri-form3-001, nextcloud-grade5a-001]
+    channelId: 30b6c263-4b96-5a62-93bd-dcf9a5cad7ca  # synthetic G5A smoke
     open_video_contentId: e60662de-b15c-52f9-b003-359f7d91f8fd
     open_exercise_contentId: 7eb9de46-96eb-53d0-bcc1-2fb270b96f03
     open_exercise_assessment_items: 2
+    # Khan remap target (CONTENT.khan-remap.json); synthetic above stays smoke until live verify
+    khan_remap_channelId: c9d7f950ab6b5a1199e3d6c10d7f0103
+    khan_remap_topic_nodeId: 4a5b44d4826e511b8bb2e568b9562c5c
+    khan_remap_open_video_contentId: 757e1a6e9ea15168b99a0bf7eeb30662
+    khan_remap_open_exercise_contentId: 2f9204d3af3758b98fa0fd86a0c03c5d
   mutable_on_reprovision:
     source: CONTENT.live.json  # idea01 temp import 2026-10-01
     facilityId: f0e1353e8c40d985faab5ead5c91d03f
@@ -437,6 +442,18 @@ fixtures:
       - preview_as_learner
       - back_to_console
       - leave_kolibri
+
+
+  kolibri_form3:
+    path: tests/duration-tests/fixtures/kolibri-form3
+    diskId: duration-kolibri-form3-001
+    instanceId: kolibri-form3-001
+    channelId: c9d7f950ab6b5a1199e3d6c10d7f0103
+    topic_nodeId: 0f21619fbd75505f92bd96184b07b46d
+    open_video_contentId: 0a2fdaad532c56b2b90f62f9204e3be8
+    open_exercise_contentId: ed0c23b8e517568790ae1bda74ab22ba
+    import_script: tests/duration-tests/scripts/import-khan-topic-slice.sh form3
+    status: pins_validated_awaiting_live_import
 
   nextcloud:
     tree: tests/duration-tests/fixtures/nextcloud

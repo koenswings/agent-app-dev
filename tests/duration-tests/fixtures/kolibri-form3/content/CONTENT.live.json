@@ -1,0 +1,167 @@
+{
+  "pack": "duration-kolibri-form3",
+  "version": "0.1",
+  "diskId": "duration-kolibri-form3-001",
+  "instanceId": "kolibri-form3-001",
+  "instanceName": "kolibri",
+  "channel": {
+    "channelId": "c9d7f950-ab6b-5a11-99e3-d6c10d7f0103",
+    "channelIdRaw": "c9d7f950ab6b5a1199e3d6c10d7f0103",
+    "name": "Khan Academy (English - US curriculum)",
+    "version": 5,
+    "topic": {
+      "title": "Variables & expressions",
+      "path": "Math > Pre-algebra > Variables & expressions",
+      "contentId": "2bcfaf16-33fc-5573-92c0-c330475b49a0",
+      "nodeId": "0f21619f-bd75-505f-92bd-96184b07b46d",
+      "contentIdRaw": "2bcfaf1633fc557392c0c330475b49a0",
+      "nodeIdRaw": "0f21619fbd75505f92bd96184b07b46d"
+    }
+  },
+  "intentResolution": {
+    "open_video": {
+      "contentLogicalId": "video-form3-01",
+      "contentId": "0a2fdaad-532c-56b2-b90f-62f9204e3be8",
+      "contentIdRaw": "0a2fdaad532c56b2b90f62f9204e3be8",
+      "nodeId": "b3677df2-bf9e-5e5f-a1f1-9e57a2f26b97",
+      "nodeIdRaw": "b3677df2bf9e5e5fa1f19e57a2f26b97",
+      "channelId": "c9d7f950-ab6b-5a11-99e3-d6c10d7f0103",
+      "title": "What is a variable?",
+      "storagePath": null,
+      "md5": "5944950109edfd13029e9feb1f8b69d9"
+    },
+    "open_exercise": {
+      "contentLogicalId": "exercise-form3-01",
+      "contentId": "ed0c23b8-e517-5687-90ae-1bda74ab22ba",
+      "contentIdRaw": "ed0c23b8e517568790ae1bda74ab22ba",
+      "nodeId": "a484d292-1dd3-5f42-8d08-7b61a8e82416",
+      "nodeIdRaw": "a484d2921dd35f428d087b61a8e82416",
+      "channelId": "c9d7f950-ab6b-5a11-99e3-d6c10d7f0103",
+      "title": "Parts of algebraic expressions",
+      "storagePath": null,
+      "md5": "84561d61040d53965d2a8c999802284e",
+      "assessmentItemIds": null
+    }
+  },
+  "method": "pending \u2014 public Studio importchannel + importcontent --node_ids (no Studio token)",
+  "liveImportStatus": "not_imported_yet",
+  "note": "Auth IDs filled after provisiondevice on Running instance. Content pins above are Studio-stable.",
+  "facility": {
+    "logicalId": "facility-duration-form3",
+    "name": "Duration Tests Facility",
+    "id": null,
+    "liveStatus": "pending"
+  },
+  "class": {
+    "logicalId": "class-form3",
+    "name": "Form 3",
+    "id": null,
+    "liveStatus": "pending"
+  },
+  "coach": {
+    "logicalId": "coach-form3",
+    "username": "teacher",
+    "displayName": "Form 3 Teacher",
+    "id": null,
+    "liveStatus": "pending"
+  },
+  "learners": [
+    {
+      "logicalId": "learner-form3-01",
+      "username": "learner01",
+      "displayName": "Learner One",
+      "id": null,
+      "liveStatus": "pending"
+    },
+    {
+      "logicalId": "learner-form3-02",
+      "username": "learner02",
+      "displayName": "Learner Two",
+      "id": null,
+      "liveStatus": "pending"
+    },
+    {
+      "logicalId": "learner-form3-03",
+      "username": "learner03",
+      "displayName": "Learner Three",
+      "id": null,
+      "liveStatus": "pending"
+    }
+  ],
+  "lesson": {
+    "logicalId": "lesson-form3-video-exercise",
+    "title": "Form 3 Duration Lesson",
+    "id": null,
+    "resourceLogicalIds": [
+      "video-form3-01",
+      "exercise-form3-01"
+    ],
+    "liveStatus": "pending"
+  },
+  "allLeaves": {
+    "videos": [
+      {
+        "logicalId": "video-form3-01",
+        "title": "What is a variable?",
+        "nodeId": "b3677df2-bf9e-5e5f-a1f1-9e57a2f26b97",
+        "nodeIdRaw": "b3677df2bf9e5e5fa1f19e57a2f26b97",
+        "contentId": "0a2fdaad-532c-56b2-b90f-62f9204e3be8",
+        "contentIdRaw": "0a2fdaad532c56b2b90f62f9204e3be8",
+        "status": "OK",
+        "md5": "5944950109edfd13029e9feb1f8b69d9"
+      },
+      {
+        "logicalId": "video-form3-02",
+        "title": "Terms, factors, & coefficients",
+        "nodeId": "fcba0a76-d607-5c02-b1f9-f7742847a4c4",
+        "nodeIdRaw": "fcba0a76d6075c02b1f9f7742847a4c4",
+        "contentId": "30fb3fbd-9d4a-549f-8643-f610a165df5a",
+        "contentIdRaw": "30fb3fbd9d4a549f8643f610a165df5a",
+        "status": "OK",
+        "md5": "672020349c76089511233728d3c86646"
+      },
+      {
+        "logicalId": "video-form3-03",
+        "title": "Why aren't we using the multiplication sign?",
+        "nodeId": "7f1b5480-4b2e-5d81-b767-0d383cf341a8",
+        "nodeIdRaw": "7f1b54804b2e5d81b7670d383cf341a8",
+        "contentId": "3ddc455a-eaab-51c0-8e8b-9484bf9a1830",
+        "contentIdRaw": "3ddc455aeaab51c08e8b9484bf9a1830",
+        "status": "OK",
+        "md5": "525354036da3244683c8500a9a66ced9"
+      }
+    ],
+    "exercises": [
+      {
+        "logicalId": "exercise-form3-01",
+        "title": "Parts of algebraic expressions",
+        "nodeId": "a484d292-1dd3-5f42-8d08-7b61a8e82416",
+        "nodeIdRaw": "a484d2921dd35f428d087b61a8e82416",
+        "contentId": "ed0c23b8-e517-5687-90ae-1bda74ab22ba",
+        "contentIdRaw": "ed0c23b8e517568790ae1bda74ab22ba",
+        "status": "OK",
+        "md5": "84561d61040d53965d2a8c999802284e"
+      },
+      {
+        "logicalId": "exercise-form3-02",
+        "title": "Evaluating expressions with one variable",
+        "nodeId": "d455f572-cc33-55b0-8c98-2a997d412aa8",
+        "nodeIdRaw": "d455f572cc3355b08c982a997d412aa8",
+        "contentId": "0c49599e-0131-5fdb-957a-5bbbbdf58c5e",
+        "contentIdRaw": "0c49599e01315fdb957a5bbbbdf58c5e",
+        "status": "OK",
+        "md5": "393abd9346e4dec6a5dad400e6e15835"
+      },
+      {
+        "logicalId": "exercise-form3-03",
+        "title": "Variable expressions with exponents",
+        "nodeId": "8c880694-0794-5913-918b-90523c2ac8ca",
+        "nodeIdRaw": "8c88069407945913918b90523c2ac8ca",
+        "contentId": "7110cacb-b8d6-58b0-b799-a3d0418e40a9",
+        "contentIdRaw": "7110cacbb8d658b0b799a3d0418e40a9",
+        "status": "OK",
+        "md5": "b333e8a1ea0abcaf3f1fe54d01df56f9"
+      }
+    ]
+  }
+}

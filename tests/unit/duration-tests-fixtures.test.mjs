@@ -140,6 +140,7 @@ describe('duration-tests fixtures (idea#166)', () => {
   it('walker-ref.yaml points at stable diskIds, locked Phase 1–2 keys, and notes #159', () => {
     const ref = read('walker-ref.yaml');
     assert.match(ref, /duration-kolibri-grade5a-001/);
+    assert.match(ref, /duration-kolibri-form3-001/);
     assert.match(ref, /duration-nextcloud-grade5a-001/);
     assert.match(ref, /video-grade5a-01/);
     assert.match(ref, /folder-drop-grade5a/);
@@ -193,6 +194,54 @@ describe('duration-tests fixtures (idea#166)', () => {
     assert.match(ref, /Steve deferral list/);
   });
 
+
+  it('kolibri Form3 pack + G5A Khan remap pins exist (Studio public, no token)', () => {
+    const f3 = join(FIX, 'kolibri-form3');
+    mustExist(join(f3, 'META.yaml'), 'form3 META');
+    mustExist(join(f3, 'apps/kolibri-1.0/compose.yaml'), 'form3 app compose');
+    mustExist(join(f3, 'instances/kolibri-form3-001/compose.yaml'), 'form3 instance compose');
+    mustExist(join(f3, 'content/CONTENT.yaml'), 'form3 CONTENT.yaml');
+    mustExist(join(f3, 'content/CONTENT.seeded.json'), 'form3 CONTENT.seeded.json');
+    mustExist(join(f3, 'content/CONTENT.live.json'), 'form3 CONTENT.live.json');
+    mustExist(join(f3, 'content/seed-notes.md'), 'form3 seed-notes');
+
+    const meta = readFileSync(join(f3, 'META.yaml'), 'utf8');
+    assert.match(meta, /diskId:\s*duration-kolibri-form3-001/);
+
+    const seeded = JSON.parse(readFileSync(join(f3, 'content/CONTENT.seeded.json'), 'utf8'));
+    assert.equal(seeded.diskId, 'duration-kolibri-form3-001');
+    assert.equal(seeded.instanceId, 'kolibri-form3-001');
+    assert.equal(seeded.channel.channelIdRaw, 'c9d7f950ab6b5a1199e3d6c10d7f0103');
+    assert.equal(seeded.intentResolution.open_video.contentIdRaw, '0a2fdaad532c56b2b90f62f9204e3be8');
+    assert.equal(seeded.intentResolution.open_exercise.contentIdRaw, 'ed0c23b8e517568790ae1bda74ab22ba');
+    assert.equal(seeded.allLeaves.videos.length, 3);
+    assert.equal(seeded.allLeaves.exercises.length, 3);
+    assert.ok(seeded.allLeaves.videos.every((l) => l.status === 'OK'));
+    assert.ok(seeded.allLeaves.exercises.every((l) => l.status === 'OK'));
+
+    const remap = JSON.parse(
+      readFileSync(join(FIX, 'kolibri/content/CONTENT.khan-remap.json'), 'utf8'),
+    );
+    assert.equal(remap.diskId, 'duration-kolibri-grade5a-001');
+    assert.equal(remap.channel.channelIdRaw, 'c9d7f950ab6b5a1199e3d6c10d7f0103');
+    assert.equal(remap.channel.studioTokenRequired, false);
+    assert.equal(remap.topic.nodeIdRaw, '4a5b44d4826e511b8bb2e568b9562c5c');
+    assert.equal(remap.leaves.videos.length, 3);
+    assert.equal(remap.leaves.exercises.length, 3);
+    assert.ok(remap.leaves.videos.every((l) => l.status === 'OK'));
+    assert.ok(remap.leaves.exercises.every((l) => l.status === 'OK'));
+    // Synthetic smoke pins unchanged
+    assert.equal(
+      remap.syntheticSmokeFallback.open_video_contentId,
+      'e60662de-b15c-52f9-b003-359f7d91f8fd',
+    );
+
+    mustExist(
+      join(ROOT, 'scripts/import-khan-topic-slice.sh'),
+      'khan topic-slice import script',
+    );
+  });
+
   it('CONTENT catalogues expose phase_3_intent_map', () => {
     const k = readFileSync(join(FIX, 'kolibri/content/CONTENT.yaml'), 'utf8');
     assert.match(k, /phase_3_intent_map:/);
@@ -207,6 +256,7 @@ describe('duration-tests fixtures (idea#166)', () => {
   it('README documents paths, Design Review gates, and locked Phase 1–2 keys', () => {
     const md = read('README.md');
     assert.match(md, /duration-kolibri-grade5a-001/);
+    assert.match(md, /duration-kolibri-form3-001/);
     assert.match(md, /duration-nextcloud-grade5a-001/);
     assert.match(md, /Versioned App fixtures/);
     assert.match(md, /idea#159/);
@@ -225,6 +275,6 @@ describe('duration-tests fixtures (idea#166)', () => {
 
   it('fixture trees contain only expected top-level packs', () => {
     const packs = readdirSync(FIX).filter((n) => statSync(join(FIX, n)).isDirectory()).sort();
-    assert.deepEqual(packs, ['kiwix', 'kolibri', 'nextcloud']);
+    assert.deepEqual(packs, ['kiwix', 'kolibri', 'kolibri-form3', 'nextcloud']);
   });
 });

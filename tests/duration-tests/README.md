@@ -72,7 +72,8 @@ tests/duration-tests/
 
 | Pack | diskId | instanceId | What walkers get |
 |------|--------|------------|------------------|
-| Kolibri Grade 5A | `duration-kolibri-grade5a-001` | `kolibri-grade5a-001` | Dockable tree for `infra_dock_fixture`; Phase 3 Intent bindings for `open_kolibri_as_*` / `open_video` / coaching |
+| Kolibri Grade 5A | `duration-kolibri-grade5a-001` | `kolibri-grade5a-001` | Dockable tree for `infra_dock_fixture`; Phase 3 Intent bindings for `open_kolibri_as_*` / `open_video` / coaching. Synthetic smoke OK; Khan remap pins in `CONTENT.khan-remap.json` (HOLD live switch until import verified) |
+| Kolibri Form 3 | `duration-kolibri-form3-001` | `kolibri-form3-001` | Khan EN-US Variables & expressions 3V+3E (`fixtures/kolibri-form3/`). Import via `scripts/import-khan-topic-slice.sh form3`. NC Form 3 after Kolibri Form 3 only |
 | Nextcloud Grade 5A | `duration-nextcloud-grade5a-001` | `nextcloud-grade5a-001` | Dockable App+Files tree; Phase 3 bindings for `open_nextcloud_as_*` / share / File Drop / collab stub |
 | Kiwix | — | — | **Not included** — Wikipedia Intents blocked |
 

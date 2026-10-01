@@ -163,3 +163,30 @@ PERSEUS_META=/tmp/exercise-grade5a-01.meta.json \
 KOLIBRI_HOME=/root/.kolibri \
   python3 /tmp/update_exercise_assessments.py
 ```
+
+## Khan EN-US remap target (Steve/Marco 2026-10-01)
+
+Primary target for Grade 5A after confirmation: public Studio channel
+`c9d7f950ab6b5a1199e3d6c10d7f0103` topic **Add and subtract fractions**
+(`nodeId` `4a5b44d4826e511b8bb2e568b9562c5c`). Keep synthetic smoke
+(`CONTENT.seeded.json` / `CONTENT.live.json`) until live remap is verified.
+
+Validated pins + sizes: [`CONTENT.khan-remap.json`](CONTENT.khan-remap.json).
+
+```bash
+# On Running Kolibri (pool Pi; never idea02):
+CHANNEL=c9d7f950ab6b5a1199e3d6c10d7f0103
+TOPIC=4a5b44d4826e511b8bb2e568b9562c5c
+kolibri manage importchannel network "$CHANNEL"
+kolibri manage importcontent --node_ids "$TOPIC" network "$CHANNEL"
+# Or: bash tests/duration-tests/scripts/import-khan-topic-slice.sh g5a topic
+```
+
+| Scope | Size |
+|-------|------|
+| Channel DB | ~115 MB |
+| Topic slice | ~47 MB |
+| Leaves-only (3V+3E) | ~9 MB |
+| Full channel | ~68 GB — do not import |
+
+**No Studio token** (public channel). CDN path verified HTTP 206.
