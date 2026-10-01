@@ -5,7 +5,7 @@
 
 name: duration-tests-fixture-refs
 idea: 166
-pack_version: "1.4"
+pack_version: "1.5"
 
 # --- ID stability (prefer these pins; do not invent alternates) ---
 # STABLE across re-provision / box rebuild:
@@ -16,7 +16,7 @@ pack_version: "1.4"
 #   → refresh CONTENT.live.json (+ Pixel DURATION_FIXTURES.kolibri.live) after re-provision
 id_stability:
   stable:
-    diskIds: [duration-kolibri-grade5a-001, duration-kolibri-form3-001, duration-nextcloud-grade5a-001]
+    diskIds: [duration-empty-001, duration-kolibri-grade5a-001, duration-kolibri-form3-001, duration-nextcloud-grade5a-001]
     instanceIds: [kolibri-grade5a-001, kolibri-form3-001, nextcloud-grade5a-001]
     channelId: 30b6c263-4b96-5a62-93bd-dcf9a5cad7ca  # synthetic G5A smoke
     open_video_contentId: e60662de-b15c-52f9-b003-359f7d91f8fd
@@ -406,6 +406,22 @@ phase_3_intents:
       note: "Facility/class/lesson/user Morango IDs CHANGE on re-provision; content/channel/disk/instance IDs are stable"
 
 fixtures:
+  empty:
+    tree: tests/duration-tests/fixtures/empty
+    diskId: duration-empty-001
+    diskName: "Duration Tests — Empty Disk"
+    instanceId: null
+    role: empty
+    console_panel: EmptyDiskPanel
+    atlas_dock_slot_suggest: idea-test-3
+    note: "META-only; no apps/ instances/ FILES.yaml BACKUP.yaml. Prefer A install_app / make_files_disk / make_backup_disk. Do NOT remap onto Path A Grade5A."
+    phase_1_2:
+      infra_disk: true
+    operator_intents:
+      - install_app
+      - make_files_disk
+      - make_backup_disk
+
   kolibri:
     tree: tests/duration-tests/fixtures/kolibri
     diskId: duration-kolibri-grade5a-001

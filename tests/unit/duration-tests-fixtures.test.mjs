@@ -30,6 +30,30 @@ describe('duration-tests fixtures (idea#166)', () => {
 
   });
 
+
+  it('empty disk pack is META-only (EmptyDiskPanel / no apps)', () => {
+    const e = join(FIX, 'empty');
+    mustExist(join(e, 'META.yaml'), 'empty META');
+    mustExist(join(e, 'README.md'), 'empty README');
+
+    const meta = readFileSync(join(e, 'META.yaml'), 'utf8');
+    assert.match(meta, /diskId:\s*duration-empty-001/);
+
+    // Engine isAppDisk = test -d apps — must not exist
+    assert.equal(existsSync(join(e, 'apps')), false, 'empty pack must not have apps/');
+    assert.equal(existsSync(join(e, 'instances')), false, 'empty pack must not have instances/');
+    assert.equal(existsSync(join(e, 'FILES.yaml')), false);
+    assert.equal(existsSync(join(e, 'BACKUP.yaml')), false);
+    assert.equal(existsSync(join(e, 'files')), false);
+    assert.equal(existsSync(join(e, 'backups')), false);
+
+    const er = readFileSync(join(e, 'README.md'), 'utf8');
+    assert.match(er, /duration-empty-001/);
+    assert.match(er, /idea-test-3/);
+    assert.match(er, /EmptyDiskPanel/);
+    assert.match(er, /IDEA_DISKS_ROOT/);
+  });
+
   it('kolibri App Disk tree has META + apps + instance + content catalogue', () => {
     const k = join(FIX, 'kolibri');
     mustExist(join(k, 'META.yaml'), 'kolibri META');
@@ -141,6 +165,7 @@ describe('duration-tests fixtures (idea#166)', () => {
 
   it('walker-ref.yaml points at stable diskIds, locked Phase 1–2 keys, and notes #159', () => {
     const ref = read('walker-ref.yaml');
+    assert.match(ref, /duration-empty-001/);
     assert.match(ref, /duration-kolibri-grade5a-001/);
     assert.match(ref, /duration-kolibri-form3-001/);
     assert.match(ref, /duration-nextcloud-grade5a-001/);
@@ -168,7 +193,7 @@ describe('duration-tests fixtures (idea#166)', () => {
     assert.match(ref, /open_video:/);
     assert.match(ref, /open_file_drop:/);
     // Phase 3 App-owned deeper Intent map
-    assert.match(ref, /pack_version:\s*"1\.4"/);
+    assert.match(ref, /pack_version:\s*"1\.5"/);
     assert.match(ref, /id_stability:/);
     assert.match(ref, /contentLive:/);
     assert.match(ref, /mutable_on_reprovision:/);
@@ -272,6 +297,7 @@ describe('duration-tests fixtures (idea#166)', () => {
 
   it('README documents paths, Design Review gates, and locked Phase 1–2 keys', () => {
     const md = read('README.md');
+    assert.match(md, /duration-empty-001/);
     assert.match(md, /duration-kolibri-grade5a-001/);
     assert.match(md, /duration-kolibri-form3-001/);
     assert.match(md, /duration-nextcloud-grade5a-001/);
@@ -288,10 +314,15 @@ describe('duration-tests fixtures (idea#166)', () => {
     assert.match(md, /CONTENT\.live\.json/);
     assert.match(md, /Stable vs mutable|Mutable on re-provision/i);
     assert.match(md, /selector_binding|Pixel Phase 3/);
+    assert.match(md, /EmptyDiskPanel/);
+    assert.match(md, /idea-test-3/);
+    assert.match(md, /install_app/);
+    assert.match(md, /make_files_disk/);
+    assert.match(md, /make_backup_disk/);
   });
 
   it('fixture trees contain only expected top-level packs', () => {
     const packs = readdirSync(FIX).filter((n) => statSync(join(FIX, n)).isDirectory()).sort();
-    assert.deepEqual(packs, ['kiwix', 'kolibri', 'kolibri-form3', 'nextcloud']);
+    assert.deepEqual(packs, ['empty', 'kiwix', 'kolibri', 'kolibri-form3', 'nextcloud']);
   });
 });
