@@ -252,7 +252,7 @@ services:
       - MYSQL_ROOT_PASSWORD=\${pass}
       - NEXTCLOUD_ADMIN_USER=admin
       - NEXTCLOUD_ADMIN_PASSWORD=admin
-      - NEXTCLOUD_TRUSTED_DOMAINS=localhost 127.0.0.1 idea01 idea03 *
+      - NEXTCLOUD_TRUSTED_DOMAINS=localhost 127.0.0.1 idea01 idea03
       - PHP_UPLOAD_LIMIT=10G
       - PHP_MEMORY_LIMIT=512M
     depends_on:
@@ -301,9 +301,26 @@ seed_nextcloud_users() {
     echo "WARN: occ not ready after wait — HTTP may still be up (install in progress)" >&2
     return 0
   fi
+  # The image env is only applied on first install. Repair this on every run so
+  # an older data dir cannot retain the unsafe wildcard trusted domain.
+  local -a trusted_domains=(localhost 127.0.0.1 idea01 idea03)
+  local i
+  for i in "${!trusted_domains[@]}"; do
+    docker exec -u www-data "$cname" php occ config:system:set trusted_domains "$i" \
+      --value="${trusted_domains[$i]}" >/dev/null 2>&1 || \
+      echo "WARN: trusted_domains[$i] repair failed" >&2
+  done
+  # Remove stale entries (including a previously seeded '*'). Unknown indexes are
+  # harmless and ignored; the bounded range avoids parsing occ's human output.
+  for i in $(seq 20 -1 4); do
+    docker exec -u www-data "$cname" php occ config:system:delete trusted_domains "$i" \
+      >/dev/null 2>&1 || true
+  done
+  echo "Nextcloud trusted_domains repaired (localhost, 127.0.0.1, idea01, idea03)"
+
   # NC31 password_policy rejects short/common passwords — disable for duration sidecar
   docker exec -u www-data "$cname" php occ app:disable password_policy >/dev/null 2>&1 || true
-  # Create duration accounts (idempotent)
+  # Create duration accounts (idempotent), then refresh passwords on every run.
   for pair in "teacher:TeacherGrade5A!" "student01:Student01Grade5A!" "student02:Student02Grade5A!" "student03:Student03Grade5A!"; do
     local user="${pair%%:*}" pass="${pair##*:}"
     if docker exec -u www-data "$cname" php occ user:info "$user" >/dev/null 2>&1; then
@@ -314,6 +331,9 @@ seed_nextcloud_users() {
         >/dev/null 2>&1 || echo "WARN: user:add $user failed" >&2
       echo "occ user:add $user"
     fi
+    docker exec -u www-data -e OC_PASS="$pass" "$cname" \
+      php occ user:resetpassword --password-from-env "$user" \
+      >/dev/null 2>&1 || echo "WARN: password refresh $user failed" >&2
   done
   docker exec -u www-data "$cname" php occ group:add "Grade 5A" >/dev/null 2>&1 || true
   for u in teacher student01 student02 student03; do
