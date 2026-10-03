@@ -1,0 +1,124 @@
+{
+  "pack": "duration-kolibri-grade5a",
+  "version": "1.0",
+  "diskId": "duration-kolibri-grade5a-001",
+  "instanceId": "kolibri-grade5a-001",
+  "liveImportStatus": "khan_remap_primary_idea04",
+  "importedAt": "2026-10-01T10:19:41Z",
+  "importedBy": "Kid (App Dev)",
+  "host": "idea04",
+  "kolibriHttpPort": 18081,
+  "image": "koenswings/kolibri:1.0-0.15.5-dev",
+  "tempDataDir": "/home/pi/idea168-kolibri-g5a-khan/data/kolibri",
+  "method": "Khan EN-US topic-slice import via import-khan-topic-slice.sh g5a topic; Intent pins flipped from synthetic to CONTENT.khan-remap.json",
+  "note": "Facility/class/learner/lesson IDs are Morango 32-hex from this provision (re-provision yields new auth IDs). Content/node/channel IDs match CONTENT.seeded.json pinned ricecooker IDs (unchanged). open_exercise now has 2 Perseus single_selection assessment items + .perseus blob. idea03 Kolibri sidecar uses :18081 (Intenso conflict on :18080).",
+  "channel": {
+    "channelId": "c9d7f950-ab6b-5a11-99e3-d6c10d7f0103",
+    "channelIdRaw": "c9d7f950ab6b5a1199e3d6c10d7f0103",
+    "available": true,
+    "name": "Khan Academy (English - US curriculum)"
+  },
+  "facility": {
+    "name": "Duration Tests Facility",
+    "id": "386af37831fa47372e2d6bac44aa2292",
+    "idDashed": "386af378-31fa-4737-2e2d-6bac44aa2292",
+    "liveStatus": "provisioned"
+  },
+  "class": {
+    "name": "Grade 5A",
+    "id": "8264b7d56c631373ee7d4886f4c5dac1",
+    "idDashed": "8264b7d5-6c63-1373-ee7d-4886f4c5dac1",
+    "liveStatus": "provisioned"
+  },
+  "coach": {
+    "username": "teacher",
+    "passwordHint": "teacher",
+    "id": "778fa42b3063f66fd6fc730bc85d85d9",
+    "idDashed": "778fa42b-3063-f66f-d6fc-730bc85d85d9",
+    "liveStatus": "provisioned"
+  },
+  "learners": [
+    {
+      "username": "learner01",
+      "id": "5099a2ec399f5e37bb77b268be27b1d6",
+      "idDashed": "5099a2ec-399f-5e37-bb77-b268be27b1d6",
+      "liveStatus": "provisioned"
+    },
+    {
+      "username": "learner02",
+      "id": "4568863afdac31d4f8d5a415241ea110",
+      "idDashed": "4568863a-fdac-31d4-f8d5-a415241ea110",
+      "liveStatus": "provisioned"
+    },
+    {
+      "username": "learner03",
+      "id": "07b1daaaad0cdec42b90d005b09ef6d4",
+      "idDashed": "07b1daaa-ad0c-dec4-2b90-d005b09ef6d4",
+      "liveStatus": "provisioned"
+    }
+  ],
+  "lesson": {
+    "title": "Grade 5A Duration Lesson",
+    "id": "b888e92bcec77ba4c82bb001e62d3b9a",
+    "idDashed": "b888e92b-cec7-7ba4-c82b-b001e62d3b9a",
+    "resourceNodeIds": [
+      "ef35763056fe5113946710a750e4e75c",
+      "0ed1af8fbbe758bbb743168938dc8a38"
+    ],
+    "liveStatus": "provisioned"
+  },
+  "intentResolution": {
+    "open_video": {
+      "contentLogicalId": "video-grade5a-khan-01",
+      "contentId": "757e1a6e-9ea1-5168-b99a-0bf7eeb30662",
+      "contentIdRaw": "757e1a6e9ea15168b99a0bf7eeb30662",
+      "nodeId": "ef357630-56fe-5113-9467-10a750e4e75c",
+      "nodeIdRaw": "ef35763056fe5113946710a750e4e75c",
+      "channelId": "c9d7f950-ab6b-5a11-99e3-d6c10d7f0103",
+      "title": "Visually adding fractions: 5/6+1/4",
+      "available": true,
+      "apiVerified": "GET idea04:18081 /api/content/contentnode/?content_id=757e1a6e9ea15168b99a0bf7eeb30662 \u2192 200 leaf video"
+    },
+    "open_exercise": {
+      "contentLogicalId": "exercise-grade5a-khan-01",
+      "contentId": "2f9204d3-af37-58b9-8fa0-fd86a0c03c5d",
+      "contentIdRaw": "2f9204d3af3758b98fa0fd86a0c03c5d",
+      "nodeId": "0ed1af8f-bbe7-58bb-b743-168938dc8a38",
+      "nodeIdRaw": "0ed1af8fbbe758bbb743168938dc8a38",
+      "channelId": "c9d7f950-ab6b-5a11-99e3-d6c10d7f0103",
+      "title": "Visually add and subtract fractions",
+      "available": true,
+      "apiVerified": "GET idea04:18081 /api/content/contentnode/?content_id=2f9204d3af3758b98fa0fd86a0c03c5d \u2192 200 leaf exercise",
+      "note": "Khan Perseus exercise (native); synthetic AssessmentMetaData patch not applied"
+    }
+  },
+  "hosts": {
+    "idea04": {
+      "kolibriHttpPort": 18081,
+      "url": "http://100.108.39.45:18081/",
+      "container": "idea168-kolibri-g5a-khan",
+      "dataDir": "/home/pi/idea168-kolibri-g5a-khan",
+      "note": "Primary Khan remap Running sidecar"
+    },
+    "idea01": {
+      "kolibriHttpPort": 18080,
+      "url": "http://100.99.231.94:18080/",
+      "note": "Prior synthetic smoke sidecar (CONTENT.seeded channel); leave running until Atlas confirms"
+    },
+    "idea03": {
+      "kolibriHttpPort": 18081,
+      "url": "http://100.126.117.80:18081/",
+      "note": "Prior synthetic sidecar port (Intenso owns :18080)"
+    }
+  },
+  "syntheticSmokeFallback": {
+    "note": "Prior idea01 synthetic channel 30b6c263\u2026 kept for smoke; Intent pins flipped to Khan 2026-10-01.",
+    "channelId": "30b6c263-4b96-5a62-93bd-dcf9a5cad7ca",
+    "open_video_contentId": "e60662de-b15c-52f9-b003-359f7d91f8fd",
+    "open_exercise_contentId": "7eb9de46-96eb-53d0-bcc1-2fb270b96f03",
+    "priorHost": "idea01",
+    "priorKolibriHttpPort": 18080,
+    "priorTempDataDir": "/home/pi/idea166-kolibri-live/data/kolibri"
+  },
+  "containerName": "idea168-kolibri-g5a-khan"
+}

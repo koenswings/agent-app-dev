@@ -1,0 +1,80 @@
+# Stable logical content IDs for duration-tests Nextcloud walks (idea#166).
+
+pack: duration-nextcloud-grade5a
+version: "1.1"
+diskId: duration-nextcloud-grade5a-001
+instanceId: nextcloud-grade5a-001
+instanceName: nextcloud
+filesMount: true
+
+accounts:
+  teacher:
+    username: teacher
+    logicalId: nc-teacher-grade5a
+  learners:
+    - username: student01
+      logicalId: nc-learner-grade5a-01
+    - username: student02
+      logicalId: nc-learner-grade5a-02
+    - username: student03
+      logicalId: nc-learner-grade5a-03
+
+groups:
+  - name: Grade 5A
+    logicalId: group-grade5a
+
+folders:
+  - path: Class Materials
+    logicalId: folder-materials-grade5a
+    share: view-only
+    shareToGroup: Grade 5A
+    walkerAction: share_to_class
+  - path: Drop Zone
+    logicalId: folder-drop-grade5a
+    share: file-request
+    walkerAction: open_file_drop
+  - path: Collab
+    logicalId: folder-collab-grade5a
+
+collab:
+  - path: Collab/Grade5A-collab-notes.md
+    logicalId: collab-grade5a-01
+    walkerAction: open_collab_doc
+    status: placeholder-doc
+    notes: >
+      Collabora omitted in this pack. Treat as browse/open stub until a later
+      revision adds nextcloud-code + editable Office file.
+
+urls:
+  filesHome: "http://<engine-host>:18280/apps/files/"
+  openFileDrop: "logical:folder-drop-grade5a"
+  openCollabDoc: "logical:collab-grade5a-01"
+  shareToClass: "logical:folder-materials-grade5a"
+
+# Phase 3 Intent → content bindings (App-owned). Playwright = Pixel.
+phase_3_intent_map:
+  open_nextcloud_as_teacher:
+    login_username: teacher
+    landing: filesHome
+  open_nextcloud_as_learner:
+    login_username: student01
+    landing: filesHome
+  browse_folders:
+    folderLogicalIds: [folder-materials-grade5a, folder-drop-grade5a, folder-collab-grade5a]
+  share_to_class:
+    folderLogicalId: folder-materials-grade5a
+    group: Grade 5A
+    permission: view-only
+  done_sharing:
+    returns: nc_browse
+  open_file_drop:
+    folderLogicalId: folder-drop-grade5a
+  after_upload:
+    folderLogicalId: folder-drop-grade5a
+  open_collab_doc:
+    collabLogicalId: collab-grade5a-01
+    status: placeholder-doc
+  close_doc:
+    returns: nc_browse
+  keep_editing:
+    status: blocked_until_collabora
