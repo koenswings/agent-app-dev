@@ -1,7 +1,5 @@
 # Grade 5A — Add and subtract fractions
 
-*Console pictures are not in this copy. The lesson screens start at sign-in.*
-
 Monde Primary School.
 
 Lesson name in Kolibri: **Grade 5A Duration Lesson**.
@@ -22,19 +20,25 @@ The app is already **Running**. You only open it.
 
 1. Open **Chromium**.
 2. Go to the **Console** page this school already uses. Do not type a port number. Do not type a new web address.
-3. On the left, the heading says **Network**.
+3. On the left, the heading says **Network**. **All apps** is in that list.
 
-*Picture not in this copy.*
+![G5A-01-network](shots/g5a-01-network.png)
 
-4. You can stay on **All apps**. Or click the disk named **duration-kolibri-grade5a-001**. It sits under the engine name. The right side then shows that disk. The list is headed **Apps**.
+*Network. All apps is selected. The rows are kolibri and nextcloud. Open is on the right of each row.*
 
-*Picture not in this copy.*
+4. You can stay on **All apps**. The disk titled **Duration Tests — Kolibri Grade 5A** shows the same row. On that disk the list is headed **Apps**.
 
-5. Find the row named **kolibri-grade5a-001**. The line under that name is the app title. If there is no title, that line says **kolibri-1.0**.
-6. Point at the coloured dot on the left of the row. It should say **Running**. The dot is green.
+![G5A-02-disk-apps](shots/g5a-02-disk-apps.png)
+
+*Disk Duration Tests — Kolibri Grade 5A. The list is headed Apps. The row is kolibri. The line under the name is kolibri-1.0-duration.*
+
+5. Find the row named **kolibri**. The line under that name says **kolibri-1.0-duration**.
+6. The dot on the left of the row is green.
 7. **Open** is on the right of that same row. Click **Open**.
 
-*Picture not in this copy.*
+![G5A-03-app-open](shots/g5a-03-app-open.png)
+
+*The kolibri row. The dot is green. Open is on the right.*
 
 A new tab opens. It uses the same computer you already opened the Console on. You do not type a port.
 
@@ -60,7 +64,9 @@ If you do not see **Open**, stop. Call Tapiwa. Do not press **Start** yourself.
 3. Click **Lessons**.
 4. Click **Grade 5A Duration Lesson**.
 
-*Picture not in this copy.*
+![G5A-06-lessons](shots/g5a-06-lessons.png)
+
+*Lessons. The row is Grade 5A Duration Lesson.*
 
 ### 4. Check the resources are in this order
 
@@ -110,8 +116,8 @@ You lead. The learners work on their own screens. Walk the room. Do not do the e
 Each learner:
 
 1. Opens **Chromium** and the **Console**, the same way you did.
-2. Stays on **All apps**, or clicks the disk **duration-kolibri-grade5a-001**.
-3. Finds the row **kolibri-grade5a-001**. The dot says **Running**.
+2. Stays on **All apps**, or opens the disk titled **Duration Tests — Kolibri Grade 5A**.
+3. Finds the row **kolibri**. The line under the name says **kolibri-1.0-duration**. The dot is green.
 4. Clicks **Open**. Does not click **Start**.
 5. Clicks **Sign in** and uses their own username and password.
 
@@ -193,7 +199,7 @@ Tell Tapiwa one thing you saw. Example: "Most of Grade 5A finished the videos. T
 
 | What you see | What to do |
 |--------------|------------|
-| No **Open** on the row **kolibri-grade5a-001** | Stop. Call Tapiwa. Do not press **Start**. |
+| No **Open** on the row **kolibri** | Stop. Call Tapiwa. Do not press **Start**. |
 | Learner cannot sign in | Class → the learner’s name → **Edit** → reset the password. Or call Tapiwa. |
 | Lesson not on the learner’s screen | Check **Recipients** shows the class. Turn **Visible** on (button blue). |
 | Reports is empty | Learners must sign in with their own name before they start. |
@@ -207,7 +213,7 @@ These are the words on the screen. They are not web addresses.
 
 | Where | The name you click |
 |-------|--------------------|
-| Disk under the engine name | duration-kolibri-grade5a-001 |
-| App row | kolibri-grade5a-001 |
+| Disk | Duration Tests — Kolibri Grade 5A |
+| App row | kolibri |
 | Lesson | Grade 5A Duration Lesson |
 | Class | the Grade 5A class at Monde Primary |
