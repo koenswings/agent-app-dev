@@ -1,12 +1,12 @@
 # Grade 5A — Add and subtract fractions
 
+*Console pictures are not in this copy. The lesson screens start at sign-in.*
+
 Monde Primary School.
 
 Lesson name in Kolibri: **Grade 5A Duration Lesson**.
 
 _Tapiwa walks the teacher through this. Read one step. Do it. Then go to the next step._
-
-Pictures are not in this copy yet. Each `screenshot` line is where a picture will go.
 
 The lesson is already on the computer. It has three videos, then three exercises. You do not add resources. You do not remove resources. You open it, check it, and make it **Visible** for the class.
 
@@ -24,17 +24,17 @@ The app is already **Running**. You only open it.
 2. Go to the **Console** page this school already uses. Do not type a port number. Do not type a new web address.
 3. On the left, the heading says **Network**.
 
-<!-- screenshot:G5A-01-network -->
+*Picture not in this copy.*
 
 4. You can stay on **All apps**. Or click the disk named **duration-kolibri-grade5a-001**. It sits under the engine name. The right side then shows that disk. The list is headed **Apps**.
 
-<!-- screenshot:G5A-02-disk-apps -->
+*Picture not in this copy.*
 
 5. Find the row named **kolibri-grade5a-001**. The line under that name is the app title. If there is no title, that line says **kolibri-1.0**.
 6. Point at the coloured dot on the left of the row. It should say **Running**. The dot is green.
 7. **Open** is on the right of that same row. Click **Open**.
 
-<!-- screenshot:G5A-03-app-open -->
+*Picture not in this copy.*
 
 A new tab opens. It uses the same computer you already opened the Console on. You do not type a port.
 
@@ -48,19 +48,19 @@ If you do not see **Open**, stop. Call Tapiwa. Do not press **Start** yourself.
 2. Type your username and password.
 3. You should see the Kolibri home page, with **Classes** in the left menu.
 
-<!-- screenshot:G5A-04-sign-in -->
+![G5A-04-sign-in](shots/g5a-04-sign-in.png)
 
 ### 3. Open the lesson
 
 1. Click **Classes** in the left menu.
 2. Click the class for this group. The name on screen is the Grade 5A class.
 
-<!-- screenshot:G5A-05-classes -->
+![G5A-05-classes](shots/g5a-05-classes.png)
 
 3. Click **Lessons**.
 4. Click **Grade 5A Duration Lesson**.
 
-<!-- screenshot:G5A-06-lessons -->
+*Picture not in this copy.*
 
 ### 4. Check the resources are in this order
 
@@ -78,7 +78,7 @@ Look at the list inside the lesson. It should be three videos first, then three 
 5. Estimate to add and subtract fractions with different denominators
 6. Common denominators
 
-<!-- screenshot:G5A-07-resources -->
+![G5A-07-resources](shots/g5a-07-resources.png)
 
 If a name is missing, or the order is wrong, stop. Tell Tapiwa. Do not add or delete resources yourself.
 
@@ -88,14 +88,14 @@ If a name is missing, or the order is wrong, stop. Tell Tapiwa. Do not add or de
 2. It must show your Grade 5A class.
 3. If the class is not there: click **Edit**, add the class under **Recipients**, and save.
 
-<!-- screenshot:G5A-08-recipients -->
+![G5A-08-recipients](shots/g5a-08-recipients.png)
 
 ### 6. Make the lesson visible
 
 1. Set the lesson to **Visible**. The button turns blue.
 2. Learners can see the lesson the next time they sign in.
 
-<!-- screenshot:G5A-09-visible -->
+![G5A-09-visible](shots/g5a-09-visible.png)
 
 If it is already **Visible**, leave it. Do not turn it off.
 
@@ -124,7 +124,7 @@ They must sign in with their own name. If they do not sign in, you will not see 
 3. Click **Lessons**.
 4. Click **Grade 5A Duration Lesson**.
 
-<!-- screenshot:G5A-10-student-lesson -->
+![G5A-10-student-lesson](shots/g5a-10-student-lesson.png)
 
 They should see the same six resources, videos first.
 
@@ -137,7 +137,7 @@ Say this to the class:
 3. Then watch **Visually subtracting fractions: 3/4-5/8**.
 4. Then watch **Estimating adding fractions with unlike denominators**.
 
-<!-- screenshot:G5A-11-student-video -->
+![G5A-11-student-video](shots/g5a-11-student-video.png)
 
 5. After the three videos, do the exercises in this order:
    - Visually add and subtract fractions
@@ -146,7 +146,7 @@ Say this to the class:
 6. Answer the questions on the screen. Kolibri tells them straight away if the answer is right.
 7. Stay in this lesson until the six resources are done, or until you say stop.
 
-<!-- screenshot:G5A-12-student-exercise -->
+![G5A-12-student-exercise](shots/g5a-12-student-exercise.png)
 
 The video plays in the browser. They do not download it.
 
@@ -165,11 +165,11 @@ Do this when the learners have finished, or at the end of the period.
 5. Click **Lessons**.
 6. Click **Grade 5A Duration Lesson**.
 
-<!-- screenshot:G5A-13-reports-lesson -->
+![G5A-13-reports-lesson](shots/g5a-13-reports-lesson.png)
 
 You see one row for each learner.
 
-<!-- screenshot:G5A-14-reports-progress -->
+![G5A-14-reports-progress](shots/g5a-14-reports-progress.png)
 
 | What you see | What it means |
 |--------------|----------------|

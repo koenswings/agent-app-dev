@@ -1,12 +1,12 @@
 # Form 3 — Variables and expressions
 
+*Console pictures are not in this copy. The lesson screens start at sign-in.*
+
 Ndlovu Secondary School.
 
 Lesson name in Kolibri: **Form 3 Duration Lesson**.
 
 _Tapiwa walks the teacher through this. Read one step. Do it. Then go to the next step._
-
-Pictures are not in this copy yet. Each `screenshot` line is where a picture will go.
 
 The lesson is already on the computer. It has three videos, then three exercises. You do not add resources. You do not remove resources. You open it, check it, and make it **Visible** for the class.
 
@@ -24,17 +24,17 @@ The app is already **Running**. You only open it.
 2. Go to the **Console** page this school already uses. Do not type a port number. Do not type a new web address.
 3. On the left, the heading says **Network**.
 
-<!-- screenshot:F3-01-network -->
+*Picture not in this copy.*
 
 4. You can stay on **All apps**. Or click the disk named **duration-kolibri-form3-001**. It sits under the engine name. The right side then shows that disk. The list is headed **Apps**.
 
-<!-- screenshot:F3-02-disk-apps -->
+*Picture not in this copy.*
 
 5. Find the row named **kolibri-form3-001**. The line under that name is the app title. If there is no title, that line says **kolibri-1.0**.
 6. Point at the coloured dot on the left of the row. It should say **Running**. The dot is green.
 7. **Open** is on the right of that same row. Click **Open**.
 
-<!-- screenshot:F3-03-app-open -->
+*Picture not in this copy.*
 
 A new tab opens. It uses the same computer you already opened the Console on. You do not type a port.
 
@@ -48,19 +48,19 @@ If you do not see **Open**, stop. Call Tapiwa. Do not press **Start** yourself.
 2. Type your username and password.
 3. You should see the Kolibri home page, with **Classes** in the left menu.
 
-<!-- screenshot:F3-04-sign-in -->
+![F3-04-sign-in](shots/f3-04-sign-in.png)
 
 ### 3. Open the lesson
 
 1. Click **Classes** in the left menu.
 2. Click the class for this group. The name on screen is the Form 3 class.
 
-<!-- screenshot:F3-05-classes -->
+![F3-05-classes](shots/f3-05-classes.png)
 
 3. Click **Lessons**.
 4. Click **Form 3 Duration Lesson**.
 
-<!-- screenshot:F3-06-lessons -->
+![F3-06-lessons](shots/f3-06-lessons.png)
 
 ### 4. Check the resources are in this order
 
@@ -78,7 +78,7 @@ Look at the list inside the lesson. It should be three videos first, then three 
 5. Evaluating expressions with one variable
 6. Variable expressions with exponents
 
-<!-- screenshot:F3-07-resources -->
+![F3-07-resources](shots/f3-07-resources.png)
 
 If a name is missing, or the order is wrong, stop. Tell Tapiwa. Do not add or delete resources yourself.
 
@@ -88,14 +88,14 @@ If a name is missing, or the order is wrong, stop. Tell Tapiwa. Do not add or de
 2. It must show your Form 3 class.
 3. If the class is not there: click **Edit**, add the class under **Recipients**, and save.
 
-<!-- screenshot:F3-08-recipients -->
+![F3-08-recipients](shots/f3-08-recipients.png)
 
 ### 6. Make the lesson visible
 
 1. Set the lesson to **Visible**. The button turns blue.
 2. Learners can see the lesson the next time they sign in.
 
-<!-- screenshot:F3-09-visible -->
+![F3-09-visible](shots/f3-09-visible.png)
 
 If it is already **Visible**, leave it. Do not turn it off.
 
@@ -124,7 +124,7 @@ They must sign in with their own name. If they do not sign in, you will not see 
 3. Click **Lessons**.
 4. Click **Form 3 Duration Lesson**.
 
-<!-- screenshot:F3-10-student-lesson -->
+![F3-10-student-lesson](shots/f3-10-student-lesson.png)
 
 They should see the same six resources, videos first.
 
@@ -137,7 +137,7 @@ Say this to the class:
 3. Then watch **Terms, factors, & coefficients**.
 4. Then watch **Why aren't we using the multiplication sign?**
 
-<!-- screenshot:F3-11-student-video -->
+![F3-11-student-video](shots/f3-11-student-video.png)
 
 5. After the three videos, do the exercises in this order:
    - Parts of algebraic expressions
@@ -146,7 +146,7 @@ Say this to the class:
 6. Answer the questions on the screen. Kolibri tells them straight away if the answer is right.
 7. Stay in this lesson until the six resources are done, or until you say stop.
 
-<!-- screenshot:F3-12-student-exercise -->
+![F3-12-student-exercise](shots/f3-12-student-exercise.png)
 
 The video plays in the browser. They do not download it.
 
@@ -165,11 +165,11 @@ Do this when the learners have finished, or at the end of the period.
 5. Click **Lessons**.
 6. Click **Form 3 Duration Lesson**.
 
-<!-- screenshot:F3-13-reports-lesson -->
+![F3-13-reports-lesson](shots/f3-13-reports-lesson.png)
 
 You see one row for each learner.
 
-<!-- screenshot:F3-14-reports-progress -->
+![F3-14-reports-progress](shots/f3-14-reports-progress.png)
 
 | What you see | What it means |
 |--------------|----------------|
