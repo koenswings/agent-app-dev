@@ -42,6 +42,9 @@ describe('duration-tests fixtures (idea#166)', () => {
     assert.match(lessonIndex, /0f21619f-bd75-505f-92bd-96184b07b46d/);
     assert.match(lessonIndex, /keep_watching/);
     assert.doesNotMatch(lessonIndex, /Science stays in this set/);
+    assert.match(lessonIndex, /assigns all 3 videos and all 3 exercises/);
+    assert.doesNotMatch(lessonIndex, /only the first video/);
+    assert.doesNotMatch(lessonIndex, /topic leaf only/);
 
   });
 
@@ -136,6 +139,22 @@ describe('duration-tests fixtures (idea#166)', () => {
     assert.ok(live.facility.id);
     assert.ok(live.class.id);
     assert.ok(live.lesson.id);
+    assert.deepEqual(live.lesson.resourceLogicalIds, [
+      'video-grade5a-khan-01',
+      'video-grade5a-khan-02',
+      'video-grade5a-khan-03',
+      'exercise-grade5a-khan-01',
+      'exercise-grade5a-khan-02',
+      'exercise-grade5a-khan-03',
+    ]);
+    assert.deepEqual(live.lesson.resourceNodeIds, [
+      'ef35763056fe5113946710a750e4e75c',
+      '43d4efc489e150b19a3b7a7460e30fd9',
+      'cbb99d491f405719b44f1e6d12380c3f',
+      '0ed1af8fbbe758bbb743168938dc8a38',
+      '1d4c27c6d3bd59e0bd87fdb59eb68a2b',
+      '23e0467261d65705bd6de61adb6dbbec',
+    ]);
     assert.equal(live.syntheticSmokeFallback.open_video_contentId, seeded.intentResolution.open_video.contentId);
     assert.equal(live.syntheticSmokeFallback.open_exercise_contentId, seeded.intentResolution.open_exercise.contentId);
     assert.equal(live.syntheticSmokeFallback.channelId, '30b6c263-4b96-5a62-93bd-dcf9a5cad7ca');
@@ -300,6 +319,31 @@ describe('duration-tests fixtures (idea#166)', () => {
     assert.equal(f3live.intentResolution.open_exercise.contentIdRaw, 'ed0c23b8e517568790ae1bda74ab22ba');
     assert.ok(f3live.facility.id);
     assert.ok(f3live.lesson.id);
+    assert.deepEqual(f3live.lesson.resourceLogicalIds, [
+      'video-form3-01',
+      'video-form3-02',
+      'video-form3-03',
+      'exercise-form3-01',
+      'exercise-form3-02',
+      'exercise-form3-03',
+    ]);
+    assert.equal(f3live.lesson.resourceNodeIds.length, 6);
+    assert.deepEqual(seeded.lesson.resourceLogicalIds, f3live.lesson.resourceLogicalIds);
+    const f3yaml = readFileSync(join(f3, 'content/CONTENT.yaml'), 'utf8');
+    for (const id of f3live.lesson.resourceLogicalIds) {
+      assert.match(f3yaml, new RegExp(`logicalId: ${id}`));
+    }
+    const provision = readFileSync(join(ROOT, 'scripts/provision-khan-pack-lesson.py'), 'utf8');
+    assert.match(provision, /cfg\["videos"\] \+ cfg\["exercises"\]/);
+    for (const htmlName of [
+      'grade5a-add-and-subtract-fractions.html',
+      'form3-variables-and-expressions.html',
+    ]) {
+      const html = readFileSync(join(ROOT, 'lessons', htmlName), 'utf8');
+      assert.match(html, /all 3 videos and all 3 exercises/);
+      assert.doesNotMatch(html, /topic leaf only/);
+      assert.doesNotMatch(html, /only the first video/);
+    }
 
     mustExist(
       join(ROOT, 'scripts/import-khan-topic-slice.sh'),

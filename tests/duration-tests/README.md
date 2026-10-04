@@ -78,7 +78,7 @@ tests/duration-tests/
 - Grade 5A Add and subtract fractions (`4a5b44d4…`, 3V+3E) → `lessons/grade5a-add-and-subtract-fractions.pdf`
 - Form 3 Variables & expressions (`0f21619f…`, 3V+3E) → `lessons/form3-variables-and-expressions.pdf`
 
-Content teachers can open. Lesson-chrome Intents stay deferred ([`LESSON_CHROME.md`](LESSON_CHROME.md)). No Console install in this pass.
+Each Duration Lesson assigns all 3 videos and all 3 exercises (not video 01 + exercise 01 only). Lesson-chrome Intents stay deferred ([`LESSON_CHROME.md`](LESSON_CHROME.md)). No Console install in this pass.
 
 
 ## Pack inventory

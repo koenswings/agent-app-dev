@@ -25,7 +25,8 @@
 <ul>
 <li>Base URL (idea04): <span class="mono">http://100.108.39.45:18080/</span></li>
 <li>Coach classes (fixture URL): <span class="mono">http://100.108.39.45:18080/coach/#/classes</span> — class <strong>Form 3</strong>, lesson <strong>Form 3 Duration Lesson</strong>.</li>
-<li>The named lesson assigns only <span class="mono">video-form3-01</span> and <span class="mono">exercise-form3-01</span>. The other four leaves are on the topic and were imported; they are not lesson resources.</li>
+<li>The named lesson assigns <strong>all 3 videos and all 3 exercises</strong> below (same titles and IDs). None of them is topic-only. Order: the three videos, then the three exercises. <span class="mono">open_video</span> / <span class="mono">open_exercise</span> still resolve to leaf 01 as the walker entry, not as the only assigned resources.</li>
+<li>Live Kolibri on idea04 was last provisioned 2026-10-01 with only <span class="mono">video-form3-01</span> and <span class="mono">exercise-form3-01</span>. <span class="mono">provision-khan-pack-lesson.py</span> (PACK=form3) now writes all six onto <span class="mono">Lesson.resources</span>. Re-run it on a Running sidecar to update that row. This sheet did not start the sidecar.</li>
 <li>Learn content (existing walker URL shape): <span class="mono">http://100.108.39.45:18080/learn/#/topics/c/&lt;nodeId without dashes&gt;</span></li>
 <li>Lesson route (existing walker URL shape): <span class="mono">http://100.108.39.45:18080/learn/#/lessons/b01a1b42-d000-0fad-3eb0-0d1688046413</span></li>
 <li>Learner home (fixture URL): <span class="mono">http://100.108.39.45:18080/learn/#/topics</span> as <span class="mono">learner01</span>.</li>
@@ -40,10 +41,10 @@
               <td>yes — assigned on the named lesson</td></tr><tr>
               <td>2</td><td>video</td><td>Terms, factors, &amp; coefficients</td><td>video-form3-02</td>
               <td class="mono">30fb3fbd-9d4a-549f-8643-f610a165df5a</td><td class="mono">fcba0a76-d607-5c02-b1f9-f7742847a4c4</td>
-              <td>no — topic leaf only (not a lesson resource)</td></tr><tr>
+              <td>yes — assigned on the named lesson</td></tr><tr>
               <td>3</td><td>video</td><td>Why aren't we using the multiplication sign?</td><td>video-form3-03</td>
               <td class="mono">3ddc455a-eaab-51c0-8e8b-9484bf9a1830</td><td class="mono">7f1b5480-4b2e-5d81-b767-0d383cf341a8</td>
-              <td>no — topic leaf only (not a lesson resource)</td></tr>
+              <td>yes — assigned on the named lesson</td></tr>
 </table>
 <h2>Exercises (3)</h2>
 <table>
@@ -54,10 +55,10 @@
               <td>yes — assigned on the named lesson</td></tr><tr>
               <td>2</td><td>exercise</td><td>Evaluating expressions with one variable</td><td>exercise-form3-02</td>
               <td class="mono">0c49599e-0131-5fdb-957a-5bbbbdf58c5e</td><td class="mono">d455f572-cc33-55b0-8c98-2a997d412aa8</td>
-              <td>no — topic leaf only (not a lesson resource)</td></tr><tr>
+              <td>yes — assigned on the named lesson</td></tr><tr>
               <td>3</td><td>exercise</td><td>Variable expressions with exponents</td><td>exercise-form3-03</td>
               <td class="mono">7110cacb-b8d6-58b0-b799-a3d0418e40a9</td><td class="mono">8c880694-0794-5913-918b-90523c2ac8ca</td>
-              <td>no — topic leaf only (not a lesson resource)</td></tr>
+              <td>yes — assigned on the named lesson</td></tr>
 </table>
 <h2>What this sheet covers vs lesson chrome</h2>
 <p>Covers: the content pack a teacher can run once the sidecar is listening — lesson title, the six leaf titles, contentIds, nodeIds, and the existing Learn/Coach URLs.</p>

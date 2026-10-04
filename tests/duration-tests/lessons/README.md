@@ -14,7 +14,7 @@ Pins: `fixtures/kolibri/content/CONTENT.live.json`, `CONTENT.khan-remap.json`, `
 
 ## What the pack covers
 
-Content a teacher can open once the sidecar is listening: lesson title, six leaf titles, contentIds, nodeIds, coach/learn URLs. The named lesson assigns only the first video and the first exercise. The other four leaves are imported topic content, not lesson resources.
+Content a teacher can open once the sidecar is listening: lesson title, six leaf titles, contentIds, nodeIds, coach/learn URLs. Each Duration Lesson assigns all 3 videos and all 3 exercises (same titles and IDs). The other leaves are not topic-only. `open_video` / `open_exercise` still resolve to leaf 01 as the walker entry.
 
 `open_video` / `open_exercise` resolve from those IDs.
 

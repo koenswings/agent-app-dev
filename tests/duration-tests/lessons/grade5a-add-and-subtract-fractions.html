@@ -25,7 +25,8 @@
 <ul>
 <li>Base URL (idea04): <span class="mono">http://100.108.39.45:18081/</span></li>
 <li>Coach classes (fixture URL): <span class="mono">http://100.108.39.45:18081/coach/#/classes</span> — class <strong>Grade 5A</strong>, lesson <strong>Grade 5A Duration Lesson</strong>.</li>
-<li>The named lesson assigns only the first video and the first exercise (node ids <span class="mono">ef35763056fe5113946710a750e4e75c</span> and <span class="mono">0ed1af8fbbe758bbb743168938dc8a38</span>). The other four leaves are on the topic and were imported; they are not lesson resources.</li>
+<li>The named lesson assigns <strong>all 3 videos and all 3 exercises</strong> below (same titles and IDs). None of them is topic-only. Order: the three videos, then the three exercises. <span class="mono">open_video</span> / <span class="mono">open_exercise</span> still resolve to leaf 01 as the walker entry, not as the only assigned resources.</li>
+<li>Live Kolibri on idea04 was last provisioned 2026-10-01 with only leaf 01 of each kind. <span class="mono">provision-khan-pack-lesson.py</span> (PACK=g5a) now writes all six onto <span class="mono">Lesson.resources</span>. Re-run it on a Running sidecar to update that row. This sheet did not start the sidecar.</li>
 <li>Learn content (existing walker URL shape): <span class="mono">http://100.108.39.45:18081/learn/#/topics/c/&lt;nodeId without dashes&gt;</span></li>
 <li>Lesson route (existing walker URL shape): <span class="mono">http://100.108.39.45:18081/learn/#/lessons/b888e92b-cec7-7ba4-c82b-b001e62d3b9a</span></li>
 <li>Learner home (fixture URL): <span class="mono">http://100.108.39.45:18081/learn/#/topics</span> as <span class="mono">learner01</span>.</li>
@@ -40,10 +41,10 @@
               <td>yes — assigned on the named lesson</td></tr><tr>
               <td>2</td><td>video</td><td>Visually subtracting fractions: 3/4-5/8</td><td>video-grade5a-khan-02</td>
               <td class="mono">fc6dd800-d701-5d42-83a0-1fd9079bf5ce</td><td class="mono">43d4efc4-89e1-50b1-9a3b-7a7460e30fd9</td>
-              <td>no — topic leaf only (not a lesson resource)</td></tr><tr>
+              <td>yes — assigned on the named lesson</td></tr><tr>
               <td>3</td><td>video</td><td>Estimating adding fractions with unlike denominators</td><td>video-grade5a-khan-03</td>
               <td class="mono">6dda429c-3980-5a81-9efb-bdc9322662b0</td><td class="mono">cbb99d49-1f40-5719-b44f-1e6d12380c3f</td>
-              <td>no — topic leaf only (not a lesson resource)</td></tr>
+              <td>yes — assigned on the named lesson</td></tr>
 </table>
 <h2>Exercises (3)</h2>
 <table>
@@ -54,10 +55,10 @@
               <td>yes — assigned on the named lesson</td></tr><tr>
               <td>2</td><td>exercise</td><td>Estimate to add and subtract fractions with different denominators</td><td>exercise-grade5a-khan-02</td>
               <td class="mono">94ab05b5-f3ff-506a-b18d-e630ac9cb0cb</td><td class="mono">1d4c27c6-d3bd-59e0-bd87-fdb59eb68a2b</td>
-              <td>no — topic leaf only (not a lesson resource)</td></tr><tr>
+              <td>yes — assigned on the named lesson</td></tr><tr>
               <td>3</td><td>exercise</td><td>Common denominators</td><td>exercise-grade5a-khan-03</td>
               <td class="mono">c306ffe2-69f3-52fa-8417-deba6f616504</td><td class="mono">23e04672-61d6-5705-bd6d-e61adb6dbbec</td>
-              <td>no — topic leaf only (not a lesson resource)</td></tr>
+              <td>yes — assigned on the named lesson</td></tr>
 </table>
 <h2>What this sheet covers vs lesson chrome</h2>
 <p>Covers: the content pack a teacher can run once the sidecar is listening — lesson title, the six leaf titles, contentIds, nodeIds, and the existing Learn/Coach URLs.</p>

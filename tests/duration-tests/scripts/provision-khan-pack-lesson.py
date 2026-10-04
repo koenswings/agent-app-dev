@@ -91,8 +91,10 @@ for logical, node_raw, content_raw in cfg["videos"] + cfg["exercises"]:
     })
     id_by_logical[logical] = (nid, cid)
 
+# Duration Lesson assigns every locked leaf (3 videos, then 3 exercises).
+# open_video / open_exercise stay walker entry pins (leaf 01), not the assignment.
 resources = []
-for logical in (cfg["open_video"], cfg["open_exercise"]):
+for logical, _node_hint, _content_hint in cfg["videos"] + cfg["exercises"]:
     if logical not in id_by_logical:
         print("FATAL missing leaf for lesson:", logical)
         sys.exit(1)

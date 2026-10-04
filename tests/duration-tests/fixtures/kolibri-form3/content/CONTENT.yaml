@@ -36,15 +36,29 @@ coach:
 lesson:
   title: Form 3 Duration Lesson
   logicalId: lesson-form3-video-exercise
+  # All 6 locked leaves. walkerAction on leaf 01 is the open_* entry pin only.
+  assignment: 3 videos + 3 exercises
   resources:
     - kind: video
       title: What is a variable?
       logicalId: video-form3-01
       walkerAction: open_video
+    - kind: video
+      title: Terms, factors, & coefficients
+      logicalId: video-form3-02
+    - kind: video
+      title: Why aren't we using the multiplication sign?
+      logicalId: video-form3-03
     - kind: exercise
       title: Parts of algebraic expressions
       logicalId: exercise-form3-01
       walkerAction: open_exercise
+    - kind: exercise
+      title: Evaluating expressions with one variable
+      logicalId: exercise-form3-02
+    - kind: exercise
+      title: Variable expressions with exponents
+      logicalId: exercise-form3-03
 
 urls:
   learnerHome: "http://<engine-host>:18080/learn/#/topics"

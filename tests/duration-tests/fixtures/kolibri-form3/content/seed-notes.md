@@ -29,8 +29,10 @@ kolibri manage importcontent --node_ids "$TOPIC" network "$CHANNEL"
 ```
 
 Then provision facility/class/learners/lesson (same pattern as Grade 5A
-`seed-notes.md` / `CONTENT.live.json`), pointing lesson resources at
-`video-form3-01` / `exercise-form3-01` contentIds in `CONTENT.seeded.json`.
+`seed-notes.md` / `CONTENT.live.json`). The Duration Lesson assigns all 6
+locked leaves (3 videos, then 3 exercises) in `CONTENT.seeded.json`.
+`open_video` / `open_exercise` stay on `video-form3-01` / `exercise-form3-01`
+as walker entry pins, not as the only lesson resources.
 
 ## Size estimates
 

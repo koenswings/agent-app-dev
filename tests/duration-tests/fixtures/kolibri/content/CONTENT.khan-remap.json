@@ -126,7 +126,7 @@
       "nodeIdRaw": "ef35763056fe5113946710a750e4e75c",
       "channelId": "c9d7f950-ab6b-5a11-99e3-d6c10d7f0103",
       "available": true,
-      "apiVerified": "GET idea04:18081 /api/content/contentnode/?content_id=757e1a6e9ea15168b99a0bf7eeb30662 \u2192 200 available"
+      "apiVerified": "GET idea04:18081 /api/content/contentnode/?content_id=757e1a6e9ea15168b99a0bf7eeb30662 → 200 available"
     },
     "open_exercise": {
       "contentLogicalId": "exercise-grade5a-khan-01",
@@ -137,7 +137,7 @@
       "nodeIdRaw": "0ed1af8fbbe758bbb743168938dc8a38",
       "channelId": "c9d7f950-ab6b-5a11-99e3-d6c10d7f0103",
       "available": true,
-      "apiVerified": "GET idea04:18081 /api/content/contentnode/?content_id=2f9204d3af3758b98fa0fd86a0c03c5d \u2192 200 available"
+      "apiVerified": "GET idea04:18081 /api/content/contentnode/?content_id=2f9204d3af3758b98fa0fd86a0c03c5d → 200 available"
     }
   },
   "syntheticSmokeFallback": {
@@ -197,6 +197,24 @@
         "created": true
       }
     ],
-    "note": "Mutable on re-provision"
+    "note": "Mutable on re-provision",
+    "lesson_assignment": "3 videos + 3 exercises (all locked leaves)",
+    "lesson_resource_logical_ids": [
+      "video-grade5a-khan-01",
+      "video-grade5a-khan-02",
+      "video-grade5a-khan-03",
+      "exercise-grade5a-khan-01",
+      "exercise-grade5a-khan-02",
+      "exercise-grade5a-khan-03"
+    ],
+    "lesson_resource_node_ids": [
+      "ef35763056fe5113946710a750e4e75c",
+      "43d4efc489e150b19a3b7a7460e30fd9",
+      "cbb99d491f405719b44f1e6d12380c3f",
+      "0ed1af8fbbe758bbb743168938dc8a38",
+      "1d4c27c6d3bd59e0bd87fdb59eb68a2b",
+      "23e0467261d65705bd6de61adb6dbbec"
+    ],
+    "assignmentNote": "Marco 2026-10-04: the Duration Lesson assigns all 6 locked leaves (3 videos, then 3 exercises). 1 video + 1 exercise was not a Week-1 starter. open_video / open_exercise stay the walker entry pins (leaf 01). The 2026-10-01 idea04 Lesson.resources row listed only leaf 01 of each kind. Re-run tests/duration-tests/scripts/provision-khan-pack-lesson.py on a Running sidecar to rewrite that row. Sidecars were not accepting HTTP on 2026-10-04; this fixture edit did not start them."
   }
 }

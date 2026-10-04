@@ -70,9 +70,14 @@
     "logicalId": "lesson-form3-video-exercise",
     "title": "Form 3 Duration Lesson",
     "id": null,
+    "assignment": "3 videos + 3 exercises (all locked leaves)",
     "resourceLogicalIds": [
       "video-form3-01",
-      "exercise-form3-01"
+      "video-form3-02",
+      "video-form3-03",
+      "exercise-form3-01",
+      "exercise-form3-02",
+      "exercise-form3-03"
     ],
     "liveStatus": "pending"
   },

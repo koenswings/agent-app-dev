@@ -30,7 +30,7 @@
       "storagePath": null,
       "md5": "5944950109edfd13029e9feb1f8b69d9",
       "available": true,
-      "apiVerified": "GET /api/content/contentnode/?content_id=0a2fdaad532c56b2b90f62f9204e3be8 \u2192 200 leaf video available"
+      "apiVerified": "GET /api/content/contentnode/?content_id=0a2fdaad532c56b2b90f62f9204e3be8 → 200 leaf video available"
     },
     "open_exercise": {
       "contentLogicalId": "exercise-form3-01",
@@ -44,7 +44,7 @@
       "md5": "84561d61040d53965d2a8c999802284e",
       "assessmentItemIds": null,
       "available": true,
-      "apiVerified": "GET /api/content/contentnode/?content_id=ed0c23b8e517568790ae1bda74ab22ba \u2192 200 leaf exercise available"
+      "apiVerified": "GET /api/content/contentnode/?content_id=ed0c23b8e517568790ae1bda74ab22ba → 200 leaf exercise available"
     }
   },
   "method": "import-khan-topic-slice.sh form3 topic + provisiondevice + provision_and_lesson.py",
@@ -101,11 +101,25 @@
     "title": "Form 3 Duration Lesson",
     "id": "b01a1b42d0000fad3eb00d1688046413",
     "idDashed": "b01a1b42-d000-0fad-3eb0-0d1688046413",
+    "assignment": "3 videos + 3 exercises (all locked leaves)",
     "resourceLogicalIds": [
       "video-form3-01",
-      "exercise-form3-01"
+      "video-form3-02",
+      "video-form3-03",
+      "exercise-form3-01",
+      "exercise-form3-02",
+      "exercise-form3-03"
     ],
-    "liveStatus": "provisioned"
+    "resourceNodeIds": [
+      "b3677df2bf9e5e5fa1f19e57a2f26b97",
+      "fcba0a76d6075c02b1f9f7742847a4c4",
+      "7f1b54804b2e5d81b7670d383cf341a8",
+      "a484d2921dd35f428d087b61a8e82416",
+      "d455f572cc3355b08c982a997d412aa8",
+      "8c88069407945913918b90523c2ac8ca"
+    ],
+    "liveStatus": "provisioned",
+    "assignmentNote": "Marco 2026-10-04: the Duration Lesson assigns all 6 locked leaves (3 videos, then 3 exercises). 1 video + 1 exercise was not a Week-1 starter. open_video / open_exercise stay the walker entry pins (leaf 01). The 2026-10-01 idea04 Lesson.resources row listed only leaf 01 of each kind. Re-run tests/duration-tests/scripts/provision-khan-pack-lesson.py on a Running sidecar to rewrite that row. Sidecars were not accepting HTTP on 2026-10-04; this fixture edit did not start them."
   },
   "allLeaves": {
     "videos": [

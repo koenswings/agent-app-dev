@@ -61,11 +61,25 @@
     "title": "Grade 5A Duration Lesson",
     "id": "b888e92bcec77ba4c82bb001e62d3b9a",
     "idDashed": "b888e92b-cec7-7ba4-c82b-b001e62d3b9a",
+    "assignment": "3 videos + 3 exercises (all locked leaves)",
+    "resourceLogicalIds": [
+      "video-grade5a-khan-01",
+      "video-grade5a-khan-02",
+      "video-grade5a-khan-03",
+      "exercise-grade5a-khan-01",
+      "exercise-grade5a-khan-02",
+      "exercise-grade5a-khan-03"
+    ],
     "resourceNodeIds": [
       "ef35763056fe5113946710a750e4e75c",
-      "0ed1af8fbbe758bbb743168938dc8a38"
+      "43d4efc489e150b19a3b7a7460e30fd9",
+      "cbb99d491f405719b44f1e6d12380c3f",
+      "0ed1af8fbbe758bbb743168938dc8a38",
+      "1d4c27c6d3bd59e0bd87fdb59eb68a2b",
+      "23e0467261d65705bd6de61adb6dbbec"
     ],
-    "liveStatus": "provisioned"
+    "liveStatus": "provisioned",
+    "assignmentNote": "Marco 2026-10-04: the Duration Lesson assigns all 6 locked leaves (3 videos, then 3 exercises). 1 video + 1 exercise was not a Week-1 starter. open_video / open_exercise stay the walker entry pins (leaf 01). The 2026-10-01 idea04 Lesson.resources row listed only leaf 01 of each kind. Re-run tests/duration-tests/scripts/provision-khan-pack-lesson.py on a Running sidecar to rewrite that row. Sidecars were not accepting HTTP on 2026-10-04; this fixture edit did not start them."
   },
   "intentResolution": {
     "open_video": {
@@ -77,7 +91,7 @@
       "channelId": "c9d7f950-ab6b-5a11-99e3-d6c10d7f0103",
       "title": "Visually adding fractions: 5/6+1/4",
       "available": true,
-      "apiVerified": "GET idea04:18081 /api/content/contentnode/?content_id=757e1a6e9ea15168b99a0bf7eeb30662 \u2192 200 leaf video"
+      "apiVerified": "GET idea04:18081 /api/content/contentnode/?content_id=757e1a6e9ea15168b99a0bf7eeb30662 → 200 leaf video"
     },
     "open_exercise": {
       "contentLogicalId": "exercise-grade5a-khan-01",
@@ -88,7 +102,7 @@
       "channelId": "c9d7f950-ab6b-5a11-99e3-d6c10d7f0103",
       "title": "Visually add and subtract fractions",
       "available": true,
-      "apiVerified": "GET idea04:18081 /api/content/contentnode/?content_id=2f9204d3af3758b98fa0fd86a0c03c5d \u2192 200 leaf exercise",
+      "apiVerified": "GET idea04:18081 /api/content/contentnode/?content_id=2f9204d3af3758b98fa0fd86a0c03c5d → 200 leaf exercise",
       "note": "Khan Perseus exercise (native); synthetic AssessmentMetaData patch not applied"
     }
   },
@@ -112,7 +126,7 @@
     }
   },
   "syntheticSmokeFallback": {
-    "note": "Prior idea01 synthetic channel 30b6c263\u2026 kept for smoke; Intent pins flipped to Khan 2026-10-01.",
+    "note": "Prior idea01 synthetic channel 30b6c263… kept for smoke; Intent pins flipped to Khan 2026-10-01.",
     "channelId": "30b6c263-4b96-5a62-93bd-dcf9a5cad7ca",
     "open_video_contentId": "e60662de-b15c-52f9-b003-359f7d91f8fd",
     "open_exercise_contentId": "7eb9de46-96eb-53d0-bcc1-2fb270b96f03",
