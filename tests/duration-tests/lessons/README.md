@@ -1,3 +1,5 @@
+> **Teacher-facing manuals:** The Markdown files in [`teacher-manuals/`](teacher-manuals/) are the teacher-facing manuals. PDFs there wait until live screenshots exist; the existing `*.pdf` files in this folder remain engineer inspection sheets.
+
 # Teacher inspection packs (locked set of two)
 
 PDFs Koen and teachers can read **without** a Kolibri image rebuild.
