@@ -27,6 +27,21 @@ describe('duration-tests fixtures (idea#166)', () => {
     mustExist(join(ROOT, 'walker-ref.yaml'), 'walker-ref.yaml');
     mustExist(join(ROOT, 'scripts/post-dock-restore-running.sh'), 'post-dock restore script');
     mustExist(join(ROOT, 'LESSON_CHROME.md'), 'lesson chrome Pixel note');
+    mustExist(join(ROOT, 'lessons/README.md'), 'teacher lesson pack index');
+    for (const name of [
+      'grade5a-add-and-subtract-fractions.pdf',
+      'form3-variables-and-expressions.pdf',
+    ]) {
+      const pdf = join(ROOT, 'lessons', name);
+      mustExist(pdf, name);
+      const magic = readFileSync(pdf).subarray(0, 5).toString('ascii');
+      assert.equal(magic, '%PDF-', name);
+    }
+    const lessonIndex = readFileSync(join(ROOT, 'lessons/README.md'), 'utf8');
+    assert.match(lessonIndex, /4a5b44d4-826e-511b-8bb2-e568b9562c5c/);
+    assert.match(lessonIndex, /0f21619f-bd75-505f-92bd-96184b07b46d/);
+    assert.match(lessonIndex, /keep_watching/);
+    assert.doesNotMatch(lessonIndex, /Science stays in this set/);
 
   });
 

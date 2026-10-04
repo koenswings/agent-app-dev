@@ -71,6 +71,16 @@ tests/duration-tests/
     kiwix/README.md         ← deferred (Phase 3 / optional)
 ```
 
+## Teacher inspection PDFs (no Kolibri rebuild)
+
+[`lessons/`](lessons/README.md) — two PDFs only (Marco lock):
+
+- Grade 5A Add and subtract fractions (`4a5b44d4…`, 3V+3E) → `lessons/grade5a-add-and-subtract-fractions.pdf`
+- Form 3 Variables & expressions (`0f21619f…`, 3V+3E) → `lessons/form3-variables-and-expressions.pdf`
+
+Content teachers can open. Lesson-chrome Intents stay deferred ([`LESSON_CHROME.md`](LESSON_CHROME.md)). No Console install in this pass.
+
+
 ## Pack inventory
 
 | Pack | diskId | instanceId | What walkers get |
@@ -346,6 +356,8 @@ Storage-only Kolibri helper: `fixtures/kolibri/content/seed/apply-live.sh`.
 - Full-length classroom videos (pack ships a 3s stub; #159 encodes stay separate)
 - Re-running live Kolibri channel import (auth IDs mutable on re-provision)
 - Lesson-chrome Intents without Kolibri image `data-testid`s (see LESSON_CHROME.md)
+- Extra Khan topics including Science (Marco lock: two inspection PDFs only)
+- Console action that installs lesson apps / replaces demo-mode boot (waits for Koen, then Pixel)
 - Playwright Console selectors / `selector_binding` remain Pixel Phase 3
 - Axle CLI `--start-instances` wiring (constructor opt exists; needed for Path A Console cards)
 - Merging this PR (Koen explicit merge only)

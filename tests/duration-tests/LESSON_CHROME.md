@@ -37,3 +37,12 @@ Until that image exists, Pixel should keep these Intents **unregistered / deferr
 ### Console Open cards (separate from lesson chrome)
 
 See README § Post-dock Running restore. Open clickable requires Engine `instanceDB.status=Running` via **startInstances dock auto-start** (Path A), not sidecar alone.
+
+### Teacher content packs vs chrome (2026-10-04)
+
+Inspection PDFs (content only, no image rebuild) live in [`lessons/`](lessons/README.md):
+
+- Grade 5A Add and subtract fractions — `lessons/grade5a-add-and-subtract-fractions.pdf`
+- Form 3 Variables & expressions — `lessons/form3-variables-and-expressions.pdf`
+
+Marco lock: those two topics only. Science stays deferred. The PDFs list pinned titles, contentIds, nodeIds, and existing Learn/Coach URLs. They do **not** land the testids above. Chrome Intents in the table stay deferred. A Console action that installs the lesson apps (replacing demo-mode boot) is not this pass.
