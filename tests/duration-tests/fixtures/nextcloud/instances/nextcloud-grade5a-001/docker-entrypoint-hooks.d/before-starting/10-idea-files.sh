@@ -12,6 +12,11 @@
 # after create). Admin-created Local storages are never deleted, even when their
 # datadir is under /mnt/idea-files/.
 #
+# DURATION-TESTS FIXTURE VARIANT (idea#166 Prefer A): own storages also get
+# enable_sharing=true. Nextcloud 31 defaults external mounts to sharing off,
+# which makes share_to_class (view-only group share) and the Drop Zone file
+# request link impossible. The production app-nextcloud hook is unchanged.
+#
 # Env (tests may override):
 #   IDEA_FILES_ROOT  default /mnt/idea-files
 #   IDEA_FILES_JSON  default .idea-files.json (Engine constant IDEA_FILES_JSON)
@@ -174,6 +179,7 @@ for dir in "$IDEA_FILES_ROOT"/*; do
 	if [ -n "$new_id" ]; then
 		set_option "$new_id" idea_files 1
 		set_option "$new_id" filesystem_check_changes 1
+		set_option "$new_id" enable_sharing true
 		printf '%s\n' "$datadir" >> "$tmp_any"
 		printf '%s|%s|%s\n' "$new_id" "$datadir" "$name" >> "$tmp_own"
 	else
@@ -200,8 +206,9 @@ printf '%s' "$list_json" | parse_list_json | while IFS= read -r line; do
 		run_occ files_external:delete -y "$id" >/dev/null 2>&1 || \
 			run_occ files_external:delete --yes "$id" >/dev/null 2>&1 || true
 	else
-		# Keep filesystem_check_changes on for own storages that remain.
+		# Keep filesystem_check_changes + enable_sharing on for own storages that remain.
 		set_option "$id" filesystem_check_changes 1
+		set_option "$id" enable_sharing true
 	fi
 done
 

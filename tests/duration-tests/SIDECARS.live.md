@@ -62,7 +62,8 @@ CONTAINER=idea168-kolibri-g5a-khan bash tests/duration-tests/scripts/import-khan
   `post-dock-restore-running.sh --mode sidecar --apps kiwix` on **idea01**.
 - Nextcloud Grade 5A collab: re-run `--apps nextcloud` on the host Pixel uses
   (idea01 / idea03) → `provision_nextcloud_collab` (Text, writable Collab,
-  `enable_sharing`, mounts scoped to Grade 5A). Sets `collabProvisioned: true`.
+  `enable_sharing`, mounts scoped to Grade 5A) + Drop Zone file request
+  `/s/grade5a-drop-zone`. Sets `collabProvisioned: true` + `fileRequest`.
 
 ## Nextcloud Form3
 

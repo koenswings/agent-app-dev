@@ -228,11 +228,50 @@ describe('duration-tests fixtures (idea#166)', () => {
     assert.equal(live.shares.group, 'Grade 5A');
     assert.ok('collabProvisioned' in live);
     assert.match(live.urls.collabDir, /:18280\/apps\/files\/files\?dir=\/Collab$/);
+    assert.equal(live.fileRequest.folder, 'Drop Zone');
+    assert.equal(live.fileRequest.permissions, 4);
+    assert.equal(live.fileRequest.shareType, 3);
+    assert.equal(live.fileRequest.url, 'http://<host>:18280/s/grade5a-drop-zone');
+    assert.equal(live.urls.fileRequest, live.fileRequest.url);
     const script = read('scripts/post-dock-restore-running.sh');
+    assert.match(script, /create_drop_zone_request/);
+    assert.match(script, /shareapi_allow_custom_tokens/);
+    assert.match(script, /"permissions": 4/);
     assert.match(script, /provision_nextcloud_collab/);
     assert.match(script, /enable_sharing/);
     assert.match(script, /chown -R 33:33/);
     assert.match(script, /--add-group="Grade 5A"/);
+  });
+
+  it('duration nextcloud 10-idea-files.sh sets enable_sharing on own mounts (fake occ)', async () => {
+    const { mkdtempSync, mkdirSync, writeFileSync, rmSync } = await import('node:fs');
+    const { tmpdir } = await import('node:os');
+    const { spawnSync } = await import('node:child_process');
+    const rel = 'docker-entrypoint-hooks.d/before-starting/10-idea-files.sh';
+    const appHook = join(FIX, 'nextcloud/apps/nextcloud-1.0', rel);
+    const instHook = join(FIX, 'nextcloud/instances/nextcloud-grade5a-001', rel);
+    assert.equal(readFileSync(appHook, 'utf8'), readFileSync(instHook, 'utf8'), 'app + instance hook copies identical');
+    const tmp = mkdtempSync(join(tmpdir(), 'dur-nc-hook-'));
+    try {
+      const files = join(tmp, 'files');
+      mkdirSync(join(files, 'grade-5a-files-abc123'), { recursive: true });
+      const state = join(tmp, 'occ.json');
+      writeFileSync(state, JSON.stringify({ ready: true, filesExternalEnabled: false, storages: [], nextId: 1, calls: [] }));
+      const env = { ...process.env, IDEA_FILES_ROOT: files, OCC: join(__dirname, 'fake-occ.mjs'), FAKE_OCC_STATE: state };
+      for (let i = 0; i < 2; i++) {
+        const r = spawnSync('sh', [instHook], { env, encoding: 'utf8' });
+        assert.equal(r.status, 0, r.stderr + r.stdout);
+      }
+      const st = JSON.parse(readFileSync(state, 'utf8'));
+      assert.equal(st.storages.length, 1);
+      assert.ok(st.storages[0].options.enable_sharing, 'enable_sharing set on own mount');
+      assert.ok(st.storages[0].options.idea_files);
+      // second run (container restart) re-asserts it on the kept storage
+      const sets = st.calls.filter((c) => c[0] === 'files_external:option' && c.includes('enable_sharing'));
+      assert.ok(sets.length >= 2, `enable_sharing asserted on create + restart (${sets.length})`);
+    } finally {
+      rmSync(tmp, { recursive: true, force: true });
+    }
   });
 
   it('kiwix Prefer A App Disk tree ships a small searchable stub ZIM', () => {

@@ -32,6 +32,7 @@ folders:
   - path: Drop Zone
     logicalId: folder-drop-grade5a
     share: file-request
+    fileRequestToken: grade5a-drop-zone   # created by post-dock-restore-running.sh (teacher, permissions=4)
     walkerAction: open_file_drop
   - path: Collab
     logicalId: folder-collab-grade5a
@@ -52,6 +53,7 @@ collab:
 urls:
   filesHome: "http://<engine-host>:18280/apps/files/"
   openFileDrop: "logical:folder-drop-grade5a"
+  fileRequest: "http://<engine-host>:18280/s/grade5a-drop-zone"   # public upload-only link (teacher); see content/CONTENT.live.json fileRequest
   openCollabDoc: "logical:collab-grade5a-01"
   collabDir: "http://<engine-host>:18280/apps/files/files?dir=/Collab"   # sidecar; docked: dir=/Grade 5A Files/Collab
   shareToClass: "logical:folder-materials-grade5a"
@@ -74,6 +76,7 @@ phase_3_intent_map:
     returns: nc_browse
   open_file_drop:
     folderLogicalId: folder-drop-grade5a
+    landing: fileRequest   # public /s/<token> upload page, no login
   after_upload:
     folderLogicalId: folder-drop-grade5a
   open_collab_doc:

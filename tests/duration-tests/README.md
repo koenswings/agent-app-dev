@@ -196,7 +196,7 @@ Full App-side Intent map: [`walker-ref.yaml`](walker-ref.yaml) → `phase_3_inte
 | `browse_folders` | materials / drop / collab folders | |
 | `share_to_class` | `folder-materials-grade5a` → group Grade 5A, view-only | |
 | `done_sharing` | — | close share dialog |
-| `open_file_drop` | `folder-drop-grade5a` | |
+| `open_file_drop` | `folder-drop-grade5a` | public file request `:18280/s/grade5a-drop-zone` (CONTENT.live.json `fileRequest.url`) |
 | `after_upload` / `leave_file_drop` | — | |
 | `open_collab_doc` | `collab-grade5a-01` | Nextcloud **Text** editor (`Collab/Grade5A-collab-notes.md`) |
 | `close_doc` | — | |
@@ -215,7 +215,7 @@ idea03 Intenso hardware Files Disk.
 | Blocker | Blocks | Owner |
 |---------|--------|-------|
 | Kiwix sidecar not yet applied on idea01 | `open_wikipedia_as_*`, `search_browse_wikipedia` | Atlas/Kid (pool free) |
-| Nextcloud collab apply not yet re-run on pool | `keep_editing` (doc read-only until then), `share_to_class` (`enable_sharing`) | Atlas/Kid (pool free) |
+| Nextcloud collab apply not yet re-run on pool | `keep_editing` (doc read-only until then), `share_to_class` (`enable_sharing`), `open_file_drop` / `after_upload` (file request link) | Atlas/Kid (pool free) |
 | Pixel Playwright Phase 3 | all usage Playwright adapters | Pixel |
 | Kolibri re-provision | facility/class/lesson/user Morango IDs mutate (`CONTENT.live.json` refresh) | Kid (Pixel re-pin live) |
 
@@ -366,8 +366,16 @@ bash tests/duration-tests/scripts/post-dock-restore-running.sh --mode sidecar --
 # enable_sharing + applicable group "Grade 5A" on the /mnt/idea-files mounts, files:scan
 ```
 
+The same run also creates the **Drop Zone file request** (teacher, public
+upload-only link, `permissions=4`, custom token `grade5a-drop-zone` →
+`http://<host>:18280/s/grade5a-drop-zone`; random token recorded if the server
+refuses custom tokens). The fixture `10-idea-files.sh` copies (duration pack
+only — production app-nextcloud hook untouched) now set `enable_sharing=true`
+on every own mount at container start, so `share_to_class` works on both the
+sidecar folders and the docked `Grade 5A Files` mount.
+
 Pixel reads `fixtures/nextcloud/content/CONTENT.live.json` → `collab`,
-`folders`, `shares`, `filesLayout`, `intentStatus`.
+`folders`, `shares`, `fileRequest`, `filesLayout`, `intentStatus`.
 
 **Kiwix** — see [`fixtures/kiwix/README.md`](fixtures/kiwix/README.md):
 

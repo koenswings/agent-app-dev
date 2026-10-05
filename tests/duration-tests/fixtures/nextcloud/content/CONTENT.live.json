@@ -51,7 +51,8 @@
   "urls": {
     "filesHome": "http://<host>:18280/apps/files/",
     "login": "http://<host>:18280/login",
-    "collabDir": "http://<host>:18280/apps/files/files?dir=/Collab"
+    "collabDir": "http://<host>:18280/apps/files/files?dir=/Collab",
+    "fileRequest": "http://<host>:18280/s/grade5a-drop-zone"
   },
   "note": "Sidecar path for App-open when dock strips instances/. Console Running cards still need Axle startInstances / Engine startInstance on docked tree. Proven 2026-10-01 on idea01+idea03 :18280 HTTP 302 + teacher/student* users.",
   "passwordPolicyNote": "password_policy disabled on sidecar; passwords >=10 chars",
@@ -66,7 +67,7 @@
     }
   },
   "collabProvisioned": false,
-  "collabApplyNote": "Prefer A collab (Nextcloud Text) needs one re-run on the pool when free: bash tests/duration-tests/scripts/post-dock-restore-running.sh --mode sidecar --apps nextcloud (chowns Collab + Drop Zone to www-data, enables Text, enable_sharing + Grade 5A on mounts, rescans; sets collabProvisioned=true). Until then Text opens the doc read-only (readonly-bar visible).",
+  "collabApplyNote": "Prefer A collab (Nextcloud Text) needs one re-run on the pool when free: bash tests/duration-tests/scripts/post-dock-restore-running.sh --mode sidecar --apps nextcloud (creates the Drop Zone file request, chowns Collab + Drop Zone to www-data, enables Text, enable_sharing + Grade 5A on mounts, rescans; sets collabProvisioned=true). Until then Text opens the doc read-only (readonly-bar visible).",
   "filesLayout": {
     "sidecar": "Files root → 'Class Materials' | 'Drop Zone' | 'Collab' (one Local external storage per folder, created by 10-idea-files.sh; scoped to group Grade 5A after collab apply)",
     "docked": "Files root → 'Grade 5A Files' (FILES.yaml shareName) → 'Class Materials' | 'Drop Zone' | 'Collab'"
@@ -126,15 +127,36 @@
   },
   "shares": {
     "group": "Grade 5A",
-    "preCreatedShares": [],
+    "preCreatedShares": [
+      {
+        "type": "public link (file request, upload-only)",
+        "folder": "Drop Zone",
+        "see": "fileRequest"
+      }
+    ],
     "mountApplicableGroup": "Grade 5A (after collab apply)",
-    "enableSharingOnMounts": "true after collab apply (Nextcloud default is false → share_to_class has no share option)",
-    "note": "No Nextcloud share is pre-created. Folders are visible to Grade 5A members as admin Local mounts; share_to_class creates the view-only group share on 'Class Materials' at walk time. FILES.yaml shareName 'Grade 5A Files' is the docked Files Disk mount name, not a Nextcloud share."
+    "enableSharingOnMounts": "true — fixture 10-idea-files.sh sets enable_sharing on every own mount at container start (+ provision_nextcloud_collab occ for already-running sidecars). Nextcloud default is false.",
+    "note": "Only the Drop Zone file request link is pre-created. Folders are visible to Grade 5A members as admin Local mounts; share_to_class creates the view-only group share on 'Class Materials' at walk time. FILES.yaml shareName 'Grade 5A Files' is the docked Files Disk mount name, not a Nextcloud share."
   },
   "intentStatus": {
     "open_collab_doc": "ready (opens in Text; read-only until collab apply)",
     "keep_editing": "ready_after_collab_apply (Nextcloud Text, Prefer A) — Collabora is Prefer B, not shipped",
     "close_doc": "ready",
-    "share_to_class": "ready_after_collab_apply (enable_sharing)"
+    "share_to_class": "ready_after_collab_apply (enable_sharing)",
+    "open_file_drop": "ready_after_apply (fileRequest.url)",
+    "after_upload": "ready_after_apply (fileRequest.url)",
+    "leave_file_drop": "ready"
+  },
+  "fileRequest": {
+    "status": "pending_apply",
+    "logicalId": "folder-drop-grade5a",
+    "folder": "Drop Zone",
+    "sharedBy": "teacher",
+    "shareType": 3,
+    "permissions": 4,
+    "token": "grade5a-drop-zone",
+    "customToken": "expected (core shareapi_allow_custom_tokens=yes); if NC refuses, the script records the random token here and in hosts.<host>.fileRequestUrl",
+    "url": "http://<host>:18280/s/grade5a-drop-zone",
+    "createdBy": "post-dock-restore-running.sh create_drop_zone_request (OCS as teacher; idempotent)"
   }
 }

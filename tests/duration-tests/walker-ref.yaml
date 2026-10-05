@@ -327,8 +327,10 @@ phase_3_intents:
       role: learner
       instanceId: nextcloud-grade5a-001
       folderLogicalId: folder-drop-grade5a
+      fileRequestUrl: "http://<host>:18280/s/grade5a-drop-zone"   # nextcloud CONTENT.live.json fileRequest.url (hosts.<host>.fileRequestUrl if random token)
+      status: ready_after_apply
       app_steps:
-        - "Open Drop Zone file-request / File Drop link (preload often outside walk)"
+        - "Open Drop Zone file request link (teacher-created by post-dock-restore-running.sh; no login)"
         - "See upload-only UI"
       selector_binding: Pixel Phase 3
     after_upload:
