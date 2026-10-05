@@ -46,7 +46,8 @@
 #   PACK_ROOT        default <repo>/tests/duration-tests/fixtures
 #   SKIP_HTTP=1      skip curl health checks
 #   SKIP_PROVISION=1 skip Nextcloud occ user seed + collab/share/file-request provisioning
-#   DROP_ZONE_TOKEN  default grade5a-drop-zone (custom public link token for Drop Zone)
+#   DROP_ZONE_TOKEN  default grade5adropzone (custom public link token for Drop Zone/inbox;
+#                    [A-Za-z0-9] only — NC 31.0.1 public uploads break on "-")
 #   KOLIBRI_PORT     default 18080 (idea03 may need override if :18080 taken)
 #   NEXTCLOUD_PORT   default 18280
 #   KIWIX_PORT       default 18380 (image ghcr.io/kiwix/kiwix-serve:3.8.2, pre-pull)
@@ -434,13 +435,18 @@ for m in (j if isinstance(j, list) else []):
 }
 
 NC_DROP_JSON=""
-DROP_ZONE_TOKEN="${DROP_ZONE_TOKEN:-grade5a-drop-zone}"
+DROP_ZONE_TOKEN="${DROP_ZONE_TOKEN:-grade5adropzone}"
+DROP_ZONE_MOUNT="/Drop Zone"
+DROP_ZONE_PATH="/Drop Zone/inbox"
 create_drop_zone_request() {
   # Prefer A open_file_drop / after_upload / leave_file_drop: teacher-owned
-  # public "File request" (upload-only link, permissions=4) on Drop Zone.
-  # Idempotent: reuses an existing upload-only link. Tries a stable custom token
-  # (core shareapi_allow_custom_tokens, NC31+) so the URL is /s/grade5a-drop-zone;
-  # falls back to the random token if the server refuses.
+  # public "File request" (upload-only link, permissions=4) on the SUBFOLDER
+  # "Drop Zone/inbox" inside the Local external mount "/Drop Zone".
+  # OCS logic lives in nc-drop-zone-request.py (unit-tested against a fake OCS):
+  # deletes any link share on the mount root (old /s/grade5a-drop-zone, perms 31),
+  # reuses/creates the inbox link, forces permissions 4, sets the custom token.
+  # Token must be [A-Za-z0-9] only: NC 31.0.1 public DAV cuts tokens at '-'
+  # (publicremote.php \w+), so /s/grade5a-drop-zone could never upload (HTTP 500).
   [[ "${SKIP_PROVISION:-0}" == "1" ]] && return 0
   local cname="idea166-nextcloud-live-app"
   docker ps --format '{{.Names}}' | grep -qx "$cname" || return 0
@@ -449,55 +455,20 @@ create_drop_zone_request() {
     docker exec -u www-data "$cname" php occ config:app:set core "$k" --value=yes >/dev/null 2>&1 || \
       echo "WARN: occ config:app:set core $k failed" >&2
   done
+  # inbox dir inside the mount, owned by www-data (uid 33), then rescan so OCS sees it.
+  docker exec -u root "$cname" sh -c '
+    d="/mnt/idea-files/Drop Zone/inbox"
+    mkdir -p "$d" && chown 33:33 "$d" && chmod 0775 "$d"' || \
+    { echo "WARN: mkdir/chown /mnt/idea-files/Drop Zone/inbox failed" >&2; return 0; }
+  docker exec -u www-data "$cname" php occ files:scan --path="/teacher/files${DROP_ZONE_MOUNT}" >/dev/null 2>&1 || \
+    echo "WARN: occ files:scan Drop Zone failed" >&2
   NC_DROP_JSON="$(mktemp)"
-  if ! python3 - "$NEXTCLOUD_PORT" "$DROP_ZONE_TOKEN" > "$NC_DROP_JSON" <<'PY'
-import base64, json, sys, urllib.parse, urllib.request, urllib.error
-port, want = sys.argv[1], sys.argv[2]
-base = f"http://127.0.0.1:{port}/ocs/v2.php/apps/files_sharing/api/v1/shares"
-auth = "Basic " + base64.b64encode(b"teacher:TeacherGrade5A!").decode()
-path = "/Drop Zone"
-
-def call(method, url, data=None):
-    body = urllib.parse.urlencode(data).encode() if data else None
-    req = urllib.request.Request(url, data=body, method=method, headers={
-        "Authorization": auth, "OCS-APIRequest": "true", "Accept": "application/json"})
-    try:
-        with urllib.request.urlopen(req, timeout=30) as r:
-            return json.load(r)["ocs"]
-    except urllib.error.HTTPError as e:
-        try:
-            return json.load(e)["ocs"]
-        except Exception:
-            return {"meta": {"statuscode": e.code, "message": str(e)}, "data": None}
-
-q = urllib.parse.urlencode({"path": path, "reshares": "true", "format": "json"})
-existing = call("GET", f"{base}?{q}").get("data") or []
-share = next((x for x in existing if int(x.get("share_type", -1)) == 3
-              and int(x.get("permissions", 0)) & 4 and not int(x.get("permissions", 0)) & 1), None)
-if share is None:
-    res = call("POST", f"{base}?format=json", {
-        "path": path, "shareType": 3, "permissions": 4, "publicUpload": "true",
-        "label": "Grade 5A Drop Zone",
-        "note": "Upload your work for Grade 5A here (duration-tests file request).",
-    })
-    share = res.get("data")
-    if not share:
-        print(json.dumps({"ok": False, "error": res.get("meta")}))
-        sys.exit(1)
-custom = share.get("token") == want
-if not custom:
-    res = call("PUT", f"{base}/{share['id']}?format=json", {"token": want})
-    if res.get("data") and res["data"].get("token") == want:
-        share, custom = res["data"], True
-print(json.dumps({"ok": True, "id": str(share["id"]), "token": share["token"],
-                  "customToken": custom, "permissions": int(share.get("permissions", 4)),
-                  "path": path}))
-PY
-  then
+  if ! python3 "$SCRIPT_DIR/nc-drop-zone-request.py" "http://127.0.0.1:${NEXTCLOUD_PORT}" \
+      "$DROP_ZONE_TOKEN" "$DROP_ZONE_PATH" "$DROP_ZONE_MOUNT" > "$NC_DROP_JSON"; then
     echo "WARN: Drop Zone file request failed: $(cat "$NC_DROP_JSON")" >&2
     return 0
   fi
-  echo "Drop Zone file request: /s/$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["token"])' "$NC_DROP_JSON")"
+  echo "Drop Zone file request (${DROP_ZONE_PATH}): /s/$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["token"])' "$NC_DROP_JSON")"
 }
 
 write_nextcloud_live_json() {
@@ -573,12 +544,15 @@ if drop and drop.get("ok"):
     fr.update({
         "status": "created",
         "logicalId": "folder-drop-grade5a",
-        "folder": "Drop Zone",
+        "folder": "Drop Zone/inbox",
+        "path": drop.get("path", "/Drop Zone/inbox"),
+        "mountRoot": drop.get("mountRoot", "/Drop Zone"),
         "sharedBy": "teacher",
         "shareType": 3,
         "permissions": drop.get("permissions", 4),
         "token": tok,
         "customToken": drop.get("customToken", False),
+        "uploadSafeToken": drop.get("uploadSafeToken", True),
         "url": f"http://<host>:{port}/s/{tok}",
     })
     hosts[host]["fileRequestToken"] = tok

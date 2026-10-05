@@ -327,11 +327,12 @@ phase_3_intents:
       role: learner
       instanceId: nextcloud-grade5a-001
       folderLogicalId: folder-drop-grade5a
-      fileRequestUrl: "http://<host>:18280/s/grade5a-drop-zone"   # nextcloud CONTENT.live.json fileRequest.url (hosts.<host>.fileRequestUrl if random token)
-      status: ready_after_apply
+      fileRequestUrl: "http://<host>:18280/s/grade5adropzone"   # nextcloud CONTENT.live.json fileRequest.url (hosts.<host>.fileRequestUrl if random token)
+      fileRequestFolder: "Drop Zone/inbox"   # link on the inbox subfolder, not the /Drop Zone mount root
+      status: ready_idea01   # applied + upload-verified 2026-10-05; other hosts ready_after_apply
       app_steps:
         - "Open Drop Zone file request link (teacher-created by post-dock-restore-running.sh; no login)"
-        - "See upload-only UI"
+        - "See upload-only UI: heading 'File drop', 'Upload files to inbox.', Upload button"
       selector_binding: Pixel Phase 3
     after_upload:
       from_state: nc_drop

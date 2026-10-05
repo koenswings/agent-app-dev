@@ -63,7 +63,9 @@ CONTAINER=idea168-kolibri-g5a-khan bash tests/duration-tests/scripts/import-khan
 - Nextcloud Grade 5A collab: re-run `--apps nextcloud` on the host Pixel uses
   (idea01 / idea03) → `provision_nextcloud_collab` (Text, writable Collab,
   `enable_sharing`, mounts scoped to Grade 5A) + Drop Zone file request
-  `/s/grade5a-drop-zone`. Sets `collabProvisioned: true` + `fileRequest`.
+  `/s/grade5adropzone` on `Drop Zone/inbox` (applied + upload-verified on
+  idea01 2026-10-05; old `/s/grade5a-drop-zone` retired — hyphen breaks NC
+  31.0.1 public DAV). Sets `collabProvisioned: true` + `fileRequest`.
 
 ## Nextcloud Form3
 

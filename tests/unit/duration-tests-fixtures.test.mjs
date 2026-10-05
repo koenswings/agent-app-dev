@@ -228,15 +228,25 @@ describe('duration-tests fixtures (idea#166)', () => {
     assert.equal(live.shares.group, 'Grade 5A');
     assert.ok('collabProvisioned' in live);
     assert.match(live.urls.collabDir, /:18280\/apps\/files\/files\?dir=\/Collab$/);
-    assert.equal(live.fileRequest.folder, 'Drop Zone');
+    // File request lives on the inbox SUBFOLDER, never the /Drop Zone mount root
+    assert.equal(live.fileRequest.folder, 'Drop Zone/inbox');
+    assert.equal(live.fileRequest.path, '/Drop Zone/inbox');
+    assert.equal(live.fileRequest.mountRoot, '/Drop Zone');
     assert.equal(live.fileRequest.permissions, 4);
     assert.equal(live.fileRequest.shareType, 3);
-    assert.equal(live.fileRequest.url, 'http://<host>:18280/s/grade5a-drop-zone');
+    // NC 31.0.1 public DAV (publicremote.php \w+) breaks on '-' in tokens
+    assert.match(live.fileRequest.token, /^[A-Za-z0-9]+$/);
+    assert.equal(live.fileRequest.url, 'http://<host>:18280/s/grade5adropzone');
     assert.equal(live.urls.fileRequest, live.fileRequest.url);
+    mustExist(join(FIX, 'nextcloud/files/Drop Zone/inbox/.gitkeep'), 'Drop Zone/inbox');
     const script = read('scripts/post-dock-restore-running.sh');
     assert.match(script, /create_drop_zone_request/);
     assert.match(script, /shareapi_allow_custom_tokens/);
-    assert.match(script, /"permissions": 4/);
+    assert.match(script, /DROP_ZONE_PATH="\/Drop Zone\/inbox"/);
+    assert.match(script, /DROP_ZONE_TOKEN="\$\{DROP_ZONE_TOKEN:-grade5adropzone\}"/);
+    assert.match(script, /mkdir -p "\$d" && chown 33:33 "\$d"/);
+    assert.match(script, /nc-drop-zone-request\.py/);
+    assert.match(read('scripts/nc-drop-zone-request.py'), /"permissions": 4/);
     assert.match(script, /provision_nextcloud_collab/);
     assert.match(script, /enable_sharing/);
     assert.match(script, /chown -R 33:33/);

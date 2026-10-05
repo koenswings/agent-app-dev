@@ -109,7 +109,7 @@ Each Duration Lesson assigns all 3 videos and all 3 exercises (not video 01 + ex
 - `x-app.filesMount` on; `FILES.yaml` share name **Grade 5A Files**
 - Preload dirs under `fixtures/nextcloud/files/`:
   - `Class Materials/` — view-only share to group Grade 5A
-  - `Drop Zone/` — File Drop / file-request target
+  - `Drop Zone/inbox/` — File Drop / file-request target (link on the `inbox` subfolder, not the `Drop Zone` mount root)
   - `Collab/Grade5A-collab-notes.md` — collaborative doc in **Nextcloud Text** (shipped; real-time sessions/avatars). Collabora/`code` = Prefer B, not shipped
 - Port in fixture `.env`: `18280` (password via `${pass}`, not hardcoded in compose)
 
@@ -196,7 +196,7 @@ Full App-side Intent map: [`walker-ref.yaml`](walker-ref.yaml) → `phase_3_inte
 | `browse_folders` | materials / drop / collab folders | |
 | `share_to_class` | `folder-materials-grade5a` → group Grade 5A, view-only | |
 | `done_sharing` | — | close share dialog |
-| `open_file_drop` | `folder-drop-grade5a` | public file request `:18280/s/grade5a-drop-zone` (CONTENT.live.json `fileRequest.url`) |
+| `open_file_drop` | `folder-drop-grade5a` | public file request `:18280/s/grade5adropzone` on `Drop Zone/inbox` (CONTENT.live.json `fileRequest.url`) |
 | `after_upload` / `leave_file_drop` | — | |
 | `open_collab_doc` | `collab-grade5a-01` | Nextcloud **Text** editor (`Collab/Grade5A-collab-notes.md`) |
 | `close_doc` | — | |
@@ -367,9 +367,15 @@ bash tests/duration-tests/scripts/post-dock-restore-running.sh --mode sidecar --
 ```
 
 The same run also creates the **Drop Zone file request** (teacher, public
-upload-only link, `permissions=4`, custom token `grade5a-drop-zone` →
-`http://<host>:18280/s/grade5a-drop-zone`; random token recorded if the server
-refuses custom tokens). The fixture `10-idea-files.sh` copies (duration pack
+upload-only link, `permissions=4`, on the subfolder **`Drop Zone/inbox`**,
+custom token `grade5adropzone` → `http://<host>:18280/s/grade5adropzone`;
+random token recorded if the server refuses custom tokens). Logic:
+`scripts/nc-drop-zone-request.py` (fake-OCS unit test) — it deletes any link
+share on the `/Drop Zone` mount root first. Custom tokens must be
+`[A-Za-z0-9]` only: Nextcloud 31.0.1 `publicremote.php` matches the public DAV
+token with `\w+`, so the retired `grade5a-drop-zone` was cut to `grade5a` and
+every public PROPFIND/upload returned HTTP 500 ("This directory is
+unavailable"). The fixture `10-idea-files.sh` copies (duration pack
 only — production app-nextcloud hook untouched) now set `enable_sharing=true`
 on every own mount at container start, so `share_to_class` works on both the
 sidecar folders and the docked `Grade 5A Files` mount.
