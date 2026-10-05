@@ -52,17 +52,19 @@
     "filesHome": "http://<host>:18280/apps/files/",
     "login": "http://<host>:18280/login",
     "collabDir": "http://<host>:18280/apps/files/files?dir=/Collab",
-    "fileRequest": "http://<host>:18280/s/grade5adropzone"
+    "fileRequest": "http://idea01:18280/s/grade5adropzone"
   },
   "note": "Sidecar path for App-open when dock strips instances/. Console Running cards still need Axle startInstances / Engine startInstance on docked tree. Proven 2026-10-01 on idea01+idea03 :18280 HTTP 302 + teacher/student* users.",
   "passwordPolicyNote": "password_policy disabled on sidecar; passwords >=10 chars",
   "hosts": {
     "idea01": {
       "nextcloudHttpPort": 18280,
-      "url": "http://100.99.231.94:18280/",
+      "url": "http://idea01:18280/",
       "fileRequestToken": "grade5adropzone",
       "fileRequestShareId": "2",
-      "fileRequestUrl": "http://100.99.231.94:18280/s/grade5adropzone"
+      "fileRequestUrl": "http://idea01:18280/s/grade5adropzone",
+      "tailscaleIp": "100.99.231.94",
+      "fileRequestUrlTailscale": "http://100.99.231.94:18280/s/grade5adropzone"
     },
     "idea03": {
       "nextcloudHttpPort": 18280,
@@ -165,7 +167,7 @@
     "token": "grade5adropzone",
     "customToken": true,
     "uploadSafeToken": true,
-    "url": "http://<host>:18280/s/grade5adropzone",
+    "url": "http://idea01:18280/s/grade5adropzone",
     "ui": {
       "view": "public-file-drop",
       "heading": "File drop",
@@ -186,6 +188,7 @@
       "upload": "anonymous PUT /public.php/dav/files/grade5adropzone/<file> → 201, file landed in /mnt/idea-files/Drop Zone/inbox (test file removed)",
       "oldUrl": "/s/grade5a-drop-zone → 404"
     },
-    "createdBy": "post-dock-restore-running.sh create_drop_zone_request → scripts/nc-drop-zone-request.py (OCS as teacher; idempotent; deletes mount-root link shares)"
+    "createdBy": "post-dock-restore-running.sh create_drop_zone_request → scripts/nc-drop-zone-request.py (OCS as teacher; idempotent; deletes mount-root link shares)",
+    "urlNote": "Prefer hostname idea01 (not raw Tailscale IP). Box Playwright gets HTTP 400 on http://100.99.231.94:18280/…"
   }
 }
