@@ -46,6 +46,7 @@
 #   PACK_ROOT        default <repo>/tests/duration-tests/fixtures
 #   SKIP_HTTP=1      skip curl health checks
 #   SKIP_PROVISION=1 skip Nextcloud occ user seed + collab/share/file-request provisioning
+#                    (also skips the firstrunwizard disable — overlay blocks Files clicks)
 #   DROP_ZONE_TOKEN  default grade5adropzone (custom public link token for Drop Zone/inbox;
 #                    [A-Za-z0-9] only — NC 31.0.1 public uploads break on "-")
 #   KOLIBRI_PORT     default 18080 (idea03 may need override if :18080 taken)
@@ -373,6 +374,37 @@ seed_nextcloud_users() {
     docker exec -u www-data "$cname" php occ group:adduser "Grade 5A" "$u" >/dev/null 2>&1 || true
   done
   echo "Nextcloud duration users/groups seeded (teacher / student01..03 / Grade 5A)"
+  disable_nextcloud_firstrunwizard "$cname"
+}
+
+# Users that must never see the NC first-run wizard (teacher + learners + admin).
+NC_FRW_USERS=(admin teacher student01 student02 student03)
+# firstrunwizard 4.x (NC 31) stores the last-seen CHANGELOG_VERSION in user pref
+# firstrunwizard/show and re-opens the wizard when that is lower than 31.0.0, so
+# show=0 does NOT suppress it on NC 31 — store the version itself instead.
+NC_FRW_SEEN_VERSION="${NC_FRW_SEEN_VERSION:-31.0.0}"
+disable_nextcloud_firstrunwizard() {
+  # WHY (idea#166 Prefer A live smoke): the first-login overlay
+  # (#firstrunwizard modal) covers the Files UI, so nextcloud-share-smoke's
+  # teacher Files click (and any learner Files Intent) hits the overlay and fails.
+  # Belt and braces, all idempotent, duration sidecar/fixture only:
+  #   1. occ app:disable firstrunwizard   (no wizard JS loaded at all)
+  #   2. occ config:app:set firstrunwizard wizard_enabled false (if re-enabled)
+  #   3. occ user:setting <u> firstrunwizard show 31.0.0 per duration account
+  # The duration 10-idea-files.sh hook also runs (1) on every container start.
+  local cname="$1" u
+  docker exec -u www-data "$cname" php occ app:disable firstrunwizard >/dev/null 2>&1 || \
+    echo "WARN: occ app:disable firstrunwizard failed (already disabled / absent?)" >&2
+  docker exec -u www-data "$cname" php occ config:app:set firstrunwizard wizard_enabled \
+    --value=false --type=boolean >/dev/null 2>&1 || \
+    docker exec -u www-data "$cname" php occ config:app:set firstrunwizard wizard_enabled \
+      --value=0 >/dev/null 2>&1 || true
+  for u in "${NC_FRW_USERS[@]}"; do
+    docker exec -u www-data "$cname" php occ user:setting "$u" firstrunwizard show \
+      "$NC_FRW_SEEN_VERSION" >/dev/null 2>&1 || \
+      echo "WARN: occ user:setting $u firstrunwizard show failed" >&2
+  done
+  echo "Nextcloud firstrunwizard disabled (app off + wizard_enabled=false + show=${NC_FRW_SEEN_VERSION} for ${NC_FRW_USERS[*]})"
 }
 
 NC_COLLAB_OK=0

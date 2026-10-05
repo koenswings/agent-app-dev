@@ -17,6 +17,10 @@
 # which makes share_to_class (view-only group share) and the Drop Zone file
 # request link impossible. The production app-nextcloud hook is unchanged.
 #
+# DURATION-TESTS ONLY: also disable the firstrunwizard app on every start. Its
+# first-login overlay (#firstrunwizard modal) covers the Files UI, so Intent
+# clicks in live smoke (nextcloud-share-smoke, teacher Files click) fail.
+#
 # Env (tests may override):
 #   IDEA_FILES_ROOT  default /mnt/idea-files
 #   IDEA_FILES_JSON  default .idea-files.json (Engine constant IDEA_FILES_JSON)
@@ -121,6 +125,10 @@ if ! run_occ status >/dev/null 2>&1; then
 	echo "idea-files: occ not ready — skip reconcile (fail closed, nothing deleted)"
 	exit 0
 fi
+
+# Duration-tests only: no first-run wizard overlay (blocks Intent Files clicks).
+# Idempotent; failure (app absent / already disabled) never blocks start.
+run_occ app:disable firstrunwizard >/dev/null 2>&1 || true
 
 # Enable files_external once (idempotent).
 if ! run_occ app:enable files_external >/dev/null 2>&1; then

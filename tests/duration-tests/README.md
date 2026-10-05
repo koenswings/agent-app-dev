@@ -380,6 +380,23 @@ only — production app-nextcloud hook untouched) now set `enable_sharing=true`
 on every own mount at container start, so `share_to_class` works on both the
 sidecar folders and the docked `Grade 5A Files` mount.
 
+**First-run wizard off (duration only).** NC 31's `firstrunwizard` opens a
+modal overlay (`#firstrunwizard`) on first login that covers the Files UI, so
+`nextcloud-share-smoke` (teacher Files click) and learner Files Intents fail.
+The same sidecar run (`disable_nextcloud_firstrunwizard`, idempotent) does:
+
+```bash
+occ app:disable firstrunwizard
+occ config:app:set firstrunwizard wizard_enabled --value=false --type=boolean
+occ user:setting <u> firstrunwizard show 31.0.0   # admin teacher student01..03
+```
+
+`show` is the last-seen changelog version in firstrunwizard 4.x, so `show=0`
+would still trigger the wizard on NC 31. The duration `10-idea-files.sh` hook
+copies also run `occ app:disable firstrunwizard` on every container start
+(covers `--mode dock-compose`, which skips the user seed). Production
+app-nextcloud hook untouched.
+
 Pixel reads `fixtures/nextcloud/content/CONTENT.live.json` → `collab`,
 `folders`, `shares`, `fileRequest`, `filesLayout`, `intentStatus`.
 

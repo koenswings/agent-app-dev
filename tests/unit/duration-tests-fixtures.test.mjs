@@ -251,6 +251,11 @@ describe('duration-tests fixtures (idea#166)', () => {
     assert.match(script, /enable_sharing/);
     assert.match(script, /chown -R 33:33/);
     assert.match(script, /--add-group="Grade 5A"/);
+    assert.match(script, /disable_nextcloud_firstrunwizard "\$cname"/);
+    assert.match(script, /occ app:disable firstrunwizard/);
+    assert.match(script, /firstrunwizard wizard_enabled/);
+    assert.match(script, /NC_FRW_USERS=\(admin teacher student01 student02 student03\)/);
+    assert.match(script, /user:setting "\$u" firstrunwizard show/);
   });
 
   it('duration nextcloud 10-idea-files.sh sets enable_sharing on own mounts (fake occ)', async () => {
@@ -279,6 +284,9 @@ describe('duration-tests fixtures (idea#166)', () => {
       // second run (container restart) re-asserts it on the kept storage
       const sets = st.calls.filter((c) => c[0] === 'files_external:option' && c.includes('enable_sharing'));
       assert.ok(sets.length >= 2, `enable_sharing asserted on create + restart (${sets.length})`);
+      // first-run wizard overlay blocks Intent Files clicks — disabled on every start
+      const frw = st.calls.filter((c) => c[0] === 'app:disable' && c[1] === 'firstrunwizard');
+      assert.equal(frw.length, 2, 'occ app:disable firstrunwizard on each container start');
     } finally {
       rmSync(tmp, { recursive: true, force: true });
     }
