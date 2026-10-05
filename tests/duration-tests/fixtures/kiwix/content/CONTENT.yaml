@@ -1,0 +1,78 @@
+# Stable logical content IDs for duration-tests Kiwix / Wikipedia walks (idea#166 Prefer A).
+
+pack: duration-kiwix-ideaa
+version: "1.0"
+diskId: duration-kiwix-ideaa-001
+instanceId: kiwix-ideaa-001
+instanceName: kiwix
+placement: idea-A (Prefer A pool host idea01)
+image: ghcr.io/kiwix/kiwix-serve:3.8.2
+httpPort: 18380
+
+zim:
+  bookName: duration_wikipedia_en_grade5a_stub_2026-10
+  file: instances/kiwix-ideaa-001/data/duration_wikipedia_en_grade5a_stub_2026-10.zim
+  sizeBytes: 62545
+  license: CC0-1.0 (original fixture text, not Wikipedia)
+  fullTextIndex: true
+  builder: content/seed/build_stub_zim.py   # python libzim >=3.4,<4
+  title: "Grade 5A Offline Wikipedia (stub)"
+
+articles:
+  - path: Main_Page
+    logicalId: wiki-main-page
+    title: Grade 5A Offline Wikipedia
+  - path: Fraction
+    logicalId: wiki-article-fraction
+    title: Fraction
+    searchTerm: fraction          # 4 hits: Fraction, Main_Page, Numerator, Denominator
+    links: [Numerator, Denominator]
+  - path: Numerator
+    logicalId: wiki-article-numerator
+    title: Numerator
+  - path: Denominator
+    logicalId: wiki-article-denominator
+    title: Denominator
+  - path: Photosynthesis
+    logicalId: wiki-article-photosynthesis
+    title: Photosynthesis
+  - path: Water_cycle
+    logicalId: wiki-article-water-cycle
+    title: Water cycle
+  - path: Solar_System
+    logicalId: wiki-article-solar-system
+    title: Solar System
+    searchTerm: planet
+
+# URL shapes (kiwix-serve 3.8.2, verified on box 2026-10-05). <host> = pool Pi.
+urls:
+  library: "http://<host>:18380/"
+  viewerHome: "http://<host>:18380/viewer#duration_wikipedia_en_grade5a_stub_2026-10/Main_Page"
+  viewerArticle: "http://<host>:18380/viewer#duration_wikipedia_en_grade5a_stub_2026-10/<path>"
+  contentHome: "http://<host>:18380/content/duration_wikipedia_en_grade5a_stub_2026-10/"   # 302 → Main_Page
+  contentArticle: "http://<host>:18380/content/duration_wikipedia_en_grade5a_stub_2026-10/<path>"
+  search: "http://<host>:18380/search?books.name=duration_wikipedia_en_grade5a_stub_2026-10&pattern=<q>"
+  suggest: "http://<host>:18380/suggest?content=duration_wikipedia_en_grade5a_stub_2026-10&term=<prefix>"
+
+# Phase 3 Intent → content bindings (App-owned). Playwright = Pixel.
+phase_3_intent_map:
+  # /viewer renders articles inside iframe#content_iframe (use frameLocator);
+  # /content/<book>/<path> is the same page without viewer chrome (no iframe).
+  open_wikipedia_as_teacher:
+    landing: viewerHome
+    expect: { title: "Grade 5A Offline Wikipedia", selector: "iframe#content_iframe >> h1#firstHeading" }
+  open_wikipedia_as_learner:
+    landing: viewerHome
+    expect: { title: "Grade 5A Offline Wikipedia", selector: "iframe#content_iframe >> h1#firstHeading" }
+  search_browse_wikipedia:
+    searchTerm: fraction
+    searchBox: "#kiwixsearchbox"          # viewer top bar (library page uses #searchFilter for book filter)
+    searchUrlHash: "#search?books.name=duration_wikipedia_en_grade5a_stub_2026-10&pattern=fraction"
+    expectResults: "Results 1-4 of 4"
+    resultPath: Fraction
+    expect: { selector: "iframe#content_iframe >> h1#firstHeading", text: "Fraction" }
+    followLink: { from: Fraction, to: Numerator }
+  leave_wikipedia_as_learner:
+    returns: console_learner
+  leave_wikipedia_as_teacher:
+    returns: console_teacher

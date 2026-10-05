@@ -1,15 +1,14 @@
-# Grade 5A collab notes (placeholder)
+# Grade 5A collab notes
 
-Duration-tests **Open collab doc** target for idea#166 Phase 1–2.
+Shared class notes for **Grade 5A** (duration-tests `collab-grade5a-01`).
+Opens in Nextcloud **Text**, which edits Markdown together in real time:
+everyone in the file sees the others' avatars and edits.
 
-Tonight this is a plain Markdown stub on the Files Disk — **Collabora /
-Nextcloud Office is not wired** in this pack (compose omits `code` service).
-Walkers may:
+## Fractions we found today
 
-- Open this file as a download / preview (browse-level stub), or
-- Skip live collaborative editing until a later fixture revision adds
-  `koenswings/nextcloud-code` and a real `.odt` / Office file shared with
-  group `Grade 5A` (Allow editing).
+- 1/2 of the class brought a pencil case
+- 3/4 of the plants on the windowsill need water
 
-Stable path: `Collab/Grade5A-collab-notes.md`
-Logical id: `collab-grade5a-01`
+## Keep editing below
+
+<!-- duration-tests walkers append lines here (keep_editing) -->

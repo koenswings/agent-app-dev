@@ -199,14 +199,87 @@ describe('duration-tests fixtures (idea#166)', () => {
     assert.match(content, /name:\s*Grade 5A/);
     assert.match(content, /folder-drop-grade5a/);
     assert.match(content, /collab-grade5a-01/);
-    assert.match(content, /placeholder-doc/);
+    // Prefer A: Nextcloud Text collab (Collabora = Prefer B, not shipped)
+    assert.match(content, /status:\s*text-collab/);
+    assert.match(content, /editor:\s*nextcloud-text/);
+    assert.doesNotMatch(content, /blocked_until_collabora/);
   });
 
-  it('kiwix is explicitly deferred (Phase 3 / optional)', () => {
-    const readme = readFileSync(join(FIX, 'kiwix/README.md'), 'utf8');
-    assert.match(readme, /deferred|Phase 3|Steve deferral|omit/i);
-    // No App Disk tree shipped yet
-    assert.equal(existsSync(join(FIX, 'kiwix/META.yaml')), false);
+  it('nextcloud CONTENT.live.json exposes Prefer A collab/folders/shares keys for Pixel', () => {
+    const live = JSON.parse(readFileSync(join(FIX, 'nextcloud/content/CONTENT.live.json'), 'utf8'));
+    assert.equal(live.diskId, 'duration-nextcloud-grade5a-001');
+    assert.equal(live.instanceId, 'nextcloud-grade5a-001');
+    const pw = Object.fromEntries(live.accounts.map((a) => [a.username, a.passwordHint]));
+    assert.equal(pw.teacher, 'TeacherGrade5A!');
+    assert.equal(pw.student01, 'Student01Grade5A!');
+    assert.deepEqual(live.groups[0].members, ['teacher', 'student01', 'student02', 'student03']);
+    assert.deepEqual(live.folders.map((f) => f.name), ['Class Materials', 'Drop Zone', 'Collab']);
+    for (const f of live.folders) {
+      assert.equal(f.sidecarPath, `/${f.name}`);
+      assert.equal(f.dockedPath, `/Grade 5A Files/${f.name}`);
+    }
+    assert.equal(live.collab.logicalId, 'collab-grade5a-01');
+    assert.equal(live.collab.editor, 'nextcloud-text');
+    assert.equal(live.collab.collabora, false);
+    assert.equal(live.collab.sidecarPath, '/Collab/Grade5A-collab-notes.md');
+    mustExist(join(FIX, 'nextcloud/files', live.collab.sidecarPath), 'collab doc on Files Disk');
+    assert.match(live.collab.selectors.content, /ProseMirror/);
+    assert.match(live.collab.selectors.readonlyBarMustBeAbsent, /readonly-bar/);
+    assert.equal(live.shares.group, 'Grade 5A');
+    assert.ok('collabProvisioned' in live);
+    assert.match(live.urls.collabDir, /:18280\/apps\/files\/files\?dir=\/Collab$/);
+    const script = read('scripts/post-dock-restore-running.sh');
+    assert.match(script, /provision_nextcloud_collab/);
+    assert.match(script, /enable_sharing/);
+    assert.match(script, /chown -R 33:33/);
+    assert.match(script, /--add-group="Grade 5A"/);
+  });
+
+  it('kiwix Prefer A App Disk tree ships a small searchable stub ZIM', () => {
+    const kw = join(FIX, 'kiwix');
+    mustExist(join(kw, 'README.md'), 'kiwix README');
+    mustExist(join(kw, 'META.yaml'), 'kiwix META');
+    mustExist(join(kw, 'apps/kiwix-1.0/compose.yaml'), 'kiwix app compose');
+    mustExist(join(kw, 'instances/kiwix-ideaa-001/compose.yaml'), 'kiwix instance compose');
+    mustExist(join(kw, 'instances/kiwix-ideaa-001/.env'), 'kiwix instance .env');
+    mustExist(join(kw, 'content/CONTENT.yaml'), 'kiwix CONTENT.yaml');
+    mustExist(join(kw, 'content/CONTENT.live.json'), 'kiwix CONTENT.live.json');
+    mustExist(join(kw, 'content/seed/build_stub_zim.py'), 'kiwix ZIM builder');
+
+    assert.match(readFileSync(join(kw, 'META.yaml'), 'utf8'), /diskId:\s*duration-kiwix-ideaa-001/);
+    assert.match(readFileSync(join(kw, 'instances/kiwix-ideaa-001/.env'), 'utf8'), /^port=18380$/m);
+
+    const book = 'duration_wikipedia_en_grade5a_stub_2026-10';
+    const zim = join(kw, `instances/kiwix-ideaa-001/data/${book}.zim`);
+    mustExist(zim, 'stub ZIM');
+    const buf = readFileSync(zim);
+    assert.equal(buf.readUInt32LE(0), 0x044d495a, 'ZIM magic');
+    assert.ok(buf.length < 512 * 1024, `stub ZIM must stay small (${buf.length} B)`);
+
+    for (const rel of ['apps/kiwix-1.0/compose.yaml', 'instances/kiwix-ideaa-001/compose.yaml']) {
+      const compose = readFileSync(join(kw, rel), 'utf8');
+      assert.match(compose, /name:\s*kiwix/);
+      assert.match(compose, /image:\s*ghcr\.io\/kiwix\/kiwix-serve:3\.8\.2/);
+      assert.match(compose, /pull_policy:\s*never/);
+      assert.match(compose, new RegExp(`${book}\\.zim`));
+      assert.match(compose, /\$\{port\}:8080/);
+    }
+
+    const content = readFileSync(join(kw, 'content/CONTENT.yaml'), 'utf8');
+    assert.match(content, /instanceId:\s*kiwix-ideaa-001/);
+    assert.match(content, /phase_3_intent_map:/);
+    for (const key of ['open_wikipedia_as_teacher', 'open_wikipedia_as_learner', 'search_browse_wikipedia', 'leave_wikipedia_as_learner', 'leave_wikipedia_as_teacher']) {
+      assert.match(content, new RegExp(`${key}:`));
+    }
+    assert.match(content, /license:\s*CC0-1\.0/);
+
+    const live = JSON.parse(readFileSync(join(kw, 'content/CONTENT.live.json'), 'utf8'));
+    assert.equal(live.diskId, 'duration-kiwix-ideaa-001');
+    assert.equal(live.instanceId, 'kiwix-ideaa-001');
+    assert.equal(live.bookName, book);
+    assert.equal(live.kiwixHttpPort, 18380);
+    assert.equal(live.urls.viewerHome, `http://<host>:18380/viewer#${book}/Main_Page`);
+    assert.equal(live.intentResolution.search_browse_wikipedia.searchTerm, 'fraction');
   });
 
   it('walker-ref.yaml points at stable diskIds, locked Phase 1–2 keys, and notes #159', () => {
@@ -219,7 +292,9 @@ describe('duration-tests fixtures (idea#166)', () => {
     assert.match(ref, /video-grade5a-01/);
     assert.match(ref, /folder-drop-grade5a/);
     assert.match(ref, /idea#159/);
-    assert.match(ref, /kiwix:[\s\S]*included:\s*false/);
+    assert.match(ref, /kiwix:[\s\S]*included:\s*true/);
+    assert.match(ref, /duration-kiwix-ideaa-001/);
+    assert.match(ref, /search_browse_wikipedia:/);
     // Axle-locked Phase 1–2 action keys
     for (const key of [
       'open_console_as_teacher',
@@ -240,7 +315,7 @@ describe('duration-tests fixtures (idea#166)', () => {
     assert.match(ref, /open_video:/);
     assert.match(ref, /open_file_drop:/);
     // Phase 3 App-owned deeper Intent map
-    assert.match(ref, /pack_version:\s*"1\.5"/);
+    assert.match(ref, /pack_version:\s*"1\.6"/);
     assert.match(ref, /id_stability:/);
     assert.match(ref, /contentLive:/);
     assert.match(ref, /mutable_on_reprovision:/);
@@ -262,6 +337,7 @@ describe('duration-tests fixtures (idea#166)', () => {
     assert.match(ref, /selector_binding:\s*Pixel Phase 3/);
     assert.match(ref, /blocked_until_collabora|Collabora/);
     assert.match(ref, /Kiwix App Disk omitted/);
+    assert.match(ref, /text-collab/);
     assert.match(ref, /contentSeeded:/);
     assert.match(ref, /live_imported_idea01_2026-10-01/);
     assert.match(ref, /CONTENT\.live\.json/);
