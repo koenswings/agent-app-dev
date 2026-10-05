@@ -1,0 +1,211 @@
+{
+  "pack": "duration-kolibri-form3",
+  "version": "0.1",
+  "diskId": "duration-kolibri-form3-001",
+  "instanceId": "kolibri-form3-001",
+  "instanceName": "kolibri",
+  "channel": {
+    "channelId": "c9d7f950-ab6b-5a11-99e3-d6c10d7f0103",
+    "channelIdRaw": "c9d7f950ab6b5a1199e3d6c10d7f0103",
+    "name": "Khan Academy (English - US curriculum)",
+    "version": 5,
+    "topic": {
+      "title": "Variables & expressions",
+      "path": "Math > Pre-algebra > Variables & expressions",
+      "contentId": "2bcfaf16-33fc-5573-92c0-c330475b49a0",
+      "nodeId": "0f21619f-bd75-505f-92bd-96184b07b46d",
+      "contentIdRaw": "2bcfaf1633fc557392c0c330475b49a0",
+      "nodeIdRaw": "0f21619fbd75505f92bd96184b07b46d"
+    }
+  },
+  "intentResolution": {
+    "open_video": {
+      "contentLogicalId": "video-form3-01",
+      "contentId": "0a2fdaad-532c-56b2-b90f-62f9204e3be8",
+      "contentIdRaw": "0a2fdaad532c56b2b90f62f9204e3be8",
+      "nodeId": "b3677df2-bf9e-5e5f-a1f1-9e57a2f26b97",
+      "nodeIdRaw": "b3677df2bf9e5e5fa1f19e57a2f26b97",
+      "channelId": "c9d7f950-ab6b-5a11-99e3-d6c10d7f0103",
+      "title": "What is a variable?",
+      "storagePath": null,
+      "md5": "5944950109edfd13029e9feb1f8b69d9",
+      "available": true,
+      "apiVerified": "GET /api/content/contentnode/?content_id=0a2fdaad532c56b2b90f62f9204e3be8 → 200 leaf video available"
+    },
+    "open_exercise": {
+      "contentLogicalId": "exercise-form3-01",
+      "contentId": "ed0c23b8-e517-5687-90ae-1bda74ab22ba",
+      "contentIdRaw": "ed0c23b8e517568790ae1bda74ab22ba",
+      "nodeId": "a484d292-1dd3-5f42-8d08-7b61a8e82416",
+      "nodeIdRaw": "a484d2921dd35f428d087b61a8e82416",
+      "channelId": "c9d7f950-ab6b-5a11-99e3-d6c10d7f0103",
+      "title": "Parts of algebraic expressions",
+      "storagePath": null,
+      "md5": "84561d61040d53965d2a8c999802284e",
+      "assessmentItemIds": null,
+      "available": true,
+      "apiVerified": "GET /api/content/contentnode/?content_id=ed0c23b8e517568790ae1bda74ab22ba → 200 leaf exercise available"
+    }
+  },
+  "method": "import-khan-topic-slice.sh form3 topic + provisiondevice + provision_and_lesson.py",
+  "liveImportStatus": "imported_on_idea04",
+  "note": "Auth IDs mutable on re-provision. Content/node/channel IDs Studio-stable. All 6 leaves (3V+3E) HTTP 200 available on idea04:18080.",
+  "facility": {
+    "logicalId": "facility-duration-form3",
+    "name": "Duration Tests Facility",
+    "id": "119248841442e9637d086f54dd4a3c9b",
+    "idDashed": "11924884-1442-e963-7d08-6f54dd4a3c9b",
+    "liveStatus": "provisioned"
+  },
+  "class": {
+    "logicalId": "class-form3",
+    "name": "Form 3",
+    "id": "731fc657e90820bbe9e1c3305d742e25",
+    "idDashed": "731fc657-e908-20bb-e9e1-c3305d742e25",
+    "liveStatus": "provisioned"
+  },
+  "coach": {
+    "logicalId": "coach-form3",
+    "username": "teacher",
+    "displayName": "Form 3 Teacher",
+    "passwordHint": "teacher",
+    "id": "15bcf84562d8ad42fa0498dccd165224",
+    "idDashed": "15bcf845-62d8-ad42-fa04-98dccd165224",
+    "liveStatus": "provisioned"
+  },
+  "learners": [
+    {
+      "logicalId": "learner-form3-01",
+      "username": "learner01",
+      "id": "52aa12a76a55923c7adafbede44c482b",
+      "idDashed": "52aa12a7-6a55-923c-7ada-fbede44c482b",
+      "liveStatus": "provisioned"
+    },
+    {
+      "logicalId": "learner-form3-02",
+      "username": "learner02",
+      "id": "d3a93c5cea0170e90b66ee2344ab6e55",
+      "idDashed": "d3a93c5c-ea01-70e9-0b66-ee2344ab6e55",
+      "liveStatus": "provisioned"
+    },
+    {
+      "logicalId": "learner-form3-03",
+      "username": "learner03",
+      "id": "16728b22cc2f4334985a3bb680637db0",
+      "idDashed": "16728b22-cc2f-4334-985a-3bb680637db0",
+      "liveStatus": "provisioned"
+    }
+  ],
+  "lesson": {
+    "logicalId": "lesson-form3-video-exercise",
+    "title": "Form 3 Duration Lesson",
+    "id": "b01a1b42d0000fad3eb00d1688046413",
+    "idDashed": "b01a1b42-d000-0fad-3eb0-0d1688046413",
+    "assignment": "3 videos + 3 exercises (all locked leaves)",
+    "resourceLogicalIds": [
+      "video-form3-01",
+      "video-form3-02",
+      "video-form3-03",
+      "exercise-form3-01",
+      "exercise-form3-02",
+      "exercise-form3-03"
+    ],
+    "resourceNodeIds": [
+      "b3677df2bf9e5e5fa1f19e57a2f26b97",
+      "fcba0a76d6075c02b1f9f7742847a4c4",
+      "7f1b54804b2e5d81b7670d383cf341a8",
+      "a484d2921dd35f428d087b61a8e82416",
+      "d455f572cc3355b08c982a997d412aa8",
+      "8c88069407945913918b90523c2ac8ca"
+    ],
+    "liveStatus": "provisioned",
+    "assignmentNote": "Marco 2026-10-04: the Duration Lesson assigns all 6 locked leaves (3 videos, then 3 exercises). 1 video + 1 exercise was not a Week-1 starter. open_video / open_exercise stay the walker entry pins (leaf 01). The 2026-10-01 idea04 Lesson.resources row listed only leaf 01 of each kind. Re-run tests/duration-tests/scripts/provision-khan-pack-lesson.py on a Running sidecar to rewrite that row. Sidecars were not accepting HTTP on 2026-10-04; this fixture edit did not start them."
+  },
+  "allLeaves": {
+    "videos": [
+      {
+        "logicalId": "video-form3-01",
+        "title": "What is a variable?",
+        "nodeId": "b3677df2-bf9e-5e5f-a1f1-9e57a2f26b97",
+        "nodeIdRaw": "b3677df2bf9e5e5fa1f19e57a2f26b97",
+        "contentId": "0a2fdaad-532c-56b2-b90f-62f9204e3be8",
+        "contentIdRaw": "0a2fdaad532c56b2b90f62f9204e3be8",
+        "status": "OK",
+        "md5": "5944950109edfd13029e9feb1f8b69d9",
+        "available": true
+      },
+      {
+        "logicalId": "video-form3-02",
+        "title": "Terms, factors, & coefficients",
+        "nodeId": "fcba0a76-d607-5c02-b1f9-f7742847a4c4",
+        "nodeIdRaw": "fcba0a76d6075c02b1f9f7742847a4c4",
+        "contentId": "30fb3fbd-9d4a-549f-8643-f610a165df5a",
+        "contentIdRaw": "30fb3fbd9d4a549f8643f610a165df5a",
+        "status": "OK",
+        "md5": "672020349c76089511233728d3c86646",
+        "available": true
+      },
+      {
+        "logicalId": "video-form3-03",
+        "title": "Why aren't we using the multiplication sign?",
+        "nodeId": "7f1b5480-4b2e-5d81-b767-0d383cf341a8",
+        "nodeIdRaw": "7f1b54804b2e5d81b7670d383cf341a8",
+        "contentId": "3ddc455a-eaab-51c0-8e8b-9484bf9a1830",
+        "contentIdRaw": "3ddc455aeaab51c08e8b9484bf9a1830",
+        "status": "OK",
+        "md5": "525354036da3244683c8500a9a66ced9",
+        "available": true
+      }
+    ],
+    "exercises": [
+      {
+        "logicalId": "exercise-form3-01",
+        "title": "Parts of algebraic expressions",
+        "nodeId": "a484d292-1dd3-5f42-8d08-7b61a8e82416",
+        "nodeIdRaw": "a484d2921dd35f428d087b61a8e82416",
+        "contentId": "ed0c23b8-e517-5687-90ae-1bda74ab22ba",
+        "contentIdRaw": "ed0c23b8e517568790ae1bda74ab22ba",
+        "status": "OK",
+        "md5": "84561d61040d53965d2a8c999802284e",
+        "available": true
+      },
+      {
+        "logicalId": "exercise-form3-02",
+        "title": "Evaluating expressions with one variable",
+        "nodeId": "d455f572-cc33-55b0-8c98-2a997d412aa8",
+        "nodeIdRaw": "d455f572cc3355b08c982a997d412aa8",
+        "contentId": "0c49599e-0131-5fdb-957a-5bbbbdf58c5e",
+        "contentIdRaw": "0c49599e01315fdb957a5bbbbdf58c5e",
+        "status": "OK",
+        "md5": "393abd9346e4dec6a5dad400e6e15835",
+        "available": true
+      },
+      {
+        "logicalId": "exercise-form3-03",
+        "title": "Variable expressions with exponents",
+        "nodeId": "8c880694-0794-5913-918b-90523c2ac8ca",
+        "nodeIdRaw": "8c88069407945913918b90523c2ac8ca",
+        "contentId": "7110cacb-b8d6-58b0-b799-a3d0418e40a9",
+        "contentIdRaw": "7110cacbb8d658b0b799a3d0418e40a9",
+        "status": "OK",
+        "md5": "b333e8a1ea0abcaf3f1fe54d01df56f9",
+        "available": true
+      }
+    ]
+  },
+  "importedAt": "2026-10-01T10:19:41Z",
+  "importedBy": "Kid (App Dev)",
+  "host": "idea04",
+  "kolibriHttpPort": 18080,
+  "image": "koenswings/kolibri:1.0-0.15.5-dev",
+  "tempDataDir": "/home/pi/idea168-kolibri-form3/data/kolibri",
+  "containerName": "idea168-kolibri-form3",
+  "hosts": {
+    "idea04": {
+      "kolibriHttpPort": 18080,
+      "url": "http://100.108.39.45:18080/",
+      "container": "idea168-kolibri-form3",
+      "dataDir": "/home/pi/idea168-kolibri-form3"
+    }
+  }
+}

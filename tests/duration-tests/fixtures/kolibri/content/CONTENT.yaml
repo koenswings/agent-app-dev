@@ -1,0 +1,105 @@
+# Stable logical content IDs for duration-tests walks (idea#166).
+# Class-instance selectors (Console data-testid) are Pixel's job — fixtures
+# only guarantee these disk/instance/content names stay stable across packs.
+#
+# CONTENT.seeded.json (see seed-notes.md) pins content/node/channel IDs for
+# open_video / open_exercise. Walkers prefer the logical ids below; adapters
+# map logical → CONTENT.seeded.json. Facility/class/lesson live row IDs stay
+# placeholders until apply-live.sh + provision on a Running instance.
+
+pack: duration-kolibri-grade5a
+version: "1.2"
+diskId: duration-kolibri-grade5a-001
+instanceId: kolibri-grade5a-001
+instanceName: kolibri
+
+facility:
+  name: Duration Tests Facility
+  logicalId: facility-duration-grade5a
+
+class:
+  name: Grade 5A
+  logicalId: class-grade5a
+
+learners:
+  - username: learner01
+    logicalId: learner-grade5a-01
+    displayName: Learner One
+  - username: learner02
+    logicalId: learner-grade5a-02
+    displayName: Learner Two
+  - username: learner03
+    logicalId: learner-grade5a-03
+    displayName: Learner Three
+
+coach:
+  username: teacher
+  logicalId: coach-grade5a
+  displayName: Grade 5A Teacher
+
+lesson:
+  title: Grade 5A Duration Lesson
+  logicalId: lesson-grade5a-video-exercise
+  resources:
+    - kind: video
+      title: Open video target
+      logicalId: video-grade5a-01
+      # Future deeper Intent (snake_case) — not a Phase 1–2 walker key.
+      # Prefer idea#159-style storage path once seeded; MD5 filled by seed.
+      # Do NOT treat Playwright browser-watcher concurrency caps as idea#159
+      # HTTP stream planning Ns (64@360p / 32@480–720p / 12@1080p).
+      storageHint: "content/storage/4/1/4144ce98fa756d204e0eb8b11c2b6bf2.mp4"  # see CONTENT.seeded.json
+      walkerAction: open_video
+    - kind: exercise
+      title: Open exercise target
+      logicalId: exercise-grade5a-01
+      walkerAction: open_exercise
+
+urls:
+  # Host-network Kolibri; Engine/harness may publish on :18080 when :8080 busy.
+  learnerHome: "http://<engine-host>:18080/learn/#/topics"
+  coachHome: "http://<engine-host>:18080/coach/#/classes"
+  openVideo: "logical:video-grade5a-01"
+  openExercise: "logical:exercise-grade5a-01"
+
+# Phase 3 Intent → content bindings (App-owned). Playwright = Pixel.
+phase_3_intent_map:
+  open_kolibri_as_teacher:
+    login_username: teacher
+    landing: coachHome
+  open_kolibri_as_learner:
+    login_username: learner01
+    landing: learnerHome
+  browse_classes:
+    classLogicalId: class-grade5a
+  open_video:
+    contentLogicalId: video-grade5a-01
+    lessonLogicalId: lesson-grade5a-video-exercise
+  open_exercise:
+    contentLogicalId: exercise-grade5a-01
+    lessonLogicalId: lesson-grade5a-video-exercise
+  keep_watching:
+    contentLogicalId: video-grade5a-01
+  next_resource:
+    from: video-grade5a-01
+    to: exercise-grade5a-01
+  exit_lesson:
+    lessonLogicalId: lesson-grade5a-video-exercise
+  finish_exercise:
+    contentLogicalId: exercise-grade5a-01
+  create_class:
+    classLogicalId: class-grade5a
+  enroll_learners:
+    learnerLogicalIds: [learner-grade5a-01, learner-grade5a-02, learner-grade5a-03]
+  build_lesson:
+    lessonLogicalId: lesson-grade5a-video-exercise
+    resources: [video-grade5a-01, exercise-grade5a-01]
+  create_quiz:
+    classLogicalId: class-grade5a
+    source_exercise: exercise-grade5a-01
+    status: catalogue_ready_quiz_not_preseeded
+  read_reports:
+    classLogicalId: class-grade5a
+    lessonLogicalId: lesson-grade5a-video-exercise
+  preview_as_learner:
+    landing: learnerHome

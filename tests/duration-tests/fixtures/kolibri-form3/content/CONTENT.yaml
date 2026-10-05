@@ -1,0 +1,83 @@
+# Form 3 Kolibri pack — Khan EN-US Variables & expressions (idea#166).
+# Pins validated against public Studio channel DB 2026-10-01. Live import
+# via kolibri manage importchannel/importcontent (see seed-notes.md).
+# Synthetic Grade 5A smoke remains separate under fixtures/kolibri/.
+
+pack: duration-kolibri-form3
+version: "0.1"
+diskId: duration-kolibri-form3-001
+instanceId: kolibri-form3-001
+instanceName: kolibri
+
+facility:
+  name: Duration Tests Facility
+  logicalId: facility-duration-form3
+
+class:
+  name: Form 3
+  logicalId: class-form3
+
+learners:
+  - username: learner01
+    logicalId: learner-form3-01
+    displayName: Learner One
+  - username: learner02
+    logicalId: learner-form3-02
+    displayName: Learner Two
+  - username: learner03
+    logicalId: learner-form3-03
+    displayName: Learner Three
+
+coach:
+  username: teacher
+  logicalId: coach-form3
+  displayName: Form 3 Teacher
+
+lesson:
+  title: Form 3 Duration Lesson
+  logicalId: lesson-form3-video-exercise
+  # All 6 locked leaves. walkerAction on leaf 01 is the open_* entry pin only.
+  assignment: 3 videos + 3 exercises
+  resources:
+    - kind: video
+      title: What is a variable?
+      logicalId: video-form3-01
+      walkerAction: open_video
+    - kind: video
+      title: Terms, factors, & coefficients
+      logicalId: video-form3-02
+    - kind: video
+      title: Why aren't we using the multiplication sign?
+      logicalId: video-form3-03
+    - kind: exercise
+      title: Parts of algebraic expressions
+      logicalId: exercise-form3-01
+      walkerAction: open_exercise
+    - kind: exercise
+      title: Evaluating expressions with one variable
+      logicalId: exercise-form3-02
+    - kind: exercise
+      title: Variable expressions with exponents
+      logicalId: exercise-form3-03
+
+urls:
+  learnerHome: "http://<engine-host>:18080/learn/#/topics"
+  coachHome: "http://<engine-host>:18080/coach/#/classes"
+  openVideo: "logical:video-form3-01"
+  openExercise: "logical:exercise-form3-01"
+
+phase_3_intent_map:
+  open_kolibri_as_teacher:
+    login_username: teacher
+    landing: coachHome
+  open_kolibri_as_learner:
+    login_username: learner01
+    landing: learnerHome
+  browse_classes:
+    classLogicalId: class-form3
+  open_video:
+    contentLogicalId: video-form3-01
+    lessonLogicalId: lesson-form3-video-exercise
+  open_exercise:
+    contentLogicalId: exercise-form3-01
+    lessonLogicalId: lesson-form3-video-exercise

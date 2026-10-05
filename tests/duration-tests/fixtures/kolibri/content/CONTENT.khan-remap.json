@@ -1,0 +1,220 @@
+{
+  "pack": "duration-kolibri-grade5a",
+  "diskId": "duration-kolibri-grade5a-001",
+  "instanceId": "kolibri-grade5a-001",
+  "status": "live_imported_verified_idea04",
+  "validatedAt": "2026-10-01T10:03:50Z",
+  "source": "Studio public Khan Academy (English - US) channel metadata + CDN probe",
+  "channel": {
+    "channelId": "c9d7f950-ab6b-5a11-99e3-d6c10d7f0103",
+    "channelIdRaw": "c9d7f950ab6b5a1199e3d6c10d7f0103",
+    "name": "Khan Academy (English - US curriculum)",
+    "version": 5,
+    "public": true,
+    "studioTokenRequired": false,
+    "channelDbUrl": "https://studio.learningequality.org/content/databases/c9d7f950ab6b5a1199e3d6c10d7f0103.sqlite3",
+    "channelDbBytes": 119615488,
+    "fullChannelResourceBytes": 67462190463
+  },
+  "topic": {
+    "title": "Add and subtract fractions",
+    "path": "Math by grade > 5th grade > Add and subtract fractions",
+    "nodeId": "4a5b44d4-826e-511b-8bb2-e568b9562c5c",
+    "nodeIdRaw": "4a5b44d4826e511b8bb2e568b9562c5c",
+    "contentId": "9db892cf-eba7-5254-a450-f553dd8590d5",
+    "contentIdRaw": "9db892cfeba75254a450f553dd8590d5",
+    "topicSliceBytes": 47367252,
+    "leavesOnlyBytes": 9306612
+  },
+  "leaves": {
+    "videos": [
+      {
+        "logicalId": "video-grade5a-khan-01",
+        "title": "Visually adding fractions: 5/6+1/4",
+        "nodeId": "ef357630-56fe-5113-9467-10a750e4e75c",
+        "nodeIdRaw": "ef35763056fe5113946710a750e4e75c",
+        "contentId": "757e1a6e-9ea1-5168-b99a-0bf7eeb30662",
+        "contentIdRaw": "757e1a6e9ea15168b99a0bf7eeb30662",
+        "status": "OK",
+        "primaryChecksum": "0d6955991681b56bb5dfc9fa777e355d",
+        "primaryExt": "mp4",
+        "primaryBytes": 2900920,
+        "available": true,
+        "liveVerified": true
+      },
+      {
+        "logicalId": "video-grade5a-khan-02",
+        "title": "Visually subtracting fractions: 3/4-5/8",
+        "nodeId": "43d4efc4-89e1-50b1-9a3b-7a7460e30fd9",
+        "nodeIdRaw": "43d4efc489e150b19a3b7a7460e30fd9",
+        "contentId": "fc6dd800-d701-5d42-83a0-1fd9079bf5ce",
+        "contentIdRaw": "fc6dd800d7015d4283a01fd9079bf5ce",
+        "status": "OK",
+        "primaryChecksum": "77d35827fac6db323aed49af11c47c34",
+        "primaryExt": "mp4",
+        "primaryBytes": 2118580,
+        "available": true,
+        "liveVerified": true
+      },
+      {
+        "logicalId": "video-grade5a-khan-03",
+        "title": "Estimating adding fractions with unlike denominators",
+        "nodeId": "cbb99d49-1f40-5719-b44f-1e6d12380c3f",
+        "nodeIdRaw": "cbb99d491f405719b44f1e6d12380c3f",
+        "contentId": "6dda429c-3980-5a81-9efb-bdc9322662b0",
+        "contentIdRaw": "6dda429c39805a819efbbdc9322662b0",
+        "status": "OK",
+        "primaryChecksum": "c72541c1e1fca116450997062e38913b",
+        "primaryExt": "mp4",
+        "primaryBytes": 3274127,
+        "available": true,
+        "liveVerified": true
+      }
+    ],
+    "exercises": [
+      {
+        "logicalId": "exercise-grade5a-khan-01",
+        "title": "Visually add and subtract fractions",
+        "nodeId": "0ed1af8f-bbe7-58bb-b743-168938dc8a38",
+        "nodeIdRaw": "0ed1af8fbbe758bbb743168938dc8a38",
+        "contentId": "2f9204d3-af37-58b9-8fa0-fd86a0c03c5d",
+        "contentIdRaw": "2f9204d3af3758b98fa0fd86a0c03c5d",
+        "status": "OK",
+        "primaryChecksum": "66e65350ac7a44967201501de17f9459",
+        "primaryExt": "perseus",
+        "primaryBytes": 305547,
+        "available": true,
+        "liveVerified": true
+      },
+      {
+        "logicalId": "exercise-grade5a-khan-02",
+        "title": "Estimate to add and subtract fractions with different denominators",
+        "nodeId": "1d4c27c6-d3bd-59e0-bd87-fdb59eb68a2b",
+        "nodeIdRaw": "1d4c27c6d3bd59e0bd87fdb59eb68a2b",
+        "contentId": "94ab05b5-f3ff-506a-b18d-e630ac9cb0cb",
+        "contentIdRaw": "94ab05b5f3ff506ab18de630ac9cb0cb",
+        "status": "OK",
+        "primaryChecksum": "f911d5ce3faa4f3f6291a70dc9e78d31",
+        "primaryExt": "perseus",
+        "primaryBytes": 291267,
+        "available": true,
+        "liveVerified": true
+      },
+      {
+        "logicalId": "exercise-grade5a-khan-03",
+        "title": "Common denominators",
+        "nodeId": "23e04672-61d6-5705-bd6d-e61adb6dbbec",
+        "nodeIdRaw": "23e0467261d65705bd6de61adb6dbbec",
+        "contentId": "c306ffe2-69f3-52fa-8417-deba6f616504",
+        "contentIdRaw": "c306ffe269f352fa8417deba6f616504",
+        "status": "OK",
+        "primaryChecksum": "86836ba2b75da9b0aa597480fbf082cb",
+        "primaryExt": "perseus",
+        "primaryBytes": 41832,
+        "available": true,
+        "liveVerified": true
+      }
+    ]
+  },
+  "intentResolutionTarget": {
+    "open_video": {
+      "contentLogicalId": "video-grade5a-khan-01",
+      "title": "Visually adding fractions: 5/6+1/4",
+      "contentId": "757e1a6e-9ea1-5168-b99a-0bf7eeb30662",
+      "contentIdRaw": "757e1a6e9ea15168b99a0bf7eeb30662",
+      "nodeId": "ef357630-56fe-5113-9467-10a750e4e75c",
+      "nodeIdRaw": "ef35763056fe5113946710a750e4e75c",
+      "channelId": "c9d7f950-ab6b-5a11-99e3-d6c10d7f0103",
+      "available": true,
+      "apiVerified": "GET idea04:18081 /api/content/contentnode/?content_id=757e1a6e9ea15168b99a0bf7eeb30662 → 200 available"
+    },
+    "open_exercise": {
+      "contentLogicalId": "exercise-grade5a-khan-01",
+      "title": "Visually add and subtract fractions",
+      "contentId": "2f9204d3-af37-58b9-8fa0-fd86a0c03c5d",
+      "contentIdRaw": "2f9204d3af3758b98fa0fd86a0c03c5d",
+      "nodeId": "0ed1af8f-bbe7-58bb-b743-168938dc8a38",
+      "nodeIdRaw": "0ed1af8fbbe758bbb743168938dc8a38",
+      "channelId": "c9d7f950-ab6b-5a11-99e3-d6c10d7f0103",
+      "available": true,
+      "apiVerified": "GET idea04:18081 /api/content/contentnode/?content_id=2f9204d3af3758b98fa0fd86a0c03c5d → 200 available"
+    }
+  },
+  "syntheticSmokeFallback": {
+    "note": "Keep CONTENT.seeded.json / CONTENT.live.json synthetic pins until Khan live import verified on a Running instance.",
+    "open_video_contentId": "e60662de-b15c-52f9-b003-359f7d91f8fd",
+    "open_exercise_contentId": "7eb9de46-96eb-53d0-bcc1-2fb270b96f03"
+  },
+  "importPath": {
+    "commands": [
+      "kolibri manage importchannel network c9d7f950ab6b5a1199e3d6c10d7f0103",
+      "kolibri manage importcontent --node_ids 4a5b44d4826e511b8bb2e568b9562c5c network c9d7f950ab6b5a1199e3d6c10d7f0103",
+      "# Or leaves-only (~9.3 MB content + ~115 MB channel DB):",
+      "kolibri manage importcontent --node_ids ef35763056fe5113946710a750e4e75c,43d4efc489e150b19a3b7a7460e30fd9,cbb99d491f405719b44f1e6d12380c3f,0ed1af8fbbe758bbb743168938dc8a38,1d4c27c6d3bd59e0bd87fdb59eb68a2b,23e0467261d65705bd6de61adb6dbbec network c9d7f950ab6b5a1199e3d6c10d7f0103"
+    ],
+    "estimatedTopicSliceMB": 47.37,
+    "estimatedLeavesOnlyMB": 9.31,
+    "channelDbMB": 114.1,
+    "studioToken": "NOT REQUIRED (public channel)",
+    "applied": [
+      "CONTAINER=idea168-kolibri-g5a-khan ./import-khan-topic-slice.sh g5a topic",
+      "PACK=g5a provision_and_lesson.py via manage shell"
+    ]
+  },
+  "importedAt": "2026-10-01T10:19:41Z",
+  "importedBy": "Kid (App Dev)",
+  "host": "idea04",
+  "kolibriHttpPort": 18081,
+  "containerName": "idea168-kolibri-g5a-khan",
+  "tempDataDir": "/home/pi/idea168-kolibri-g5a-khan/data/kolibri",
+  "image": "koenswings/kolibri:1.0-0.15.5-dev",
+  "liveAuth": {
+    "facility_id": "386af37831fa47372e2d6bac44aa2292",
+    "facility_idDashed": "386af378-31fa-4737-2e2d-6bac44aa2292",
+    "classroom_id": "8264b7d56c631373ee7d4886f4c5dac1",
+    "classroom_idDashed": "8264b7d5-6c63-1373-ee7d-4886f4c5dac1",
+    "teacher_id": "778fa42b3063f66fd6fc730bc85d85d9",
+    "teacher_idDashed": "778fa42b-3063-f66f-d6fc-730bc85d85d9",
+    "lesson_id": "b888e92bcec77ba4c82bb001e62d3b9a",
+    "lesson_idDashed": "b888e92b-cec7-7ba4-c82b-b001e62d3b9a",
+    "learners": [
+      {
+        "username": "learner01",
+        "id": "5099a2ec-399f-5e37-bb77-b268be27b1d6",
+        "id_raw": "5099a2ec399f5e37bb77b268be27b1d6",
+        "created": true
+      },
+      {
+        "username": "learner02",
+        "id": "4568863a-fdac-31d4-f8d5-a415241ea110",
+        "id_raw": "4568863afdac31d4f8d5a415241ea110",
+        "created": true
+      },
+      {
+        "username": "learner03",
+        "id": "07b1daaa-ad0c-dec4-2b90-d005b09ef6d4",
+        "id_raw": "07b1daaaad0cdec42b90d005b09ef6d4",
+        "created": true
+      }
+    ],
+    "note": "Mutable on re-provision",
+    "lesson_assignment": "3 videos + 3 exercises (all locked leaves)",
+    "lesson_resource_logical_ids": [
+      "video-grade5a-khan-01",
+      "video-grade5a-khan-02",
+      "video-grade5a-khan-03",
+      "exercise-grade5a-khan-01",
+      "exercise-grade5a-khan-02",
+      "exercise-grade5a-khan-03"
+    ],
+    "lesson_resource_node_ids": [
+      "ef35763056fe5113946710a750e4e75c",
+      "43d4efc489e150b19a3b7a7460e30fd9",
+      "cbb99d491f405719b44f1e6d12380c3f",
+      "0ed1af8fbbe758bbb743168938dc8a38",
+      "1d4c27c6d3bd59e0bd87fdb59eb68a2b",
+      "23e0467261d65705bd6de61adb6dbbec"
+    ],
+    "assignmentNote": "Marco 2026-10-04: the Duration Lesson assigns all 6 locked leaves (3 videos, then 3 exercises). 1 video + 1 exercise was not a Week-1 starter. open_video / open_exercise stay the walker entry pins (leaf 01). The 2026-10-01 idea04 Lesson.resources row listed only leaf 01 of each kind. Re-run tests/duration-tests/scripts/provision-khan-pack-lesson.py on a Running sidecar to rewrite that row. Sidecars were not accepting HTTP on 2026-10-04; this fixture edit did not start them."
+  }
+}

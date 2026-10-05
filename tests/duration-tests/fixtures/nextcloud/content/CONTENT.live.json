@@ -1,0 +1,61 @@
+{
+  "pack": "duration-nextcloud-grade5a",
+  "version": "1.0",
+  "diskId": "duration-nextcloud-grade5a-001",
+  "instanceId": "nextcloud-grade5a-001",
+  "liveStatus": "sidecar_provisioned_idea01_and_idea03",
+  "importedAt": "2026-10-01T09:00:59Z",
+  "importedBy": "Kid (App Dev)",
+  "host": "idea01",
+  "nextcloudHttpPort": 18280,
+  "image": "koenswings/nextcloud:1.0-31.0.1",
+  "dbImage": "koenswings/nextcloud-mariadb:1.0-11.7.2-MariaDB-ubu2404",
+  "tempDataDir": "/home/pi/idea166-nextcloud-live/data/nextcloud",
+  "admin": {
+    "username": "admin",
+    "passwordHint": "admin"
+  },
+  "accounts": [
+    {
+      "username": "teacher",
+      "role": "teacher",
+      "passwordHint": "TeacherGrade5A!"
+    },
+    {
+      "username": "student01",
+      "role": "learner",
+      "passwordHint": "Student01Grade5A!"
+    },
+    {
+      "username": "student02",
+      "role": "learner",
+      "passwordHint": "Student02Grade5A!"
+    },
+    {
+      "username": "student03",
+      "role": "learner",
+      "passwordHint": "Student03Grade5A!"
+    }
+  ],
+  "groups": [
+    {
+      "name": "Grade 5A"
+    }
+  ],
+  "urls": {
+    "filesHome": "http://<host>:18280/apps/files/",
+    "login": "http://<host>:18280/login"
+  },
+  "note": "Sidecar path for App-open when dock strips instances/. Console Running cards still need Axle startInstances / Engine startInstance on docked tree. Proven 2026-10-01 on idea01+idea03 :18280 HTTP 302 + teacher/student* users.",
+  "passwordPolicyNote": "password_policy disabled on sidecar; passwords >=10 chars",
+  "hosts": {
+    "idea01": {
+      "nextcloudHttpPort": 18280,
+      "url": "http://100.99.231.94:18280/"
+    },
+    "idea03": {
+      "nextcloudHttpPort": 18280,
+      "url": "http://100.126.117.80:18280/"
+    }
+  }
+}

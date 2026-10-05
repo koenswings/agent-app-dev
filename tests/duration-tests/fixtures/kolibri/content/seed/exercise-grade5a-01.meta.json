@@ -1,0 +1,26 @@
+{
+  "assessment_item_ids": [
+    "104093750f815c9f855231c6ff2d5f16",
+    "b722fc608e8a52ffae897539d2664b59"
+  ],
+  "number_of_assessments": 2,
+  "mastery_model": {
+    "type": "m_of_n",
+    "m": 1,
+    "n": 1
+  },
+  "perseus_md5": "202c3336b37b013ff7d67267df8d7045",
+  "perseus_size": 3363,
+  "questions": [
+    {
+      "id": "q1",
+      "assessment_id": "104093750f815c9f855231c6ff2d5f16",
+      "type": "single_selection"
+    },
+    {
+      "id": "q2",
+      "assessment_id": "b722fc608e8a52ffae897539d2664b59",
+      "type": "single_selection"
+    }
+  ]
+}

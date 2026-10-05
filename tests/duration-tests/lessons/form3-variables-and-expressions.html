@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"/>
+<title>Form 3 — Variables &amp; expressions</title>
+<style>
+  @page { size: A4; margin: 14mm 12mm 16mm 12mm; }
+  body { font-family: Liberation Sans, DejaVu Sans, sans-serif; font-size: 10.5pt; color: #1a1a1a; }
+  h1 { font-size: 16pt; margin: 0 0 2mm; }
+  h2 { font-size: 12pt; margin: 5mm 0 2mm; border-bottom: 0.4pt solid #444; }
+  p { margin: 1.5mm 0; }
+  .sub { color: #333; margin-bottom: 3mm; }
+  table { width: 100%; border-collapse: collapse; margin: 2mm 0 3mm; }
+  th, td { border: 0.3pt solid #888; padding: 1.4mm 1.6mm; vertical-align: top; text-align: left; }
+  th { background: #f2f2f2; font-weight: 600; }
+  .mono { font-family: Liberation Mono, DejaVu Sans Mono, monospace; font-size: 8pt; word-break: break-all; }
+  .note { background: #f7f7f7; border: 0.4pt solid #bbb; padding: 2.5mm 3mm; }
+  ul { margin: 1mm 0 2mm 5mm; padding: 0; }
+  li { margin: 0.6mm 0; }
+</style></head><body>
+<h1>Form 3 — Variables &amp; expressions</h1>
+<p class="sub">Teacher inspection pack · disk duration-kolibri-form3-001 · idea04 :18080</p>
+<p>Inspection sheet for Koen and teachers. Titles and IDs are the locked pins already in App#10. This is not a new topic and not new teaching text. Science and every other Khan topic stay out of this set.</p>
+<h2>Pack</h2>
+<table><tr><th>Lesson title</th><td>Form 3 Duration Lesson</td></tr><tr><th>Lesson id</th><td>b01a1b42-d000-0fad-3eb0-0d1688046413</td></tr><tr><th>Class</th><td>Form 3 · 731fc657-e908-20bb-e9e1-c3305d742e25</td></tr><tr><th>Facility</th><td>Duration Tests Facility · 11924884-1442-e963-7d08-6f54dd4a3c9b</td></tr><tr><th>Topic</th><td>Variables &amp; expressions</td></tr><tr><th>Topic path</th><td>Math &gt; Pre-algebra &gt; Variables &amp; expressions</td></tr><tr><th>Topic nodeId</th><td>0f21619f-bd75-505f-92bd-96184b07b46d</td></tr><tr><th>Topic contentId</th><td>2bcfaf16-33fc-5573-92c0-c330475b49a0</td></tr><tr><th>Channel</th><td>Khan Academy (English - US curriculum) · c9d7f950-ab6b-5a11-99e3-d6c10d7f0103 (public, no Studio token)</td></tr><tr><th>diskId / instanceId</th><td>duration-kolibri-form3-001 / kolibri-form3-001</td></tr><tr><th>Container / data</th><td>idea168-kolibri-form3 · /home/pi/idea168-kolibri-form3</td></tr><tr><th>Image</th><td>koenswings/kolibri:1.0-0.15.5-dev</td></tr><tr><th>Sign-in</th><td>teacher / password hint teacher · learners learner01–learner03</td></tr><tr><th>Intent pins</th><td>open_video video-form3-01 · open_exercise exercise-form3-01</td></tr><tr><th>Source pins</th><td>fixtures/kolibri-form3/content/CONTENT.live.json</td></tr></table>
+<h2>How a teacher opens it</h2>
+<ul>
+<li>Base URL (idea04): <span class="mono">http://100.108.39.45:18080/</span></li>
+<li>Coach classes (fixture URL): <span class="mono">http://100.108.39.45:18080/coach/#/classes</span> — class <strong>Form 3</strong>, lesson <strong>Form 3 Duration Lesson</strong>.</li>
+<li>The named lesson assigns <strong>all 3 videos and all 3 exercises</strong> below (same titles and IDs). None of them is topic-only. Order: the three videos, then the three exercises. <span class="mono">open_video</span> / <span class="mono">open_exercise</span> still resolve to leaf 01 as the walker entry, not as the only assigned resources.</li>
+<li>Live Kolibri on idea04 was last provisioned 2026-10-01 with only <span class="mono">video-form3-01</span> and <span class="mono">exercise-form3-01</span>. <span class="mono">provision-khan-pack-lesson.py</span> (PACK=form3) now writes all six onto <span class="mono">Lesson.resources</span>. Re-run it on a Running sidecar to update that row. This sheet did not start the sidecar.</li>
+<li>Learn content (existing walker URL shape): <span class="mono">http://100.108.39.45:18080/learn/#/topics/c/&lt;nodeId without dashes&gt;</span></li>
+<li>Lesson route (existing walker URL shape): <span class="mono">http://100.108.39.45:18080/learn/#/lessons/b01a1b42-d000-0fad-3eb0-0d1688046413</span></li>
+<li>Learner home (fixture URL): <span class="mono">http://100.108.39.45:18080/learn/#/topics</span> as <span class="mono">learner01</span>.</li>
+</ul>
+<p class="note"><strong>Live check 2026-10-04 13:43 CEST (read-only, no claim, no restart).</strong> idea04 (100.108.39.45) answered ping. TCP connect to the pack port was refused, so the sidecar is not accepting HTTP right now. Pins below are from the 2026-10-01 import (6/6 leaves available then). This check did not start or stop anything.</p>
+<h2>Videos (3)</h2>
+<table>
+<tr><th>#</th><th>Kind</th><th>Title</th><th>logicalId</th><th>contentId</th><th>nodeId</th><th>On the named lesson?</th></tr>
+<tr>
+              <td>1</td><td>video</td><td>What is a variable?</td><td>video-form3-01</td>
+              <td class="mono">0a2fdaad-532c-56b2-b90f-62f9204e3be8</td><td class="mono">b3677df2-bf9e-5e5f-a1f1-9e57a2f26b97</td>
+              <td>yes — assigned on the named lesson</td></tr><tr>
+              <td>2</td><td>video</td><td>Terms, factors, &amp; coefficients</td><td>video-form3-02</td>
+              <td class="mono">30fb3fbd-9d4a-549f-8643-f610a165df5a</td><td class="mono">fcba0a76-d607-5c02-b1f9-f7742847a4c4</td>
+              <td>yes — assigned on the named lesson</td></tr><tr>
+              <td>3</td><td>video</td><td>Why aren't we using the multiplication sign?</td><td>video-form3-03</td>
+              <td class="mono">3ddc455a-eaab-51c0-8e8b-9484bf9a1830</td><td class="mono">7f1b5480-4b2e-5d81-b767-0d383cf341a8</td>
+              <td>yes — assigned on the named lesson</td></tr>
+</table>
+<h2>Exercises (3)</h2>
+<table>
+<tr><th>#</th><th>Kind</th><th>Title</th><th>logicalId</th><th>contentId</th><th>nodeId</th><th>On the named lesson?</th></tr>
+<tr>
+              <td>1</td><td>exercise</td><td>Parts of algebraic expressions</td><td>exercise-form3-01</td>
+              <td class="mono">ed0c23b8-e517-5687-90ae-1bda74ab22ba</td><td class="mono">a484d292-1dd3-5f42-8d08-7b61a8e82416</td>
+              <td>yes — assigned on the named lesson</td></tr><tr>
+              <td>2</td><td>exercise</td><td>Evaluating expressions with one variable</td><td>exercise-form3-02</td>
+              <td class="mono">0c49599e-0131-5fdb-957a-5bbbbdf58c5e</td><td class="mono">d455f572-cc33-55b0-8c98-2a997d412aa8</td>
+              <td>yes — assigned on the named lesson</td></tr><tr>
+              <td>3</td><td>exercise</td><td>Variable expressions with exponents</td><td>exercise-form3-03</td>
+              <td class="mono">7110cacb-b8d6-58b0-b799-a3d0418e40a9</td><td class="mono">8c880694-0794-5913-918b-90523c2ac8ca</td>
+              <td>yes — assigned on the named lesson</td></tr>
+</table>
+<h2>What this sheet covers vs lesson chrome</h2>
+<p>Covers: the content pack a teacher can run once the sidecar is listening — lesson title, the six leaf titles, contentIds, nodeIds, and the existing Learn/Coach URLs.</p>
+<p>Does <strong>not</strong> cover lesson-chrome Intents. These stay deferred until a Kolibri image exposes <span class="mono">data-testid</span>s. Stock image <span class="mono">koenswings/kolibri:1.0-0.15.5-dev</span> does not. Preferred future names are in <span class="mono">tests/duration-tests/LESSON_CHROME.md</span> and are not in this image:</p>
+<ul>
+<li><span class="mono">keep_watching</span></li>
+<li><span class="mono">next_resource</span></li>
+<li><span class="mono">exit_lesson</span></li>
+<li><span class="mono">finish_exercise</span></li>
+<li><span class="mono">next_video</span></li>
+</ul>
+<p><span class="mono">open_video</span> and <span class="mono">open_exercise</span> can use the contentIds/nodeIds above (Learn URL). They are not chrome clicks.</p>
+<p>Console action that installs these lesson apps (replacing demo-mode boot) is <strong>not</strong> in this pass. It waits for an explicit Koen OK, then Pixel. No merge of App#10 until Koen names the PR.</p>
+</body></html>

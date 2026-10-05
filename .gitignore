@@ -31,3 +31,8 @@ tmp/
 
 # Standalone product repos (not committed in agent-app-dev)
 varia/
+
+# Duration-tests Kolibri seed workdirs (regenerable)
+tests/duration-tests/fixtures/kolibri/content/seed/.work/
+.ricecookerfilecache/
+/storage/
