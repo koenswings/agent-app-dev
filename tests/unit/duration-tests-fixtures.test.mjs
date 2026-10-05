@@ -236,7 +236,8 @@ describe('duration-tests fixtures (idea#166)', () => {
     assert.equal(live.fileRequest.shareType, 3);
     // NC 31.0.1 public DAV (publicremote.php \w+) breaks on '-' in tokens
     assert.match(live.fileRequest.token, /^[A-Za-z0-9]+$/);
-    assert.equal(live.fileRequest.url, 'http://<host>:18280/s/grade5adropzone');
+    // 2d9a052 pins idea01 (raw Tailscale IP → HTTP 400 from the box); <host> template also ok
+    assert.match(live.fileRequest.url, /^http:\/\/(<host>|idea0[134]):18280\/s\/grade5adropzone$/);
     assert.equal(live.urls.fileRequest, live.fileRequest.url);
     mustExist(join(FIX, 'nextcloud/files/Drop Zone/inbox/.gitkeep'), 'Drop Zone/inbox');
     const script = read('scripts/post-dock-restore-running.sh');
