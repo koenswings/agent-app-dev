@@ -1,6 +1,6 @@
 {
   "pack": "duration-nextcloud-grade5a",
-  "version": "1.0",
+  "version": "1.1",
   "diskId": "duration-nextcloud-grade5a-001",
   "instanceId": "nextcloud-grade5a-001",
   "liveStatus": "sidecar_provisioned_idea01_and_idea03",
@@ -39,23 +39,156 @@
   ],
   "groups": [
     {
-      "name": "Grade 5A"
+      "name": "Grade 5A",
+      "members": [
+        "teacher",
+        "student01",
+        "student02",
+        "student03"
+      ]
     }
   ],
   "urls": {
     "filesHome": "http://<host>:18280/apps/files/",
-    "login": "http://<host>:18280/login"
+    "login": "http://<host>:18280/login",
+    "collabDir": "http://<host>:18280/apps/files/files?dir=/Collab",
+    "fileRequest": "http://idea01:18280/s/grade5adropzone"
   },
   "note": "Sidecar path for App-open when dock strips instances/. Console Running cards still need Axle startInstances / Engine startInstance on docked tree. Proven 2026-10-01 on idea01+idea03 :18280 HTTP 302 + teacher/student* users.",
   "passwordPolicyNote": "password_policy disabled on sidecar; passwords >=10 chars",
   "hosts": {
     "idea01": {
       "nextcloudHttpPort": 18280,
-      "url": "http://100.99.231.94:18280/"
+      "url": "http://idea01:18280/",
+      "fileRequestToken": "grade5adropzone",
+      "fileRequestShareId": "2",
+      "fileRequestUrl": "http://idea01:18280/s/grade5adropzone",
+      "tailscaleIp": "100.99.231.94",
+      "fileRequestUrlTailscale": "http://100.99.231.94:18280/s/grade5adropzone"
     },
     "idea03": {
       "nextcloudHttpPort": 18280,
       "url": "http://100.126.117.80:18280/"
     }
+  },
+  "collabProvisioned": false,
+  "collabApplyNote": "Prefer A collab (Nextcloud Text) needs one re-run on the pool when free: bash tests/duration-tests/scripts/post-dock-restore-running.sh --mode sidecar --apps nextcloud (creates the Drop Zone/inbox file request, chowns Collab + Drop Zone to www-data, enables Text, enable_sharing + Grade 5A on mounts, rescans; sets collabProvisioned=true). Until then Text opens the doc read-only (readonly-bar visible).",
+  "filesLayout": {
+    "sidecar": "Files root → 'Class Materials' | 'Drop Zone' (→ 'inbox' = file-request target) | 'Collab' (one Local external storage per folder, created by 10-idea-files.sh; scoped to group Grade 5A after collab apply)",
+    "docked": "Files root → 'Grade 5A Files' (FILES.yaml shareName) → 'Class Materials' | 'Drop Zone' | 'Collab'"
+  },
+  "folders": [
+    {
+      "logicalId": "folder-materials-grade5a",
+      "name": "Class Materials",
+      "sidecarPath": "/Class Materials",
+      "dockedPath": "/Grade 5A Files/Class Materials",
+      "walkerAction": "share_to_class",
+      "preloadFiles": [
+        "README.md",
+        "welcome.txt"
+      ]
+    },
+    {
+      "logicalId": "folder-drop-grade5a",
+      "name": "Drop Zone",
+      "sidecarPath": "/Drop Zone",
+      "dockedPath": "/Grade 5A Files/Drop Zone",
+      "walkerAction": "open_file_drop",
+      "preloadFiles": [
+        "README.md",
+        ".gitkeep",
+        "inbox/.gitkeep"
+      ],
+      "fileRequestSubfolder": "inbox",
+      "fileRequestPath": "/Drop Zone/inbox"
+    },
+    {
+      "logicalId": "folder-collab-grade5a",
+      "name": "Collab",
+      "sidecarPath": "/Collab",
+      "dockedPath": "/Grade 5A Files/Collab",
+      "walkerAction": "open_collab_doc",
+      "preloadFiles": [
+        "Grade5A-collab-notes.md"
+      ]
+    }
+  ],
+  "collab": {
+    "logicalId": "collab-grade5a-01",
+    "editor": "nextcloud-text",
+    "collabora": false,
+    "fileName": "Grade5A-collab-notes.md",
+    "sidecarPath": "/Collab/Grade5A-collab-notes.md",
+    "dockedPath": "/Grade 5A Files/Collab/Grade5A-collab-notes.md",
+    "openFrom": "urls.collabDir → click row tr[data-cy-files-list-row-name=\"Grade5A-collab-notes.md\"]",
+    "writable": "after collab apply (collabProvisioned=true)",
+    "selectors": {
+      "editor": "[data-text-el=\"editor-container\"]",
+      "content": "[data-text-el=\"editor-content-wrapper\"] .ProseMirror[contenteditable=\"true\"]",
+      "menubarWhenEditable": "[data-text-el=\"menubar\"]",
+      "readonlyBarMustBeAbsent": "[data-text-el=\"readonly-bar\"]",
+      "sessionAvatars": ".text-editor__session-list .avatar-list"
+    },
+    "keepEditing": "type a line into content (e.g. 'keep_editing <ISO time>'); Text autosaves via its sync session; peers on the same file see the edit and avatars (polling, no notify_push needed)",
+    "closeDoc": "close the Viewer modal → back to Files list (nc_browse)"
+  },
+  "shares": {
+    "group": "Grade 5A",
+    "preCreatedShares": [
+      {
+        "type": "public link (file request, upload-only)",
+        "folder": "Drop Zone/inbox",
+        "see": "fileRequest"
+      }
+    ],
+    "mountApplicableGroup": "Grade 5A (after collab apply)",
+    "enableSharingOnMounts": "true — fixture 10-idea-files.sh sets enable_sharing on every own mount at container start (+ provision_nextcloud_collab occ for already-running sidecars). Nextcloud default is false.",
+    "note": "Only the Drop Zone/inbox file request link is pre-created (never on the /Drop Zone mount root). Folders are visible to Grade 5A members as admin Local mounts; share_to_class creates the view-only group share on 'Class Materials' at walk time. FILES.yaml shareName 'Grade 5A Files' is the docked Files Disk mount name, not a Nextcloud share."
+  },
+  "intentStatus": {
+    "open_collab_doc": "ready (opens in Text; read-only until collab apply)",
+    "keep_editing": "ready_after_collab_apply (Nextcloud Text, Prefer A) — Collabora is Prefer B, not shipped",
+    "close_doc": "ready",
+    "share_to_class": "ready_after_collab_apply (enable_sharing)",
+    "open_file_drop": "ready on idea01 (fileRequest.url, verified 2026-10-05); other hosts ready_after_apply",
+    "after_upload": "ready on idea01 (public upload HTTP 201 into Drop Zone/inbox, verified 2026-10-05); other hosts ready_after_apply",
+    "leave_file_drop": "ready"
+  },
+  "fileRequest": {
+    "status": "created_idea01",
+    "logicalId": "folder-drop-grade5a",
+    "folder": "Drop Zone/inbox",
+    "path": "/Drop Zone/inbox",
+    "mountRoot": "/Drop Zone",
+    "sharedBy": "teacher",
+    "shareType": 3,
+    "permissions": 4,
+    "token": "grade5adropzone",
+    "customToken": true,
+    "uploadSafeToken": true,
+    "url": "http://idea01:18280/s/grade5adropzone",
+    "ui": {
+      "view": "public-file-drop",
+      "heading": "File drop",
+      "text": "Upload files to inbox.",
+      "button": "Upload",
+      "title": "Grade 5A Drop Zone - Nextcloud"
+    },
+    "replaces": {
+      "token": "grade5a-drop-zone",
+      "path": "/Drop Zone",
+      "permissions": 31,
+      "why": "Retired 2026-10-05. NC 31.0.1 publicremote.php matches the public DAV token with \\w+, so the hyphenated token was cut to 'grade5a' and every public PROPFIND/PUT returned HTTP 500 ('out of base uri') — the page showed 'This directory is unavailable' and uploads could never work. Custom tokens must be [A-Za-z0-9] only. The share also moved off the external mount root to the inbox subfolder with exactly permissions 4."
+    },
+    "verified": {
+      "host": "idea01",
+      "at": "2026-10-05",
+      "page": "/s/grade5adropzone → File drop UI with Upload button, no 'directory unavailable'",
+      "upload": "anonymous PUT /public.php/dav/files/grade5adropzone/<file> → 201, file landed in /mnt/idea-files/Drop Zone/inbox (test file removed)",
+      "oldUrl": "/s/grade5a-drop-zone → 404"
+    },
+    "createdBy": "post-dock-restore-running.sh create_drop_zone_request → scripts/nc-drop-zone-request.py (OCS as teacher; idempotent; deletes mount-root link shares)",
+    "urlNote": "Prefer hostname idea01 (not raw Tailscale IP). Box Playwright gets HTTP 400 on http://100.99.231.94:18280/…"
   }
 }

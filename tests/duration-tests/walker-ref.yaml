@@ -5,7 +5,7 @@
 
 name: duration-tests-fixture-refs
 idea: 166
-pack_version: "1.5"
+pack_version: "1.6"
 
 # --- ID stability (prefer these pins; do not invent alternates) ---
 # STABLE across re-provision / box rebuild:
@@ -16,8 +16,9 @@ pack_version: "1.5"
 #   → refresh CONTENT.live.json (+ Pixel DURATION_FIXTURES.kolibri.live) after re-provision
 id_stability:
   stable:
-    diskIds: [duration-empty-001, duration-empty-002, duration-kolibri-grade5a-001, duration-kolibri-form3-001, duration-nextcloud-grade5a-001]
-    instanceIds: [kolibri-grade5a-001, kolibri-form3-001, nextcloud-grade5a-001]
+    diskIds: [duration-empty-001, duration-empty-002, duration-kolibri-grade5a-001, duration-kolibri-form3-001, duration-nextcloud-grade5a-001, duration-kiwix-ideaa-001]
+    instanceIds: [kolibri-grade5a-001, kolibri-form3-001, nextcloud-grade5a-001, kiwix-ideaa-001]
+    kiwix_bookName: duration_wikipedia_en_grade5a_stub_2026-10
     channelId: 30b6c263-4b96-5a62-93bd-dcf9a5cad7ca  # synthetic G5A smoke
     open_video_contentId: e60662de-b15c-52f9-b003-359f7d91f8fd
     open_exercise_contentId: 7eb9de46-96eb-53d0-bcc1-2fb270b96f03
@@ -145,13 +146,24 @@ phase_3_intents:
         - "Files → Class Materials / Drop Zone / Collab"
 
     open_wikipedia_as_teacher:
-      status: blocked
-      reason: "Kiwix App Disk omitted Phase 1–2/3 App pack — see fixtures/kiwix/README.md"
+      status: ready_pending_apply_idea01
+      history: "was blocked: Kiwix App Disk omitted Phase 1–2/3 App pack (Steve deferral list); Prefer A stub ZIM shipped 2026-10-05"
       to_state: wiki_browse
       role: teacher
+      instanceId: kiwix-ideaa-001
+      diskId: duration-kiwix-ideaa-001
+      contentLive: tests/duration-tests/fixtures/kiwix/content/CONTENT.live.json
+      landing: "http://<host>:18380/viewer#duration_wikipedia_en_grade5a_stub_2026-10/Main_Page"
+      expect: "iframe#content_iframe h1#firstHeading == 'Grade 5A Offline Wikipedia'"
+      selector_binding: Pixel Phase 3
     open_wikipedia_as_learner:
-      status: blocked
-      reason: "Kiwix App Disk omitted — same as open_wikipedia_as_teacher"
+      status: ready_pending_apply_idea01
+      to_state: wiki_browse
+      role: learner
+      instanceId: kiwix-ideaa-001
+      diskId: duration-kiwix-ideaa-001
+      landing: "http://<host>:18380/viewer#duration_wikipedia_en_grade5a_stub_2026-10/Main_Page"
+      selector_binding: Pixel Phase 3
 
   # Kolibri coaching (teacher; requires open_kolibri_as_teacher first / kolibri_manage)
   kolibri_coaching:
@@ -315,9 +327,12 @@ phase_3_intents:
       role: learner
       instanceId: nextcloud-grade5a-001
       folderLogicalId: folder-drop-grade5a
+      fileRequestUrl: "http://<host>:18280/s/grade5adropzone"   # nextcloud CONTENT.live.json fileRequest.url (hosts.<host>.fileRequestUrl if random token)
+      fileRequestFolder: "Drop Zone/inbox"   # link on the inbox subfolder, not the /Drop Zone mount root
+      status: ready_idea01   # applied + upload-verified 2026-10-05; other hosts ready_after_apply
       app_steps:
-        - "Open Drop Zone file-request / File Drop link (preload often outside walk)"
-        - "See upload-only UI"
+        - "Open Drop Zone file request link (teacher-created by post-dock-restore-running.sh; no login)"
+        - "See upload-only UI: heading 'File drop', 'Upload files to inbox.', Upload button"
       selector_binding: Pixel Phase 3
     after_upload:
       from_state: nc_drop
@@ -334,9 +349,9 @@ phase_3_intents:
       to_state: nc_collab
       instanceId: nextcloud-grade5a-001
       collabLogicalId: collab-grade5a-01
-      status: placeholder-doc
-      note: "Collabora/nextcloud-code omitted — treat as open/browse markdown stub"
-      app_steps: ["Files → open Collab/Grade5A-collab-notes.md (placeholder until Collabora pack)"]
+      status: text-collab
+      note: "Nextcloud Text (shipped) is the Prefer A collaborative editor; Collabora is Prefer B (not shipped)"
+      app_steps: ["Files → Collab → open Grade5A-collab-notes.md → Text editor [data-text-el=editor-container]"]
       selector_binding: Pixel Phase 3
     close_doc:
       from_state: nc_collab
@@ -348,8 +363,10 @@ phase_3_intents:
       state: nc_collab
       instanceId: nextcloud-grade5a-001
       collabLogicalId: collab-grade5a-01
-      status: blocked_until_collabora
-      reason: "No live Collabora in this pack — keep_editing is a documented no-op/browse stub"
+      status: text-collab_after_collab_apply
+      history: "was blocked_until_collabora"
+      requires: "sidecar collab apply (nextcloud CONTENT.live.json collabProvisioned=true) so the doc is writable"
+      app_steps: ["Type into [data-text-el=editor-content-wrapper] .ProseMirror; [data-text-el=readonly-bar] must be absent"]
       selector_binding: Pixel Phase 3
     leave_nextcloud_as_learner:
       to_state: console_learner
@@ -380,17 +397,37 @@ phase_3_intents:
       axle_school_day: true
       note: "Operator dwell — Pixel Console only; no App fixture binding"
 
+  wikipedia_usage:
+    search_browse_wikipedia:
+      state: wiki_browse
+      instanceId: kiwix-ideaa-001
+      status: ready_pending_apply_idea01
+      searchBox: "#kiwixsearchbox"
+      searchTerm: fraction
+      expectResults: "Results 1-4 of 4"
+      resultPath: Fraction
+      followLink: { from: Fraction, to: Numerator }
+      selector_binding: Pixel Phase 3
+    leave_wikipedia_as_learner:
+      to_state: console_learner
+      selector_binding: Pixel Phase 3
+    leave_wikipedia_as_teacher:
+      to_state: console_teacher
+      selector_binding: Pixel Phase 3
+
   blockers:
     - id: kiwix-fixture
       blocks: [open_wikipedia_as_teacher, open_wikipedia_as_learner, search_browse_wikipedia]
       owner: Kid
-      status: deferred
+      status: shipped_pending_apply_idea01
+      history: "Steve deferral list → Prefer A stub ZIM (CC0, 62 KB) 2026-10-05"
+      apply: "docker pull ghcr.io/kiwix/kiwix-serve:3.8.2 && post-dock-restore-running.sh --mode sidecar --apps kiwix (idea01)"
       see: tests/duration-tests/fixtures/kiwix/README.md
     - id: collabora
       blocks: [keep_editing]
       owner: Kid
-      status: deferred
-      note: "open_collab_doc is placeholder-doc; keep_editing needs nextcloud-code"
+      status: replaced_by_nextcloud_text_pending_apply
+      note: "Prefer A: keep_editing on Nextcloud Text; needs post-dock-restore-running.sh --apps nextcloud re-run on pool (collab apply). Collabora (nextcloud-code) = Prefer B, not shipped"
     - id: pixel-playwright-phase3
       blocks: "all hub_to_app / kolibri_* / nextcloud_* Playwright adapters"
       owner: Pixel
@@ -508,7 +545,7 @@ fixtures:
       open_file_drop: { folderLogicalId: folder-drop-grade5a }
       open_collab_doc:
         collabLogicalId: collab-grade5a-01
-        status: placeholder-doc  # Collabora not in this pack
+        status: text-collab  # Nextcloud Text; Collabora = Prefer B
     phase_3_primary_actions:
       - open_nextcloud_as_teacher
       - open_nextcloud_as_learner
@@ -519,11 +556,29 @@ fixtures:
       - after_upload
       - leave_file_drop
       - open_collab_doc
+      - keep_editing
       - close_doc
       - leave_nextcloud_as_learner
       - leave_nextcloud_as_teacher
 
   kiwix:
-    included: false
-    note: "Deferred Phase 3+4 — no minimal ZIM path without App Disk redesign; Wikipedia Intents blocked (Steve deferral list)"
+    included: true
+    tree: tests/duration-tests/fixtures/kiwix
+    diskId: duration-kiwix-ideaa-001
+    diskName: "Duration Tests — Kiwix offline Wikipedia (stub)"
+    instanceId: kiwix-ideaa-001
+    instanceName: kiwix
+    placement: idea-A role → Prefer A pool host idea01
+    image: ghcr.io/kiwix/kiwix-serve:3.8.2   # pre-pull; pull_policy never
+    httpPort: 18380
+    zim: instances/kiwix-ideaa-001/data/duration_wikipedia_en_grade5a_stub_2026-10.zim  # 62 KB, CC0
+    contentCatalogue: tests/duration-tests/fixtures/kiwix/content/CONTENT.yaml
+    contentLive: tests/duration-tests/fixtures/kiwix/content/CONTENT.live.json
+    history: "Previously: Kiwix App Disk omitted (Steve deferral list). Prefer A stub shipped 2026-10-05."
+    phase_3_primary_actions:
+      - open_wikipedia_as_teacher
+      - open_wikipedia_as_learner
+      - search_browse_wikipedia
+      - leave_wikipedia_as_learner
+      - leave_wikipedia_as_teacher
     see: tests/duration-tests/fixtures/kiwix/README.md

@@ -52,6 +52,21 @@ CONTAINER=idea168-kolibri-g5a-khan bash tests/duration-tests/scripts/import-khan
 `CONTENT.seeded.json` synthetic IDs remain for smoke fallback.
 `CONTENT.live.json` Intent pins **flipped** to Khan remap (see `syntheticSmokeFallback`).
 
+## Prefer A additions (2026-10-05, not yet applied — pool busy)
+
+| Pack | diskId | instanceId | container | port | data |
+|------|--------|------------|-----------|------|------|
+| Kiwix stub | `duration-kiwix-ideaa-001` | `kiwix-ideaa-001` | `idea166-kiwix-live` | **18380** | `/home/pi/idea166-kiwix-live` |
+
+- Kiwix: `docker pull ghcr.io/kiwix/kiwix-serve:3.8.2` then
+  `post-dock-restore-running.sh --mode sidecar --apps kiwix` on **idea01**.
+- Nextcloud Grade 5A collab: re-run `--apps nextcloud` on the host Pixel uses
+  (idea01 / idea03) → `provision_nextcloud_collab` (Text, writable Collab,
+  `enable_sharing`, mounts scoped to Grade 5A) + Drop Zone file request
+  `/s/grade5adropzone` on `Drop Zone/inbox` (applied + upload-verified on
+  idea01 2026-10-05; old `/s/grade5a-drop-zone` retired — hyphen breaks NC
+  31.0.1 public DAV). Sets `collabProvisioned: true` + `fileRequest`.
+
 ## Nextcloud Form3
 
 Deferred until Form3 Kolibri green + Walker cost confirmed (this run: Kolibri-only).

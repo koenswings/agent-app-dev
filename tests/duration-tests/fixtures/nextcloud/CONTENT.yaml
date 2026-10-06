@@ -1,7 +1,7 @@
 # Stable logical content IDs for duration-tests Nextcloud walks (idea#166).
 
 pack: duration-nextcloud-grade5a
-version: "1.1"
+version: "1.2"
 diskId: duration-nextcloud-grade5a-001
 instanceId: nextcloud-grade5a-001
 instanceName: nextcloud
@@ -32,6 +32,8 @@ folders:
   - path: Drop Zone
     logicalId: folder-drop-grade5a
     share: file-request
+    fileRequestFolder: Drop Zone/inbox     # link targets the subfolder, never the /Drop Zone mount root
+    fileRequestToken: grade5adropzone     # created by post-dock-restore-running.sh (teacher, permissions=4); [A-Za-z0-9] only — NC 31.0.1 public uploads break on '-'
     walkerAction: open_file_drop
   - path: Collab
     logicalId: folder-collab-grade5a
@@ -40,15 +42,21 @@ collab:
   - path: Collab/Grade5A-collab-notes.md
     logicalId: collab-grade5a-01
     walkerAction: open_collab_doc
-    status: placeholder-doc
+    status: text-collab
+    editor: nextcloud-text   # shipped + enabled in koenswings/nextcloud:1.0-31.0.1
     notes: >
-      Collabora omitted in this pack. Treat as browse/open stub until a later
-      revision adds nextcloud-code + editable Office file.
+      Prefer A: Nextcloud Text real-time collaborative Markdown (sessions,
+      avatars, autosave) — no Collabora container, no extra image, 0 bytes
+      disk impact. Needs the sidecar collab apply (post-dock-restore-running.sh
+      provision_nextcloud_collab) so www-data can write the file. Collabora
+      (koenswings/nextcloud-code + richdocuments + .odt) stays Prefer B.
 
 urls:
   filesHome: "http://<engine-host>:18280/apps/files/"
   openFileDrop: "logical:folder-drop-grade5a"
+  fileRequest: "http://<engine-host>:18280/s/grade5adropzone"   # public upload-only link (teacher) on Drop Zone/inbox; see content/CONTENT.live.json fileRequest
   openCollabDoc: "logical:collab-grade5a-01"
+  collabDir: "http://<engine-host>:18280/apps/files/files?dir=/Collab"   # sidecar; docked: dir=/Grade 5A Files/Collab
   shareToClass: "logical:folder-materials-grade5a"
 
 # Phase 3 Intent → content bindings (App-owned). Playwright = Pixel.
@@ -69,12 +77,19 @@ phase_3_intent_map:
     returns: nc_browse
   open_file_drop:
     folderLogicalId: folder-drop-grade5a
+    landing: fileRequest   # public /s/<token> upload page, no login
   after_upload:
     folderLogicalId: folder-drop-grade5a
   open_collab_doc:
     collabLogicalId: collab-grade5a-01
-    status: placeholder-doc
+    status: text-collab
+    editorSelector: '[data-text-el="editor-container"]'
   close_doc:
     returns: nc_browse
   keep_editing:
-    status: blocked_until_collabora
+    status: text-collab   # was blocked (waiting for Collabora)
+    collabLogicalId: collab-grade5a-01
+    contentSelector: '[data-text-el="editor-content-wrapper"] .ProseMirror[contenteditable="true"]'
+    readonlyBarMustBeAbsent: '[data-text-el="readonly-bar"]'
+    sessionAvatars: '.text-editor__session-list .avatar-list'
+    requires: collab apply on sidecar (CONTENT.live.json collabProvisioned=true)

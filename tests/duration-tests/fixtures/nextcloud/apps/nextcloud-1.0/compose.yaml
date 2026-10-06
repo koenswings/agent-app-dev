@@ -3,9 +3,9 @@ x-app:
   title: Nextcloud
   description: >
     Duration-tests fixture (idea#166): Grade 5A Nextcloud App+Files Disk for
-    unified Markov walks. Groups / File Drop / collab stub documented under
-    files/ and CONTENT.yaml. Collabora omitted tonight — collab is a placeholder
-    document until a later pack wires koenswings/nextcloud-code.
+    unified Markov walks. Groups / File Drop / Text collab doc documented under
+    files/ and CONTENT.yaml. Collabora omitted (Prefer B) — collab uses
+    Nextcloud Text (shipped) on Collab/Grade5A-collab-notes.md.
   url: https://nextcloud.com/
   category: office
   icon: nextcloud.png

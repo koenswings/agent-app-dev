@@ -13,7 +13,7 @@ Pixel; walker YAML / settle / invariants are Axle; claim/teardown is Atlas
 
 | Gate | How this pack answers |
 |------|------------------------|
-| Versioned App fixtures (not ad-hoc) | Trees under `fixtures/{empty,empty-002,kolibri,nextcloud,kolibri-form3}/` with stable `diskId` (+ `instanceId` / CONTENT where applicable) |
+| Versioned App fixtures (not ad-hoc) | Trees under `fixtures/{empty,empty-002,kolibri,nextcloud,kolibri-form3,kiwix}/` with stable `diskId` (+ `instanceId` / CONTENT where applicable) |
 | Don’t equate Playwright browser watchers with idea#159 HTTP stream Ns | Documented in Kolibri `content/seed-notes.md` and `walker-ref.yaml` — #159 Ns are HTTP Range planning figures only |
 | Class-instance selectors are Console/Pixel | Fixtures expose stable instance + content logical IDs only; no Console `data-testid` claims |
 
@@ -61,14 +61,14 @@ tests/duration-tests/
   README.md                 ← this file
   walker-ref.yaml           ← fixture diskIds + Phase 1–2 / future Intent map
   scripts/
-    post-dock-restore-running.sh  ← Atlas one-shot after dock (sidecar Kolibri :18080 + Nextcloud :18280)
+    post-dock-restore-running.sh  ← Atlas one-shot after dock (sidecar Kolibri :18080 + Nextcloud :18280 + Kiwix :18380)
   fixtures/
     empty/                  ← META-only empty disk (EmptyDiskPanel), idea-test-3
     empty-002/              ← second META-only empty disk for erase-after-backup, idea-test-4
     kolibri/                ← App Disk tree + content catalogue
     nextcloud/              ← App+Files Disk tree + preload folders
     kolibri-form3/          ← Khan Form 3 pack
-    kiwix/README.md         ← deferred (Phase 3 / optional)
+    kiwix/                  ← Kiwix App Disk tree + 62 KB CC0 stub ZIM (Prefer A)
 ```
 
 ## Teacher inspection PDFs (no Kolibri rebuild)
@@ -89,8 +89,8 @@ Each Duration Lesson assigns all 3 videos and all 3 exercises (not video 01 + ex
 | **Empty 002** | `duration-empty-002` | — | Second META-only empty disk for erase-after-backup; source `fixtures/empty-002/`; Atlas dock `idea-test-4`, alongside `idea-test-3` = `duration-empty-001` |
 | Kolibri Grade 5A | `duration-kolibri-grade5a-001` | `kolibri-grade5a-001` | Dockable tree for `infra_dock_fixture`; Phase 3 Intent bindings for `open_kolibri_as_*` / `open_video` / coaching. Synthetic smoke OK; Khan remap pins in `CONTENT.khan-remap.json` (HOLD live switch until import verified) |
 | Kolibri Form 3 | `duration-kolibri-form3-001` | `kolibri-form3-001` | Khan EN-US Variables & expressions 3V+3E (`fixtures/kolibri-form3/`). Import via `scripts/import-khan-topic-slice.sh form3`. NC Form 3 after Kolibri Form 3 only |
-| Nextcloud Grade 5A | `duration-nextcloud-grade5a-001` | `nextcloud-grade5a-001` | Dockable App+Files tree; Phase 3 bindings for `open_nextcloud_as_*` / share / File Drop / collab stub |
-| Kiwix | — | — | **Not included** — Wikipedia Intents blocked |
+| Nextcloud Grade 5A | `duration-nextcloud-grade5a-001` | `nextcloud-grade5a-001` | Dockable App+Files tree; Phase 3 bindings for `open_nextcloud_as_*` / share / File Drop / Text collab doc (`keep_editing`) |
+| Kiwix (idea-A) | `duration-kiwix-ideaa-001` | `kiwix-ideaa-001` | `ghcr.io/kiwix/kiwix-serve:3.8.2` on `:18380` serving a 7-article CC0 stub ZIM with full-text search — `open_wikipedia_*` / `search_browse_wikipedia` / `leave_wikipedia_*` (live apply on idea01 pending) |
 
 ### Kolibri content notes
 
@@ -109,13 +109,13 @@ Each Duration Lesson assigns all 3 videos and all 3 exercises (not video 01 + ex
 - `x-app.filesMount` on; `FILES.yaml` share name **Grade 5A Files**
 - Preload dirs under `fixtures/nextcloud/files/`:
   - `Class Materials/` — view-only share to group Grade 5A
-  - `Drop Zone/` — File Drop / file-request target
-  - `Collab/Grade5A-collab-notes.md` — **placeholder** (Collabora/`code` service omitted tonight)
+  - `Drop Zone/inbox/` — File Drop / file-request target (link on the `inbox` subfolder, not the `Drop Zone` mount root)
+  - `Collab/Grade5A-collab-notes.md` — collaborative doc in **Nextcloud Text** (shipped; real-time sessions/avatars). Collabora/`code` = Prefer B, not shipped
 - Port in fixture `.env`: `18280` (password via `${pass}`, not hardcoded in compose)
 
 ### Kiwix
 
-See [`fixtures/kiwix/README.md`](fixtures/kiwix/README.md). **Deferred Phase 3+4** (no minimal ZIM without App Disk redesign) — Steve deferral list.
+See [`fixtures/kiwix/README.md`](fixtures/kiwix/README.md). Prefer A stub: `duration-kiwix-ideaa-001` / `kiwix-ideaa-001`, book `duration_wikipedia_en_grade5a_stub_2026-10`, `:18380`. Was on Steve's deferral list; a 62 KB CC0 ZIM (built by `content/seed/build_stub_zim.py`) avoided the App Disk redesign.
 
 ## How walker YAML should reference these
 
@@ -136,7 +136,10 @@ fixtures:
     path: tests/duration-tests/fixtures/nextcloud
     diskId: duration-nextcloud-grade5a-001
     instanceId: nextcloud-grade5a-001
-# kiwix: omit for Phase 1–2
+  kiwix:
+    path: tests/duration-tests/fixtures/kiwix
+    diskId: duration-kiwix-ideaa-001
+    instanceId: kiwix-ideaa-001
 
 # illustrative infra edges
 # infra_dock_fixture → diskId: duration-kolibri-grade5a-001
@@ -171,7 +174,7 @@ Full App-side Intent map: [`walker-ref.yaml`](walker-ref.yaml) → `phase_3_inte
 | `open_kolibri_as_learner` | kolibri | `kolibri-grade5a-001` | `:18080/learn/#/topics` (user `learner01`…) |
 | `open_nextcloud_as_teacher` | nextcloud | `nextcloud-grade5a-001` | `:18280/apps/files/` (user `teacher`) |
 | `open_nextcloud_as_learner` | nextcloud | `nextcloud-grade5a-001` | `:18280/apps/files/` (user `student01`…) |
-| `open_wikipedia_as_*` | — | — | **Blocked** — Kiwix fixture deferred |
+| `open_wikipedia_as_*` | kiwix | `kiwix-ideaa-001` | `:18380/viewer#duration_wikipedia_en_grade5a_stub_2026-10/Main_Page` (no login) |
 
 ### Kolibri deeper usage / coaching
 
@@ -193,11 +196,11 @@ Full App-side Intent map: [`walker-ref.yaml`](walker-ref.yaml) → `phase_3_inte
 | `browse_folders` | materials / drop / collab folders | |
 | `share_to_class` | `folder-materials-grade5a` → group Grade 5A, view-only | |
 | `done_sharing` | — | close share dialog |
-| `open_file_drop` | `folder-drop-grade5a` | |
+| `open_file_drop` | `folder-drop-grade5a` | public file request `:18280/s/grade5adropzone` on `Drop Zone/inbox` (CONTENT.live.json `fileRequest.url`) |
 | `after_upload` / `leave_file_drop` | — | |
-| `open_collab_doc` | `collab-grade5a-01` | **placeholder-doc** (no Collabora) |
+| `open_collab_doc` | `collab-grade5a-01` | Nextcloud **Text** editor (`Collab/Grade5A-collab-notes.md`) |
 | `close_doc` | — | |
-| `keep_editing` | — | **Blocked** until `nextcloud-code` pack |
+| `keep_editing` | `collab-grade5a-01` | Type in Text editor; needs sidecar collab apply (`collabProvisioned=true`) |
 | `leave_nextcloud_as_*` | — | Pixel Console nav |
 
 ### Operator fixture refs (Console = Pixel)
@@ -211,8 +214,8 @@ idea03 Intenso hardware Files Disk.
 
 | Blocker | Blocks | Owner |
 |---------|--------|-------|
-| Kiwix fixture absent | `open_wikipedia_as_*` | Kid (deferred) |
-| Collabora omitted | `keep_editing` | Kid (deferred) |
+| Kiwix sidecar not yet applied on idea01 | `open_wikipedia_as_*`, `search_browse_wikipedia` | Atlas/Kid (pool free) |
+| Nextcloud collab apply not yet re-run on pool | `keep_editing` (doc read-only until then), `share_to_class` (`enable_sharing`), `open_file_drop` / `after_upload` (file request link) | Atlas/Kid (pool free) |
 | Pixel Playwright Phase 3 | all usage Playwright adapters | Pixel |
 | Kolibri re-provision | facility/class/lesson/user Morango IDs mutate (`CONTENT.live.json` refresh) | Kid (Pixel re-pin live) |
 
@@ -227,7 +230,7 @@ Same keys as Phase 3 above; kept so older notes still resolve:
 | `browse_classes` | `class-grade5a` | kolibri |
 | `share_to_class` | `folder-materials-grade5a` (group Grade 5A, view-only) | nextcloud |
 | `open_file_drop` | `folder-drop-grade5a` | nextcloud |
-| `open_collab_doc` | `collab-grade5a-01` (placeholder doc) | nextcloud |
+| `open_collab_doc` | `collab-grade5a-01` (Nextcloud Text doc) | nextcloud |
 
 ## Stable vs mutable IDs (for Steve / Pixel / Axle)
 
@@ -349,10 +352,67 @@ bash tests/duration-tests/scripts/post-dock-restore-running.sh \
 
 Storage-only Kolibri helper: `fixtures/kolibri/content/seed/apply-live.sh`.
 
+## Prefer A: Nextcloud collab + Kiwix (idea01+03+04)
+
+**Nextcloud `keep_editing` / `open_collab_doc`** — Nextcloud Text (shipped and
+enabled in `koenswings/nextcloud:1.0-31.0.1`) edits
+`Collab/Grade5A-collab-notes.md` collaboratively (sessions, avatars, autosave).
+No Collabora container, no new image, no disk-size change. One-time apply on
+the pool sidecar (re-run is idempotent):
+
+```bash
+bash tests/duration-tests/scripts/post-dock-restore-running.sh --mode sidecar --apps nextcloud
+# provision_nextcloud_collab: Text/Viewer on, chown Collab + Drop Zone to www-data,
+# enable_sharing + applicable group "Grade 5A" on the /mnt/idea-files mounts, files:scan
+```
+
+The same run also creates the **Drop Zone file request** (teacher, public
+upload-only link, `permissions=4`, on the subfolder **`Drop Zone/inbox`**,
+custom token `grade5adropzone` → `http://<host>:18280/s/grade5adropzone`;
+random token recorded if the server refuses custom tokens). Logic:
+`scripts/nc-drop-zone-request.py` (fake-OCS unit test) — it deletes any link
+share on the `/Drop Zone` mount root first. Custom tokens must be
+`[A-Za-z0-9]` only: Nextcloud 31.0.1 `publicremote.php` matches the public DAV
+token with `\w+`, so the retired `grade5a-drop-zone` was cut to `grade5a` and
+every public PROPFIND/upload returned HTTP 500 ("This directory is
+unavailable"). The fixture `10-idea-files.sh` copies (duration pack
+only — production app-nextcloud hook untouched) now set `enable_sharing=true`
+on every own mount at container start, so `share_to_class` works on both the
+sidecar folders and the docked `Grade 5A Files` mount.
+
+**First-run wizard off (duration only).** NC 31's `firstrunwizard` opens a
+modal overlay (`#firstrunwizard`) on first login that covers the Files UI, so
+`nextcloud-share-smoke` (teacher Files click) and learner Files Intents fail.
+The same sidecar run (`disable_nextcloud_firstrunwizard`, idempotent) does:
+
+```bash
+occ app:disable firstrunwizard
+occ config:app:set firstrunwizard wizard_enabled --value=false --type=boolean
+occ user:setting <u> firstrunwizard show 31.0.0   # admin teacher student01..03
+```
+
+`show` is the last-seen changelog version in firstrunwizard 4.x, so `show=0`
+would still trigger the wizard on NC 31. The duration `10-idea-files.sh` hook
+copies also run `occ app:disable firstrunwizard` on every container start
+(covers `--mode dock-compose`, which skips the user seed). Production
+app-nextcloud hook untouched.
+
+Pixel reads `fixtures/nextcloud/content/CONTENT.live.json` → `collab`,
+`folders`, `shares`, `fileRequest`, `filesLayout`, `intentStatus`.
+
+**Kiwix** — see [`fixtures/kiwix/README.md`](fixtures/kiwix/README.md):
+
+```bash
+docker pull ghcr.io/kiwix/kiwix-serve:3.8.2     # idea01
+bash tests/duration-tests/scripts/post-dock-restore-running.sh --mode sidecar --apps kiwix
+```
+
+Pixel reads `fixtures/kiwix/content/CONTENT.live.json` → `urls`, `intentResolution`.
+
 ## Out of scope / still deferred
 
-- Collabora live editing (`keep_editing`)
-- Kiwix / Wikipedia fixture + ZIM blobs (**deferred Phase 3+4**)
+- Collabora / Nextcloud Office (`keep_editing` uses Nextcloud Text instead — Prefer B only if Office formats are required)
+- Real Wikipedia ZIMs (multi-MB/GB; Atlas fetches onto a host if ever needed — never committed)
 - Full-length classroom videos (pack ships a 3s stub; #159 encodes stay separate)
 - Re-running live Kolibri channel import (auth IDs mutable on re-provision)
 - Lesson-chrome Intents without Kolibri image `data-testid`s (see LESSON_CHROME.md)

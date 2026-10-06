@@ -1,0 +1,32 @@
+{
+  "pack": "duration-kiwix-ideaa",
+  "version": "1.0",
+  "diskId": "duration-kiwix-ideaa-001",
+  "instanceId": "kiwix-ideaa-001",
+  "liveStatus": "pending_apply_idea01",
+  "verifiedOnBox": "2026-10-05 kiwix-serve 3.8.2 x86_64: / 200, viewer 200, content/<book>/ 302→Main_Page, search pattern=fraction → 4 results, suggest term=frac → Fraction",
+  "host": null,
+  "kiwixHttpPort": 18380,
+  "image": "ghcr.io/kiwix/kiwix-serve:3.8.2",
+  "sidecarRoot": "/home/pi/idea166-kiwix-live",
+  "container": "idea166-kiwix-live",
+  "bookName": "duration_wikipedia_en_grade5a_stub_2026-10",
+  "zimFile": "duration_wikipedia_en_grade5a_stub_2026-10.zim",
+  "auth": null,
+  "urls": {
+    "library": "http://<host>:18380/",
+    "viewerHome": "http://<host>:18380/viewer#duration_wikipedia_en_grade5a_stub_2026-10/Main_Page",
+    "contentHome": "http://<host>:18380/content/duration_wikipedia_en_grade5a_stub_2026-10/",
+    "contentArticle": "http://<host>:18380/content/duration_wikipedia_en_grade5a_stub_2026-10/<path>",
+    "search": "http://<host>:18380/search?books.name=duration_wikipedia_en_grade5a_stub_2026-10&pattern=<q>"
+  },
+  "intentResolution": {
+    "open_wikipedia_as_teacher": { "url": "viewerHome", "expectTitle": "Grade 5A Offline Wikipedia" },
+    "open_wikipedia_as_learner": { "url": "viewerHome", "expectTitle": "Grade 5A Offline Wikipedia" },
+    "search_browse_wikipedia": { "searchTerm": "fraction", "resultPath": "Fraction", "expectTitle": "Fraction", "followLink": "Numerator" },
+    "leave_wikipedia_as_learner": { "returns": "console_learner" },
+    "leave_wikipedia_as_teacher": { "returns": "console_teacher" }
+  },
+  "hosts": {},
+  "note": "No login (Kiwix is anonymous). Apply on idea01 when pool is free: docker pull ghcr.io/kiwix/kiwix-serve:3.8.2 && bash tests/duration-tests/scripts/post-dock-restore-running.sh --mode sidecar --apps kiwix (rewrites host/hosts/liveStatus). Console Running card still needs Engine dock with instances/ (startInstances)."
+}

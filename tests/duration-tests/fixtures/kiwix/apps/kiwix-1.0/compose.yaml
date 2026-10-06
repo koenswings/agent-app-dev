@@ -1,0 +1,27 @@
+x-app:
+  name: kiwix
+  title: Kiwix
+  description: >
+    Duration-tests fixture (idea#166 Prefer A): offline "Wikipedia" for
+    wiki_browse walks. Serves a 62 KB CC0 stub ZIM (7 articles, full-text
+    index) from instances/<id>/data/. Not real Wikipedia content.
+  url: https://www.kiwix.org
+  category: education
+  icon: kiwix.png
+  author: Kid (App Dev Bot)
+  version: 1.0-duration
+  instanceName: kiwix
+
+services:
+  kiwix:
+    # Official multi-arch (arm64) kiwix-serve. Not yet retagged as
+    # koenswings/kiwix (app-kiwix app.yaml plans 1.0-3.x) — pre-pull on the
+    # pool Pi before dock: docker pull ghcr.io/kiwix/kiwix-serve:3.8.2
+    image: ghcr.io/kiwix/kiwix-serve:3.8.2
+    restart: no
+    pull_policy: never
+    command: ["duration_wikipedia_en_grade5a_stub_2026-10.zim"]
+    volumes:
+      - ./data:/data:ro
+    ports:
+      - ${port}:8080

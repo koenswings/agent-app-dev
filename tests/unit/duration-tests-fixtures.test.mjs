@@ -199,14 +199,145 @@ describe('duration-tests fixtures (idea#166)', () => {
     assert.match(content, /name:\s*Grade 5A/);
     assert.match(content, /folder-drop-grade5a/);
     assert.match(content, /collab-grade5a-01/);
-    assert.match(content, /placeholder-doc/);
+    // Prefer A: Nextcloud Text collab (Collabora = Prefer B, not shipped)
+    assert.match(content, /status:\s*text-collab/);
+    assert.match(content, /editor:\s*nextcloud-text/);
+    assert.doesNotMatch(content, /blocked_until_collabora/);
   });
 
-  it('kiwix is explicitly deferred (Phase 3 / optional)', () => {
-    const readme = readFileSync(join(FIX, 'kiwix/README.md'), 'utf8');
-    assert.match(readme, /deferred|Phase 3|Steve deferral|omit/i);
-    // No App Disk tree shipped yet
-    assert.equal(existsSync(join(FIX, 'kiwix/META.yaml')), false);
+  it('nextcloud CONTENT.live.json exposes Prefer A collab/folders/shares keys for Pixel', () => {
+    const live = JSON.parse(readFileSync(join(FIX, 'nextcloud/content/CONTENT.live.json'), 'utf8'));
+    assert.equal(live.diskId, 'duration-nextcloud-grade5a-001');
+    assert.equal(live.instanceId, 'nextcloud-grade5a-001');
+    const pw = Object.fromEntries(live.accounts.map((a) => [a.username, a.passwordHint]));
+    assert.equal(pw.teacher, 'TeacherGrade5A!');
+    assert.equal(pw.student01, 'Student01Grade5A!');
+    assert.deepEqual(live.groups[0].members, ['teacher', 'student01', 'student02', 'student03']);
+    assert.deepEqual(live.folders.map((f) => f.name), ['Class Materials', 'Drop Zone', 'Collab']);
+    for (const f of live.folders) {
+      assert.equal(f.sidecarPath, `/${f.name}`);
+      assert.equal(f.dockedPath, `/Grade 5A Files/${f.name}`);
+    }
+    assert.equal(live.collab.logicalId, 'collab-grade5a-01');
+    assert.equal(live.collab.editor, 'nextcloud-text');
+    assert.equal(live.collab.collabora, false);
+    assert.equal(live.collab.sidecarPath, '/Collab/Grade5A-collab-notes.md');
+    mustExist(join(FIX, 'nextcloud/files', live.collab.sidecarPath), 'collab doc on Files Disk');
+    assert.match(live.collab.selectors.content, /ProseMirror/);
+    assert.match(live.collab.selectors.readonlyBarMustBeAbsent, /readonly-bar/);
+    assert.equal(live.shares.group, 'Grade 5A');
+    assert.ok('collabProvisioned' in live);
+    assert.match(live.urls.collabDir, /:18280\/apps\/files\/files\?dir=\/Collab$/);
+    // File request lives on the inbox SUBFOLDER, never the /Drop Zone mount root
+    assert.equal(live.fileRequest.folder, 'Drop Zone/inbox');
+    assert.equal(live.fileRequest.path, '/Drop Zone/inbox');
+    assert.equal(live.fileRequest.mountRoot, '/Drop Zone');
+    assert.equal(live.fileRequest.permissions, 4);
+    assert.equal(live.fileRequest.shareType, 3);
+    // NC 31.0.1 public DAV (publicremote.php \w+) breaks on '-' in tokens
+    assert.match(live.fileRequest.token, /^[A-Za-z0-9]+$/);
+    // 2d9a052 pins idea01 (raw Tailscale IP → HTTP 400 from the box); <host> template also ok
+    assert.match(live.fileRequest.url, /^http:\/\/(<host>|idea0[134]):18280\/s\/grade5adropzone$/);
+    assert.equal(live.urls.fileRequest, live.fileRequest.url);
+    mustExist(join(FIX, 'nextcloud/files/Drop Zone/inbox/.gitkeep'), 'Drop Zone/inbox');
+    const script = read('scripts/post-dock-restore-running.sh');
+    assert.match(script, /create_drop_zone_request/);
+    assert.match(script, /shareapi_allow_custom_tokens/);
+    assert.match(script, /DROP_ZONE_PATH="\/Drop Zone\/inbox"/);
+    assert.match(script, /DROP_ZONE_TOKEN="\$\{DROP_ZONE_TOKEN:-grade5adropzone\}"/);
+    assert.match(script, /mkdir -p "\$d" && chown 33:33 "\$d"/);
+    assert.match(script, /nc-drop-zone-request\.py/);
+    assert.match(read('scripts/nc-drop-zone-request.py'), /"permissions": 4/);
+    assert.match(script, /provision_nextcloud_collab/);
+    assert.match(script, /enable_sharing/);
+    assert.match(script, /chown -R 33:33/);
+    assert.match(script, /--add-group="Grade 5A"/);
+    assert.match(script, /disable_nextcloud_firstrunwizard "\$cname"/);
+    assert.match(script, /occ app:disable firstrunwizard/);
+    assert.match(script, /firstrunwizard wizard_enabled/);
+    assert.match(script, /NC_FRW_USERS=\(admin teacher student01 student02 student03\)/);
+    assert.match(script, /user:setting "\$u" firstrunwizard show/);
+  });
+
+  it('duration nextcloud 10-idea-files.sh sets enable_sharing on own mounts (fake occ)', async () => {
+    const { mkdtempSync, mkdirSync, writeFileSync, rmSync } = await import('node:fs');
+    const { tmpdir } = await import('node:os');
+    const { spawnSync } = await import('node:child_process');
+    const rel = 'docker-entrypoint-hooks.d/before-starting/10-idea-files.sh';
+    const appHook = join(FIX, 'nextcloud/apps/nextcloud-1.0', rel);
+    const instHook = join(FIX, 'nextcloud/instances/nextcloud-grade5a-001', rel);
+    assert.equal(readFileSync(appHook, 'utf8'), readFileSync(instHook, 'utf8'), 'app + instance hook copies identical');
+    const tmp = mkdtempSync(join(tmpdir(), 'dur-nc-hook-'));
+    try {
+      const files = join(tmp, 'files');
+      mkdirSync(join(files, 'grade-5a-files-abc123'), { recursive: true });
+      const state = join(tmp, 'occ.json');
+      writeFileSync(state, JSON.stringify({ ready: true, filesExternalEnabled: false, storages: [], nextId: 1, calls: [] }));
+      const env = { ...process.env, IDEA_FILES_ROOT: files, OCC: join(__dirname, 'fake-occ.mjs'), FAKE_OCC_STATE: state };
+      for (let i = 0; i < 2; i++) {
+        const r = spawnSync('sh', [instHook], { env, encoding: 'utf8' });
+        assert.equal(r.status, 0, r.stderr + r.stdout);
+      }
+      const st = JSON.parse(readFileSync(state, 'utf8'));
+      assert.equal(st.storages.length, 1);
+      assert.ok(st.storages[0].options.enable_sharing, 'enable_sharing set on own mount');
+      assert.ok(st.storages[0].options.idea_files);
+      // second run (container restart) re-asserts it on the kept storage
+      const sets = st.calls.filter((c) => c[0] === 'files_external:option' && c.includes('enable_sharing'));
+      assert.ok(sets.length >= 2, `enable_sharing asserted on create + restart (${sets.length})`);
+      // first-run wizard overlay blocks Intent Files clicks — disabled on every start
+      const frw = st.calls.filter((c) => c[0] === 'app:disable' && c[1] === 'firstrunwizard');
+      assert.equal(frw.length, 2, 'occ app:disable firstrunwizard on each container start');
+    } finally {
+      rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+
+  it('kiwix Prefer A App Disk tree ships a small searchable stub ZIM', () => {
+    const kw = join(FIX, 'kiwix');
+    mustExist(join(kw, 'README.md'), 'kiwix README');
+    mustExist(join(kw, 'META.yaml'), 'kiwix META');
+    mustExist(join(kw, 'apps/kiwix-1.0/compose.yaml'), 'kiwix app compose');
+    mustExist(join(kw, 'instances/kiwix-ideaa-001/compose.yaml'), 'kiwix instance compose');
+    mustExist(join(kw, 'instances/kiwix-ideaa-001/.env'), 'kiwix instance .env');
+    mustExist(join(kw, 'content/CONTENT.yaml'), 'kiwix CONTENT.yaml');
+    mustExist(join(kw, 'content/CONTENT.live.json'), 'kiwix CONTENT.live.json');
+    mustExist(join(kw, 'content/seed/build_stub_zim.py'), 'kiwix ZIM builder');
+
+    assert.match(readFileSync(join(kw, 'META.yaml'), 'utf8'), /diskId:\s*duration-kiwix-ideaa-001/);
+    assert.match(readFileSync(join(kw, 'instances/kiwix-ideaa-001/.env'), 'utf8'), /^port=18380$/m);
+
+    const book = 'duration_wikipedia_en_grade5a_stub_2026-10';
+    const zim = join(kw, `instances/kiwix-ideaa-001/data/${book}.zim`);
+    mustExist(zim, 'stub ZIM');
+    const buf = readFileSync(zim);
+    assert.equal(buf.readUInt32LE(0), 0x044d495a, 'ZIM magic');
+    assert.ok(buf.length < 512 * 1024, `stub ZIM must stay small (${buf.length} B)`);
+
+    for (const rel of ['apps/kiwix-1.0/compose.yaml', 'instances/kiwix-ideaa-001/compose.yaml']) {
+      const compose = readFileSync(join(kw, rel), 'utf8');
+      assert.match(compose, /name:\s*kiwix/);
+      assert.match(compose, /image:\s*ghcr\.io\/kiwix\/kiwix-serve:3\.8\.2/);
+      assert.match(compose, /pull_policy:\s*never/);
+      assert.match(compose, new RegExp(`${book}\\.zim`));
+      assert.match(compose, /\$\{port\}:8080/);
+    }
+
+    const content = readFileSync(join(kw, 'content/CONTENT.yaml'), 'utf8');
+    assert.match(content, /instanceId:\s*kiwix-ideaa-001/);
+    assert.match(content, /phase_3_intent_map:/);
+    for (const key of ['open_wikipedia_as_teacher', 'open_wikipedia_as_learner', 'search_browse_wikipedia', 'leave_wikipedia_as_learner', 'leave_wikipedia_as_teacher']) {
+      assert.match(content, new RegExp(`${key}:`));
+    }
+    assert.match(content, /license:\s*CC0-1\.0/);
+
+    const live = JSON.parse(readFileSync(join(kw, 'content/CONTENT.live.json'), 'utf8'));
+    assert.equal(live.diskId, 'duration-kiwix-ideaa-001');
+    assert.equal(live.instanceId, 'kiwix-ideaa-001');
+    assert.equal(live.bookName, book);
+    assert.equal(live.kiwixHttpPort, 18380);
+    assert.equal(live.urls.viewerHome, `http://<host>:18380/viewer#${book}/Main_Page`);
+    assert.equal(live.intentResolution.search_browse_wikipedia.searchTerm, 'fraction');
   });
 
   it('walker-ref.yaml points at stable diskIds, locked Phase 1–2 keys, and notes #159', () => {
@@ -219,7 +350,9 @@ describe('duration-tests fixtures (idea#166)', () => {
     assert.match(ref, /video-grade5a-01/);
     assert.match(ref, /folder-drop-grade5a/);
     assert.match(ref, /idea#159/);
-    assert.match(ref, /kiwix:[\s\S]*included:\s*false/);
+    assert.match(ref, /kiwix:[\s\S]*included:\s*true/);
+    assert.match(ref, /duration-kiwix-ideaa-001/);
+    assert.match(ref, /search_browse_wikipedia:/);
     // Axle-locked Phase 1–2 action keys
     for (const key of [
       'open_console_as_teacher',
@@ -240,7 +373,7 @@ describe('duration-tests fixtures (idea#166)', () => {
     assert.match(ref, /open_video:/);
     assert.match(ref, /open_file_drop:/);
     // Phase 3 App-owned deeper Intent map
-    assert.match(ref, /pack_version:\s*"1\.5"/);
+    assert.match(ref, /pack_version:\s*"1\.6"/);
     assert.match(ref, /id_stability:/);
     assert.match(ref, /contentLive:/);
     assert.match(ref, /mutable_on_reprovision:/);
@@ -262,6 +395,7 @@ describe('duration-tests fixtures (idea#166)', () => {
     assert.match(ref, /selector_binding:\s*Pixel Phase 3/);
     assert.match(ref, /blocked_until_collabora|Collabora/);
     assert.match(ref, /Kiwix App Disk omitted/);
+    assert.match(ref, /text-collab/);
     assert.match(ref, /contentSeeded:/);
     assert.match(ref, /live_imported_idea01_2026-10-01/);
     assert.match(ref, /CONTENT\.live\.json/);
