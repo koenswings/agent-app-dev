@@ -237,6 +237,50 @@ YAML
   fi
 }
 
+# Seed the live Files tree (Class Materials / Drop Zone / Collab) from the
+# fixture pack WITHOUT rewriting files whose content already matches.
+# WHY (idea#166 cover-all r37 step 82 keep_editing, HTTP 409): Nextcloud derives
+# a Local-storage file's etag from its mtime/inode/size. Bumping the mtime of an
+# unchanged Collab doc (touch, cp -a / rsync -a re-copy, temp-file rename) gives
+# it a new etag on the next files:scan, and Nextcloud Text then treats every
+# open session as conflicting with an external change -> every Text sync 409s.
+# So: missing file -> copy; same content (cmp -s) -> leave it completely alone
+# (no write, no utime, no chmod); different content -> overwrite IN PLACE (keeps
+# inode/owner; only that file gets a new mtime/etag, which is a real change).
+# A file we cannot write (already chowned to www-data uid 33 by a previous run)
+# is kept as-is with a NOTE — never fatal.
+sync_fixture_files() {
+  local src="$1" dst="$2" rel s d
+  local copied=0 updated=0 unchanged=0 kept=0
+  [[ -d "$src" ]] || return 0
+  mkdir -p "$dst" 2>/dev/null || true
+  while IFS= read -r -d '' rel; do
+    rel="${rel#./}"
+    [[ -d "$dst/$rel" ]] || mkdir -p "$dst/$rel" 2>/dev/null || \
+      echo "NOTE: cannot create $dst/$rel (not writable) — skipped" >&2
+  done < <(cd "$src" && find . -mindepth 1 -type d -print0)
+  while IFS= read -r -d '' rel; do
+    rel="${rel#./}"
+    s="$src/$rel"; d="$dst/$rel"
+    if [[ -f "$d" ]]; then
+      if cmp -s "$s" "$d"; then
+        unchanged=$((unchanged + 1))
+      elif cp -- "$s" "$d" 2>/dev/null; then
+        updated=$((updated + 1))
+      else
+        kept=$((kept + 1))
+        echo "NOTE: $d differs from fixture but is not writable — kept live copy" >&2
+      fi
+    elif cp --preserve=mode -- "$s" "$d" 2>/dev/null; then
+      copied=$((copied + 1))
+    else
+      kept=$((kept + 1))
+      echo "NOTE: cannot create $d (not writable) — skipped" >&2
+    fi
+  done < <(cd "$src" && find . -type f -print0)
+  echo "fixture files → $dst: new=$copied updated=$updated unchanged=$unchanged kept=$kept"
+}
+
 ensure_nextcloud_sidecar_tree() {
   local root="$1"
   local pack_inst="$PACK_ROOT/nextcloud/instances/$INST_NC"
@@ -252,7 +296,7 @@ ensure_nextcloud_sidecar_tree() {
     chmod +x "$root/idea-files-entrypoint.sh" 2>/dev/null || true
   fi
   if [[ -d "$pack_files" ]]; then
-    rsync -a "$pack_files"/ "$root/files/" 2>/dev/null || cp -a "$pack_files"/. "$root/files/" || true
+    sync_fixture_files "$pack_files" "$root/files"
   fi
 
   cat > "$root/.env" <<ENV
@@ -430,11 +474,15 @@ provision_nextcloud_collab() {
   # 2. The entrypoint wrapper chowns only top-level /mnt/idea-files/* dirs; the
   #    preload files keep the host uid (pi) + 0644, so www-data cannot write them
   #    and Text opens the collab doc read-only. Hand Collab + Drop Zone to uid 33.
+  #    chown only — NEVER touch/re-copy the files here: a new mtime on an unchanged
+  #    file bumps its etag on the next scan and Nextcloud Text then 409s every
+  #    sync (cover-all r37 step 82 keep_editing). chown does not change mtime,
+  #    and step 4's files:scan alone picks up the new permissions (the scanner
+  #    keeps the old etag when storage_mtime is unchanged) and any new files.
   docker exec -u root "$cname" sh -c '
     for d in "/mnt/idea-files/Collab" "/mnt/idea-files/Drop Zone"; do
       [ -d "$d" ] || continue
       chown -R 33:33 "$d"
-      find "$d" -type f -exec touch {} +
     done' || { echo "WARN: chown Collab/Drop Zone failed" >&2; ok=0; }
   # 3. Hook-created Local storages: enable_sharing defaults to false in Nextcloud,
   #    which blocks share_to_class. Also scope the mounts to group Grade 5A.
@@ -867,9 +915,13 @@ restore_dock_compose() {
   echo "so instanceDB.status becomes Running and Open is clickable."
 }
 
-case "$MODE" in
-  sidecar) restore_sidecar ;;
-  dock-instances) restore_dock_instances ;;
-  dock-compose) restore_dock_compose ;;
-  *) echo "unknown --mode $MODE (sidecar|dock-compose|dock-instances)" >&2; exit 2 ;;
-esac
+# Sourced (unit tests: tests/unit/duration-tests-fixtures.test.mjs) → define
+# functions only; executed → run the selected mode.
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+  case "$MODE" in
+    sidecar) restore_sidecar ;;
+    dock-instances) restore_dock_instances ;;
+    dock-compose) restore_dock_compose ;;
+    *) echo "unknown --mode $MODE (sidecar|dock-compose|dock-instances)" >&2; exit 2 ;;
+  esac
+fi

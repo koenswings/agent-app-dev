@@ -293,6 +293,168 @@ describe('duration-tests fixtures (idea#166)', () => {
     }
   });
 
+  it('post-dock-restore never touches / blindly re-copies Collab, Drop Zone, Class Materials files', () => {
+    // cover-all r37 step 82 keep_editing: `find Collab -type f -exec touch {} +`
+    // bumped mtime → new etag on files:scan → every Nextcloud Text sync HTTP 409.
+    const script = read('scripts/post-dock-restore-running.sh');
+    const code = script
+      .split('\n')
+      .map((l) => l.replace(/(^|\s)#.*$/, ''))
+      .join('\n');
+    assert.doesNotMatch(code, /-exec\s+touch/, 'no find … -exec touch');
+    assert.doesNotMatch(code, /\btouch\b/, 'no touch command anywhere in the script code');
+    assert.doesNotMatch(code, /rsync -a "\$pack_files"/, 'no rsync -a re-copy of the Files tree');
+    assert.doesNotMatch(code, /cp -a "\$pack_files"/, 'no cp -a re-copy of the Files tree');
+    assert.match(code, /sync_fixture_files "\$pack_files" "\$root\/files"/);
+    assert.match(code, /cmp -s "\$s" "\$d"/, 'unchanged content detected with cmp -s');
+    assert.match(code, /chown -R 33:33 "\$d"/, 'Collab/Drop Zone still handed to www-data');
+    assert.match(code, /occ files:scan teacher/, 'scan kept so new files / perms are picked up');
+    assert.match(script, /Nextcloud Text then 409s/, 'WHY comment present');
+  });
+
+  describe('post-dock-restore behaviour (sourced, fake docker/chown)', () => {
+    const SCRIPT = join(ROOT, 'scripts/post-dock-restore-running.sh');
+    const PAST = new Date('2026-01-02T03:04:05Z');
+
+    async function mkTmp(prefix) {
+      const { mkdtempSync } = await import('node:fs');
+      const { tmpdir } = await import('node:os');
+      return mkdtempSync(join(tmpdir(), prefix));
+    }
+
+    async function runBash(snippet, env) {
+      const { spawnSync } = await import('node:child_process');
+      const e = { ...process.env, ...env };
+      delete e.SKIP_PROVISION;
+      return spawnSync('bash', ['-c', `source "$PDR_SCRIPT"\n${snippet}`], {
+        env: { ...e, PDR_SCRIPT: SCRIPT },
+        encoding: 'utf8',
+      });
+    }
+
+    function listFiles(dir, base = dir, out = []) {
+      for (const name of readdirSync(dir)) {
+        const p = join(dir, name);
+        if (statSync(p).isDirectory()) listFiles(p, base, out);
+        else out.push(p.slice(base.length + 1));
+      }
+      return out;
+    }
+
+    it('sourcing defines functions without running a mode', async () => {
+      const r = await runBash('declare -F sync_fixture_files provision_nextcloud_collab >/dev/null && echo defined', {});
+      assert.equal(r.status, 0, r.stderr);
+      assert.equal(r.stdout.trim(), 'defined');
+    });
+
+    it('re-running the Files seed preserves mtime + inode of unchanged files', async () => {
+      const { cpSync, utimesSync, writeFileSync, rmSync } = await import('node:fs');
+      const tmp = await mkTmp('dur-pdr-seed-');
+      try {
+        const pack = join(tmp, 'pack');
+        const live = join(tmp, 'live');
+        cpSync(join(FIX, 'nextcloud/files'), join(pack, 'nextcloud/files'), { recursive: true });
+        const env = { PACK_ROOT: pack };
+        const seed = `ensure_nextcloud_sidecar_tree "${live}"`;
+        let r = await runBash(seed, env);
+        assert.equal(r.status, 0, r.stderr + r.stdout);
+        const files = listFiles(join(live, 'files'));
+        assert.ok(files.includes('Collab/Grade5A-collab-notes.md'), files.join(','));
+        // Simulate "already scanned by Nextcloud long ago".
+        const before = {};
+        for (const f of files) {
+          const p = join(live, 'files', f);
+          utimesSync(p, PAST, PAST);
+          const st = statSync(p);
+          before[f] = { mtimeMs: st.mtimeMs, ino: st.ino };
+        }
+        // Fixture changes between runs: one edited file + one new file.
+        writeFileSync(join(pack, 'nextcloud/files/Class Materials/welcome.txt'), 'changed fixture\n');
+        writeFileSync(join(pack, 'nextcloud/files/Collab/new-note.md'), '# new\n');
+        r = await runBash(seed, env);
+        assert.equal(r.status, 0, r.stderr + r.stdout);
+        assert.match(r.stdout, /new=1 updated=1 unchanged=\d+ kept=0/);
+        for (const f of files) {
+          if (f === 'Class Materials/welcome.txt') continue;
+          const st = statSync(join(live, 'files', f));
+          assert.equal(st.mtimeMs, before[f].mtimeMs, `mtime preserved: ${f}`);
+          assert.equal(st.ino, before[f].ino, `inode preserved: ${f}`);
+        }
+        const w = join(live, 'files/Class Materials/welcome.txt');
+        assert.equal(readFileSync(w, 'utf8'), 'changed fixture\n', 'changed fixture content applied');
+        assert.equal(statSync(w).ino, before['Class Materials/welcome.txt'].ino, 'updated in place (same inode)');
+        assert.equal(readFileSync(join(live, 'files/Collab/new-note.md'), 'utf8'), '# new\n');
+      } finally {
+        rmSync(tmp, { recursive: true, force: true });
+      }
+    });
+
+    it('provision_nextcloud_collab chowns + scans but never changes Collab/Drop Zone mtimes', async () => {
+      const { cpSync, utimesSync, writeFileSync, mkdirSync, chmodSync, rmSync } = await import('node:fs');
+      const tmp = await mkTmp('dur-pdr-collab-');
+      try {
+        const mnt = join(tmp, 'mnt');
+        cpSync(join(FIX, 'nextcloud/files'), mnt, { recursive: true });
+        const bin = join(tmp, 'bin');
+        mkdirSync(bin);
+        const dockerLog = join(tmp, 'docker.log');
+        const chownLog = join(tmp, 'chown.log');
+        writeFileSync(join(bin, 'docker'), `#!/usr/bin/env bash
+printf '%s\\n' "$*" >> "$DOCKER_LOG"
+case "$1" in
+  ps) echo idea166-nextcloud-live-app; exit 0 ;;
+  exec)
+    shift
+    while [[ "$1" == -* ]]; do case "$1" in -u|-e) shift 2 ;; *) shift ;; esac; done
+    shift # container name
+    if [[ "$1" == sh && "$2" == -c ]]; then
+      exec sh -c "\${3//\\/mnt\\/idea-files/$FAKE_MNT}"
+    fi
+    if [[ "$1" == php && "$2" == occ && "$3" == files_external:list ]]; then
+      printf '[{"mount_id":7,"configuration":{"datadir":"/mnt/idea-files/Collab"}}]'
+    fi
+    exit 0 ;;
+esac
+exit 0
+`);
+        // Non-root box: record chown instead of performing it (uid 33 needs root).
+        writeFileSync(join(bin, 'chown'), '#!/bin/sh\nprintf \'%s\\n\' "$*" >> "$CHOWN_LOG"\n');
+        chmodSync(join(bin, 'docker'), 0o755);
+        chmodSync(join(bin, 'chown'), 0o755);
+        const watched = listFiles(mnt).filter((f) => /^(Collab|Drop Zone)\//.test(f));
+        assert.ok(watched.includes('Collab/Grade5A-collab-notes.md'));
+        const before = {};
+        for (const f of watched) {
+          utimesSync(join(mnt, f), PAST, PAST);
+          const st = statSync(join(mnt, f));
+          before[f] = { mtimeMs: st.mtimeMs, ino: st.ino };
+        }
+        const r = await runBash('provision_nextcloud_collab; echo "NC_COLLAB_OK=$NC_COLLAB_OK"', {
+          PATH: `${bin}:${process.env.PATH}`,
+          DOCKER_LOG: dockerLog,
+          CHOWN_LOG: chownLog,
+          FAKE_MNT: mnt,
+        });
+        assert.equal(r.status, 0, r.stderr + r.stdout);
+        assert.match(r.stdout, /NC_COLLAB_OK=1/, r.stderr + r.stdout);
+        for (const f of watched) {
+          const st = statSync(join(mnt, f));
+          assert.equal(st.mtimeMs, before[f].mtimeMs, `mtime preserved: ${f}`);
+          assert.equal(st.ino, before[f].ino, `inode preserved: ${f}`);
+        }
+        const chowns = readFileSync(chownLog, 'utf8');
+        assert.ok(chowns.includes(`-R 33:33 ${mnt}/Collab`), chowns);
+        assert.ok(chowns.includes(`-R 33:33 ${mnt}/Drop Zone`), chowns);
+        const calls = readFileSync(dockerLog, 'utf8');
+        assert.match(calls, /php occ files:scan teacher/);
+        assert.match(calls, /files_external:option 7 enable_sharing true/);
+        assert.match(calls, /files_external:applicable --add-group=Grade 5A 7/);
+      } finally {
+        rmSync(tmp, { recursive: true, force: true });
+      }
+    });
+  });
+
   it('kiwix Prefer A App Disk tree ships a small searchable stub ZIM', () => {
     const kw = join(FIX, 'kiwix');
     mustExist(join(kw, 'README.md'), 'kiwix README');

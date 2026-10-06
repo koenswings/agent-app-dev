@@ -366,6 +366,12 @@ bash tests/duration-tests/scripts/post-dock-restore-running.sh --mode sidecar --
 # enable_sharing + applicable group "Grade 5A" on the /mnt/idea-files mounts, files:scan
 ```
 
+Re-runs never change the mtime of an unchanged file under `files/` (no
+`touch`, no `rsync -a`/`cp -a` re-copy — fixture files are copied only when
+missing or when their content differs, `cmp -s`, in place). A new mtime gives
+the file a new etag on `files:scan`, and Nextcloud Text then answers every
+sync of the open doc with HTTP 409 (cover-all r37 step 82 `keep_editing`).
+
 The same run also creates the **Drop Zone file request** (teacher, public
 upload-only link, `permissions=4`, on the subfolder **`Drop Zone/inbox`**,
 custom token `grade5adropzone` → `http://<host>:18280/s/grade5adropzone`;
