@@ -166,6 +166,33 @@ describe('duration-tests fixtures (idea#166)', () => {
     assert.doesNotMatch(compose, /password\s*[:=]\s*['"]?(?!\$\{)[^'"\s]+/i);
   });
 
+  it('kolibri compose fixtures use foreground + HTTP healthcheck (no tail -f fake Up)', () => {
+    // cover-all r40 FAIL@102: image CMD `start && tail -f` left Docker Up after Bus EXITED.
+    const paths = [
+      'kolibri/apps/kolibri-1.0/compose.yaml',
+      'kolibri/instances/kolibri-grade5a-001/compose.yaml',
+      'kolibri-form3/apps/kolibri-1.0/compose.yaml',
+      'kolibri-form3/instances/kolibri-form3-001/compose.yaml',
+    ];
+    for (const rel of paths) {
+      const compose = readFileSync(join(FIX, rel), 'utf8');
+      assert.match(compose, /command:\s*\[\"\.\/kolibri-0\.15\.5\",\s*\"start\",\s*\"--foreground\"\]/,
+        `${rel} must override CMD with foreground start`);
+      // Comment may mention the old pattern; forbid it only as an active command.
+      assert.doesNotMatch(compose, /start\s*&&\s*tail/, `${rel} must not keep start && tail CMD`);
+      assert.doesNotMatch(compose, /^\s*command:.*\btail\b/m, `${rel} command must not invoke tail`);
+      assert.match(compose, /healthcheck:/, `${rel} must declare healthcheck`);
+      assert.match(
+        compose,
+        /KOLIBRI_HTTP_PORT/,
+        `${rel} healthcheck must probe KOLIBRI_HTTP_PORT`,
+      );
+      assert.match(compose, /urlopen\(/, `${rel} healthcheck must hit HTTP`);
+      assert.match(compose, /restart:\s*on-failure/, `${rel} must restart on-failure`);
+      assert.doesNotMatch(compose, /restart:\s*no\b/, `${rel} must not keep restart: no`);
+    }
+  });
+
   it('nextcloud App+Files Disk tree has META, FILES, filesMount, preload folders', () => {
     const n = join(FIX, 'nextcloud');
     mustExist(join(n, 'META.yaml'), 'nextcloud META');
