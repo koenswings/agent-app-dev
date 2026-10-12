@@ -1,12 +1,10 @@
 # 10. Console basics
 
 ## C1. Read the Console
-1. Click **Network**. You see the Pi (Engine) and its disks. <!-- screenshot:C1-01 -->
-2. Badges show what each disk is: **app**, **backup**, **files**, **empty**. <!-- screenshot:C1-02 -->
-3. Each app shows a status: Running, Stopped, Undocked (exact labels **to confirm**). <!-- screenshot:C1-03 -->
-## C2. App not Running?
-Do not press Start. Note the app name and status, and call your operator.
-## C3. Unplugging a disk safely
-Only the operator ejects disks, with **Eject** in the Console, never during a backup. (Demonstrated on a spare disk only.) <!-- screenshot:C3-01 -->
-## C4. Buttons teachers must not touch
-**Erase this disk…**, **Install App**, **Stop**, **Make this a … Disk**. These change the system. <!-- screenshot:C4-01 -->
+1. The **Apps** page shows one card per app with a short description and a category (education, office, …). ![Console](../screenshots/CON-01.png)
+2. A card with a blue **Open** button is running. A greyed-out card with **Not available** is not.
+3. The green dot and address at the top show the Console is connected to the IDEA box. Orange "Connecting…" means wait a moment.
+## C2. App not running?
+Do not try to start it. Note the app name and tell your operator.
+## C3–C4. Operator area
+The icons top right (plug: Connection Management, person: Operator Login, clipboard: Command History, gear: Settings) are for operators. The disk view (Network, disks, Eject, Erase, Install) is only visible after **Operator Login** and is **not** covered in this teacher guide (**to confirm** with Steve whether to show it).

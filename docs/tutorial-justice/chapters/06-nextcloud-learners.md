@@ -1,11 +1,16 @@
 # 6. Nextcloud for learners (try it yourself)
 
 ## S3. Open class files and co-edit
-1. Sign in to Nextcloud as `demo-learner1` (private window). <!-- screenshot:S3-01 -->
-2. **Files** > `demo-Worksheets`: open a worksheet. Try to delete it: you cannot (view only). <!-- screenshot:S3-02 -->
-3. Open `demo-Lesson plan` and type a line. In the teacher window you see the learner's avatar and text appear. <!-- screenshot:S3-03 -->
+1. Sign in to Nextcloud as `demo-learner1` (private window). Shared folders and files appear in **Files** with the teacher's name.
+   ![Learner files](../screenshots/S3-01.png)
+2. Open `demo-Worksheets`: the learner can open and download the worksheets, not change them.
+   ![Worksheets](../screenshots/S3-02.png)
+3. Open `demo-Lesson plan.docx`: it opens in Nextcloud Office and the learner can type.
+   ![Learner in document](../screenshots/S3-03.png)
 
 ## S4. Hand in homework
-1. Open the File drop link from N3. <!-- screenshot:S4-01 -->
-2. Click or drop a file to upload (e.g. a photo of written work). <!-- screenshot:S4-02 -->
-3. The page stays empty for the learner. The teacher sees the file in `demo-Drop Zone`. <!-- screenshot:S4-03 -->
+1. Open the File drop link from N3. The page says **File drop** and shows an **Upload** button; the learner cannot see other files.
+   ![File drop](../screenshots/S4-01.png)
+2. Click **Upload** and choose the file (e.g. a photo of written work). If asked, type your name. 
+   ![Uploaded](../screenshots/S4-02.png)
+The teacher sees the file in `demo-Drop Zone` (N3).

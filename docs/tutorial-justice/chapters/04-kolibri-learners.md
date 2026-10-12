@@ -1,17 +1,24 @@
 # 4. Kolibri for learners (try it yourself)
 
-Teachers: sign in as a learner to see exactly what your class sees. Use a second device or a private browser window so you stay signed in as teacher too.
+Sign in as a learner in a second browser window (private window) to see exactly what your class sees. On the demo school, learners sign in with their **username only, no password** (facility setting; check your school's setting).
 
 ## S1. Do a lesson
-1. Open Kolibri (chapter 2). Sign in as `demo-learner1`. <!-- screenshot:S1-01 -->
-2. Click **Classes** (or **Home**, **to confirm**) and open `demo-Grade5A`. <!-- screenshot:S1-02 -->
-3. Open `demo-Fractions lesson`. You see 6 items. <!-- screenshot:S1-03 -->
-4. Watch the first video to the end. <!-- screenshot:S1-04 -->
-5. Open the first exercise. Answer, click **Check**. Keep going until the exercise shows complete. <!-- screenshot:S1-05 -->
-6. Sign out. Repeat with `demo-learner2` but stop half-way (so reports show a difference).
+1. Sign in as `demo_learner1`. **HOME** shows *Your classes*, *Recent lessons* and *Recent quizzes*.
+   ![Learner home](../screenshots/S1-01.png)
+2. Click **demo-Fractions lesson**. The 6 items are listed in order.
+   ![Lesson](../screenshots/S1-03.png)
+3. Watch the first video.
+   ![Video](../screenshots/S1-04.png)
+4. Open an exercise, type an answer, click **CHECK**. Keep going until the exercise is complete ("5 correct" goal shown at the top).
+   ![Exercise](../screenshots/S1-05.png)
+5. Sign out. Sign in as `demo_learner2` and open only one video, so the report shows a difference.
 
 ## S2. Take a quiz
-1. Sign in as `demo-learner1`, open the class, click **Quizzes**. <!-- screenshot:S2-01 -->
-2. Click the quiz, then **Start**. Answer all questions. <!-- screenshot:S2-02 -->
-3. Click **Submit**. Learner sees their result (**to confirm** whether score is shown before the teacher closes the quiz). <!-- screenshot:S2-03 -->
-Now go back to the teacher account and look at Reports (K5).
+1. Open the quiz from **Recent quizzes** (or the class page).
+   ![Quiz](../screenshots/S2-01.png)
+2. Answer each question and use **NEXT** / **PREVIOUS**. The list on the left shows answered questions.
+   ![Question](../screenshots/S2-02.png)
+3. Click **SUBMIT QUIZ** and confirm. After submitting, answers cannot be changed.
+   ![Submit](../screenshots/S2-03a.png)
+   ![After submit](../screenshots/S2-03.png)
+Now go back to the teacher window and look at Reports (K5).

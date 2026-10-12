@@ -1,10 +1,15 @@
 # 7. Wikipedia offline (Kiwix)
 
-Which Wikipedia/ZIM package is on wizardly-hugle: **to confirm** (Atlas). Works without internet.
+The demo has **Wikipedia in simple English** (text, no pictures). It works without internet.
 
 ## W1. Look something up and use it in class
-1. Open Kiwix from the Console (chapter 2). <!-- screenshot:W1-01 -->
-2. Click the Wikipedia library card. <!-- screenshot:W1-02 -->
-3. Type in the search box, e.g. `Fraction`, and open the article. <!-- screenshot:W1-03 -->
-4. Follow blue links to related articles. <!-- screenshot:W1-04 -->
+1. Open Kiwix from the Console (chapter 2). The library shows the books available.
+   ![Kiwix library](../screenshots/W1-01.png)
+2. Click **Wikipedia in simple English**. Its welcome page opens.
+   ![Wikipedia home](../screenshots/W1-02.png)
+3. Type in the search box at the top, e.g. `Fraction`. Pick a result.
+   ![Search results](../screenshots/W1-03a.png)
+   ![Fraction article](../screenshots/W1-03.png)
+4. Follow blue links to related articles.
+   ![Linked article](../screenshots/W1-04.png)
 Classroom idea: give learners 3 questions to answer from one article; they read on their own device.

@@ -1,25 +1,35 @@
 # 5. Nextcloud for teachers
 
-Demo: `demo-teacher1`, groups `demo-Grade5A` and `demo-teachers`.
-Open Nextcloud from the Console (chapter 2) and sign in. The **Files** app is where everything starts. <!-- screenshot:N0-01 -->
+Demo: `demo-teacher1`, groups `demo-Grade5A` (class) and `demo-teachers`. Office documents open in **Nextcloud Office (Collabora)**.
+Open Nextcloud from the Console (chapter 2) and sign in. Click **Files** at the top.
+![Files](../screenshots/N0-01.png)
 
 ## N1. Share worksheets with the class (view only)
-1. Open folder `demo-Worksheets` (already holds 2–3 PDF worksheets).
-2. Click the **Share** icon (person with a +) next to the folder. <!-- screenshot:N1-01 -->
-3. Under **Internal shares**, type `demo-Grade5A` and pick the group. <!-- screenshot:N1-02 -->
-4. Set permission to **View only**. <!-- screenshot:N1-03 -->
+1. Next to the folder `demo-Worksheets`, click the share icon (**Show sharing options**). The right panel opens on **Sharing**.
+   ![Sharing panel](../screenshots/N1-01.png)
+2. In **Internal shares** ("Share with accounts and teams"), type `demo-Grade5A` and pick the group.
+3. Set the permission to **View only**. The group then appears under Internal shares.
+   ![Shared with group](../screenshots/N1-03.png)
 Learners now see the folder but cannot change or delete files.
 
 ## N2. Write a document together
-1. Click **+ New** > **New document**, name it `demo-Lesson plan`. (Which editor is installed on wizardly-hugle: **to confirm**.) <!-- screenshot:N2-01 -->
-2. Pick a template. <!-- screenshot:N2-02 -->
-3. Share it with `demo-teachers` (or your class) and tick **Allow editing**. <!-- screenshot:N2-03 -->
-4. When others open it, their avatars appear top right and you see their cursors. <!-- screenshot:N2-04 -->
+1. Click **+ New** > **New document**.
+   ![New menu](../screenshots/N2-01.png)
+2. Type a name (`demo-Lesson plan`) and click **Create**.
+   ![Name](../screenshots/N2-02.png)
+3. Pick a template (Blank is fine) and click **Create**.
+   ![Template](../screenshots/N2-03a.png)
+4. Share the file with `demo-teachers` and/or your class group, with editing allowed.
+   ![Shared document](../screenshots/N2-03.png)
+5. The document opens in Nextcloud Office. When others open it at the same time, you see their names and cursors.
+   ![Office editor](../screenshots/N2-04.png)
 
 ## N3. Collect homework (File drop)
 Learners upload work, but cannot see each other's work.
-1. Click **Share** on folder `demo-Drop Zone`.
-2. Click **+** next to **Create public link**, choose **File request**. <!-- screenshot:N3-01 -->
-3. Click the clipboard icon to copy the link. <!-- screenshot:N3-02 -->
-4. Give learners the link (e.g. in Talk, or write it on the board). Uploaded files appear in your `demo-Drop Zone` folder. <!-- screenshot:N3-03 -->
-Note: File request availability in our Nextcloud version: **to confirm**.
+1. Open sharing for folder `demo-Drop Zone`.
+   ![Sharing for Drop Zone](../screenshots/N3-00.png)
+2. Under **External shares**, click **+** next to **Create public link** and choose **File request** (upload only). Copy the link.
+   ![Create link](../screenshots/N3-01.png)
+   ![Link created](../screenshots/N3-02.png)
+3. Give learners the link (write it on the board or send it in Talk). Uploaded files appear in your `demo-Drop Zone` folder.
+   ![Received homework](../screenshots/N3-03.png)

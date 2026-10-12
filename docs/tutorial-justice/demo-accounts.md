@@ -1,13 +1,15 @@
 # Demo accounts for the IDEA tutorial (wizardly-hugle)
+
+> Real accounts on wh (2026-10-12): Kolibri uses UNDERSCORES (demo_teacher1, demo_learner1-3, facility demo-School, learners sign in without password); Nextcloud uses hyphens.
 Created by **Atlas** before capture, removed by Atlas after. All carry the `demo-` prefix. Passwords: set by Atlas, kept out of this file and out of screenshots.
 Facility/site names on wizardly-hugle: **to confirm** (Atlas).
 
 | Username | App | Role | Class / group | Used in |
 |---|---|---|---|---|
-| demo-teacher1 | Kolibri | Coach (class coach for demo-Grade5A) | demo-Grade5A | K1–K5, W1 |
-| demo-learner1 | Kolibri | Learner | demo-Grade5A | S1, S2 |
-| demo-learner2 | Kolibri | Learner | demo-Grade5A | S1, S2 (2nd data point in reports) |
-| demo-learner3 | Kolibri | Learner | demo-Grade5A (enrolled live in K2) | K2 |
+| demo_teacher1 | Kolibri | Facility admin + coach | demo-Grade5A | K1–K5, W1 |
+| demo_learner1 | Kolibri | Learner | demo-Grade5A | S1, S2 |
+| demo_learner2 | Kolibri | Learner | demo-Grade5A | S1, S2 (2nd data point in reports) |
+| demo_learner3 | Kolibri | Learner | demo-Grade5A (enrolled live in K2) | K2 |
 | demo-teacher1 | Nextcloud | User (no admin) | groups: demo-Grade5A, demo-teachers | N1–N3 |
 | demo-teacher2 | Nextcloud | User (no admin) | group: demo-teachers | N2 co-editing |
 | demo-learner1 | Nextcloud | User | group: demo-Grade5A | S3, S4 |
