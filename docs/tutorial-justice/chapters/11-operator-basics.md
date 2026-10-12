@@ -28,11 +28,22 @@ For the school's IDEA operator, not for every teacher. Console v0.2.85 on the de
 1. The clipboard icon (top right) lists recent Engine commands (for example `startInstance`, `installApp`) with ✓ (done) or ✗ (failed) and how long ago. Use it when you report a problem.
    ![Command History](../screenshots/O4-01.png)
 
+## O4b. The ↺ button is REBOOT
+The small **↺** next to the Engine name is **Reboot engine** (it restarts the whole IDEA box). Never press it during lessons.
+
+## O4c. A new (unformatted) USB disk
+1. A new disk appears under the Engine with its model and size and an **UNFORMATTED** badge (e.g. "INTENSO SSD 256 GB — 256.1 GB").
+   ![Unformatted disk](../screenshots/B2-00.png)
+2. Its view shows Model, Size, "Contents unknown until the disk is erased into an empty IDEA disk", and two buttons: **Make this a Files Disk** and **Erase this disk…**.
+3. **Erase this disk…** opens a confirmation with the disk name, model, size and contents, the red warning "This erases everything on the disk…", and a box **TYPE <disk name> TO CONFIRM**. The **Erase this disk** button stays grey until the name is typed exactly. Press **Cancel** if anything looks wrong.
+   ![Erase confirmation](../screenshots/B2-01.png)
+   Note: the dialog shows model and size but **not the serial number**. If two identical disks are plugged in, unplug one before erasing.
+
 ## O5. Safely ejecting a disk
 The **System Disk** (the box's own disk) has no Eject button. A separate USB disk shows **Eject** in its disk view (**to confirm**: not visible on the demo box, which has no extra disk). Eject lists what will stop before you confirm. Never eject or unplug during a backup.
 
 ## O6. Dangerous buttons
-**Erase this disk…**, **Install App**, **Make this a Files/Backup Disk**, **Stop**: only with your IDEA contact on the phone. (Erase/Make … appear only on non-system disks: **to confirm** on a real spare disk.)
+**Erase this disk…**, **Install App**, **Make this a Files/Backup Disk**, **Stop**: only with your IDEA contact on the phone. (Erase and Make this a Files Disk appear only on non-system disks; confirmed on a spare disk. The System Disk has neither.)
 
 ## O7. Backup and restore (later)
 Placeholder for B2–B4 once tested on a dev Pi or with spare disks. The **LAST BACKUP** line in app details (O3) shows when an app was last backed up.
