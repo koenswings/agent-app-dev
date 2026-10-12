@@ -47,4 +47,4 @@ The **System Disk** (the box's own disk) has no Eject button. A USB IDEA Disk ha
 **Erase this disk…**, **Install App**, **Make this a Files/Backup Disk**, **Stop**: only with your IDEA contact on the phone. (Erase and Make this a Files Disk appear only on non-system disks; confirmed on a spare disk. The System Disk has neither.)
 
 ## O7. Backup and restore (later)
-B2–B4 not captured yet: erasing the spare 256 GB disk hit the known erase issue (chapter 8) on 2026-10-12. To be added after the fix. The **LAST BACKUP** line in app details (O3) shows when an app was last backed up.
+See chapter 9 (hands-on): Make this a Backup Disk, On demand / Immediate / Scheduled, LINK TO INSTANCES, **Back up** button on each linked app row, **Restore** on the Backup Disk (needs a spare target disk). The **LAST BACKUP** line in app details (O3) shows when an app was last backed up.
