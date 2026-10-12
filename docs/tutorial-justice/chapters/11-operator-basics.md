@@ -40,10 +40,11 @@ The small **↺** next to the Engine name is **Reboot engine** (it restarts the 
    Note: the dialog shows model and size but **not the serial number**. If two identical disks are plugged in, unplug one before erasing.
 
 ## O5. Safely ejecting a disk
-The **System Disk** (the box's own disk) has no Eject button. A separate USB disk shows **Eject** in its disk view (**to confirm**: not visible on the demo box, which has no extra disk). Eject lists what will stop before you confirm. Never eject or unplug during a backup.
+The **System Disk** (the box's own disk) has no Eject button. A USB IDEA Disk has a small **⏏** icon next to its name in the Network list, and an **Eject** button in its disk view (below the disk details, above **Erase this disk…**). Eject lists what will stop before you confirm (**to confirm**: not clicked on the demo box). Never eject or unplug during a backup.
+![Eject on a Files Disk](../screenshots/F1-14.png)
 
 ## O6. Dangerous buttons
 **Erase this disk…**, **Install App**, **Make this a Files/Backup Disk**, **Stop**: only with your IDEA contact on the phone. (Erase and Make this a Files Disk appear only on non-system disks; confirmed on a spare disk. The System Disk has neither.)
 
 ## O7. Backup and restore (later)
-Placeholder for B2–B4 once tested on a dev Pi or with spare disks. The **LAST BACKUP** line in app details (O3) shows when an app was last backed up.
+B2–B4 not captured yet: erasing the spare 256 GB disk hit the known erase issue (chapter 8) on 2026-10-12. To be added after the fix. The **LAST BACKUP** line in app details (O3) shows when an app was last backed up.
