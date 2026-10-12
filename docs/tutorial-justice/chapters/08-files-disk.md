@@ -17,3 +17,11 @@ Not directly. Kolibri only imports ready-made **Kolibri channels** (from Kolibri
 On our IDEA setup, Kolibri does not see USB disks or the Files Disk, so "Import from attached drive" is not available today. Use Nextcloud for your own files, and Kolibri for the prepared lessons.
 
 Note (not yet tested on IDEA): Kolibri can also copy channels from **another Kolibri server on the same local network**, without internet (Device > Channels > Import > "Local network or internet", enter the other server's address). Both servers need Kolibri 0.11 or later. This only moves ready-made Kolibri channels, not your own files. Source: Kolibri docs, "Import from a local network or internet".
+
+## F1. Making a Files Disk (operator, captured 2026-10-12, run did not finish)
+1. Select the new disk (UNFORMATTED badge), click **Make this a Files Disk**. The panel **MAKE THIS A FILES DISK** asks for a **SHARE NAME** and offers **Erase the disk first** ("Removes everything on it, then makes it a Files Disk").
+2. The confirmation **Erase <disk>?** shows model, size and contents. Type the disk name exactly, then click **Erase and make a Files Disk**.
+   ![Erase confirmation](../screenshots/F1-03.png)
+   ![Name typed](../screenshots/F1-04.png)
+3. On the demo box the erase finished but the Console reported "Erase finished but the disk did not come back as empty", and the disk disappeared from the list. **To confirm** after the Engine team investigates. Do not retry this yourself; call your IDEA contact.
+   ![Erase result](../screenshots/F1-05-0.png)
