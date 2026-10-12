@@ -23,5 +23,5 @@ Note (not yet tested on IDEA): Kolibri can also copy channels from **another Kol
 2. The confirmation **Erase <disk>?** shows model, size and contents. Type the disk name exactly, then click **Erase and make a Files Disk**.
    ![Erase confirmation](../screenshots/F1-03.png)
    ![Name typed](../screenshots/F1-04.png)
-3. On the demo box the erase finished but the Console reported "Erase finished but the disk did not come back as empty", and the disk disappeared from the list. **To confirm** after the Engine team investigates. Do not retry this yourself; call your IDEA contact.
+3. **Known issue (being fixed):** in Console v0.2.85 the erase can finish correctly while the Console says "Erase finished but the disk did not come back as empty" and the disk disappears from the list. The erase did work; an Engine bug hides the disk afterwards, and it reappears as an empty **IDEA Disk** once the IDEA team has restarted detection. If you see this message: do **not** erase again and do not unplug the disk. Call your IDEA contact.
    ![Erase result](../screenshots/F1-05-0.png)
