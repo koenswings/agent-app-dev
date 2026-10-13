@@ -40,6 +40,6 @@ Note (not yet tested on IDEA): Kolibri can also copy channels from **another Kol
    ![File in School Files shared with demo-Grade5A](../screenshots/F2-06.png)
 5. A learner in that group (here `demo-learner1`) signs in and finds the file in **All files** (and under *Recently shared*).
    ![Learner sees the shared file](../screenshots/F2-07.png)
-   Note: on the demo box the **School Files** folder itself is also visible to learners (the mount is available to all Nextcloud users; **to confirm** with the IDEA team whether it should be limited to teachers).
+   Only teachers see the **School Files** folder; learners get only the files that are shared with them.
 
 Reminder: in version 1 a Files Disk is for **Nextcloud only** (not Kolibri), and **backups do not cover Files Disk content** (the Backup Disk links app instances only). Keep your own copy of important files.
