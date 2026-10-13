@@ -35,7 +35,7 @@ How often the school backs up (each time the disk is plugged in, or on request):
 1. On the Backup Disk, each app in the **Backups** list has a **Restore** button.
    ![Restore and no target disks](../screenshots/B4-01.png)
 2. Restore needs a **target disk**: a spare, empty IDEA Disk to put the app on. On the demo box it says **"No available target disks."** because the only other disks are the Files Disk and the System Disk, and the Console does not offer those as targets.
-3. With a spare empty IDEA Disk plugged in, choose it as the target and confirm (**to confirm**: not tried yet; by design the latest backup is unpacked onto the target disk and the app runs from there).
+3. With a spare empty IDEA Disk plugged in, choose it as the target and confirm. The full steps, tried on the demo box, are below.
 Never restore onto a disk that holds other apps you need.
 
 
@@ -52,9 +52,18 @@ Before you start you need a spare, **empty IDEA Disk** (here the 128 GB disk, er
 4. After about a minute the spare disk shows the **app** badge and lists **kolibri-1.0**.
    ![Restore running](../screenshots/B4-23a.png)
    ![Restored Kolibri on the spare disk](../screenshots/B4-25.png)
-5. **Important (seen on the demo box):** the restore **moves** the app. Kolibri is no longer listed on the System Disk (it now shows only the other apps), and the restored Kolibri is **stopped** (orange dot, **Start** button) until someone starts it. Kolibri is not reachable until it is started. So a restore is for a real breakdown, not for testing on a working school box.
+5. **Important (seen on the demo box):** the restore **moves** the app. Kolibri is no longer listed on the System Disk (it now shows only the other apps), and the restored Kolibri is **stopped** (orange dot, **Start** button). Until you start it, Kolibri is not reachable. So a restore is for a real breakdown, not for testing on a working school box.
    ![System Disk after restore](../screenshots/B4-27.png)
-Starting the restored Kolibri and checking its classes: **to confirm** with the IDEA team.
+6. On the spare disk, click **Start** on the restored Kolibri row. After about 30 seconds it is running again (demo: started 11:15) and the row shows **Open ↗**. The Console may still show an old red message; check **Open**, not the message.
+   ![Start clicked](../screenshots/B4-28.png)
+   ![Restored Kolibri running](../screenshots/B4-29.png)
+7. Open Kolibri from its **Apps** card as usual (chapter 2) and sign in as a coach.
+   ![Apps page](../screenshots/B4-30a.png)
+   ![Kolibri sign-in](../screenshots/B4-30.png)
+8. Check that your data is back. On the demo box the class **demo-Grade5A** had its 3 learners, the **demo-Fractions quiz** (completed by 1 of 3), the **demo-Fractions lesson** (2 of 3 started) and the class activity, exactly as at the last backup (8:46).
+   ![Class after restore](../screenshots/B4-31.png)
+   ![Reports after restore](../screenshots/B4-33.png)
+Anything done after the last backup is lost. Make a new backup of the restored app as soon as it runs.
 
 #### Known Console quirks (v0.2.85)
 - The **green dot** next to an app in ALL APPS is not always the real app state: on the demo box Nextcloud showed green while it was stopped. Check whether **Open** works.
