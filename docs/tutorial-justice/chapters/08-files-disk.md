@@ -1,6 +1,6 @@
 # 8. Your own files: the Files Disk
 
-A **Files Disk** is a USB disk that the operator prepares in the Console (chapter 11). Its content appears in Nextcloud as the folder **School Files**. Use it to bring in material you downloaded elsewhere, for example worksheets on a USB disk.
+A **Files Disk** is an **IDEA Disk** that the operator prepares in the Console (chapter 11). Its content appears in Nextcloud as the folder **School Files**. Use it to bring in material you downloaded elsewhere, for example worksheets you copied at another school.
 
 Good to know:
 
@@ -17,7 +17,7 @@ Good to know:
 
 ## 8.2 Share a file from School Files with your class
 
-1. On the file's row click **⋯** (Actions) > **Show sharing options**, or click the share icon.
+1. On the file's row click **⋯ (Actions) > Show sharing options**, or click the share icon.
 2. In **Internal shares**, type the class group name (here `demo-Grade5A`) and choose it from the list. Keep **View only**. The group then appears under **Internal shares**.
    ![File in School Files shared with demo-Grade5A](../screenshots/F2-06.png)
 3. A learner in that group signs in and finds the file in **All files** and under **Recently shared**.
@@ -25,4 +25,4 @@ Good to know:
 
 ## 8.3 Can I put my own files into Kolibri?
 
-Not directly. Kolibri only imports ready-made **Kolibri channels**. Your own videos and PDFs would first have to be built into a channel on Kolibri Studio, which needs internet and an account. Use Nextcloud for your own files, and Kolibri for the prepared lessons.
+Not directly. Kolibri only imports ready-made **Kolibri channels**. Your own videos and PDFs would first have to be built into a channel on Kolibri Studio, which needs internet and an account (not possible at school). Use Nextcloud for your own files, and Kolibri for the prepared lessons.

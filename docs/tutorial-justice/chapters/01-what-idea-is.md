@@ -2,6 +2,8 @@
 
 **IDEA (Initiative for Digital Education in Africa)** is a charity based in Belgium. It puts offline computer systems in rural schools. Everything works from a small computer in the school, without internet.
 
+> **No internet needed.** Everything in this guide works inside the school. Nothing you do is sent to the internet.
+
 ## 1.1 Words used in this guide
 
 | Word | Meaning |
@@ -29,4 +31,3 @@
 - **Part B (chapters 10 and 11)** is for the school operator.
 - Each chapter has numbered steps with screenshots. The screenshots come from the IDEA demo box and use demo accounts whose names start with `demo` (see the appendix). Your school's names will be different.
 
-> **No internet needed.** Everything in this guide works inside the school. Nothing you do is sent to the internet.

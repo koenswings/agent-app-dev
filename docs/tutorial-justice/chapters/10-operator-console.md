@@ -15,15 +15,13 @@ This chapter is for the school operator. Do not press **Start**, **Stop** or oth
 
 1. After login the left side shows **NETWORK**: **ALL APPS**, then the IDEA box with a green dot (online) and its disks.
    ![All apps](../screenshots/O2-01.png)
-2. Click the IDEA box name to select it.
-   ![IDEA box selected](../screenshots/O2-02.png)
-3. Click a disk (here **System Disk**). Each disk shows a role badge: **app**, **backup**, **files** or **empty**. The right side lists the apps on that disk.
+2. Click the IDEA box name to select it, then click a disk (here **System Disk**). Each disk shows a role badge: **app**, **backup**, **files** or **empty**. The right side lists the apps on that disk.
    ![Disk view](../screenshots/O2-03.png)
 
 ## 10.3 App status
 
 1. Each app row shows the app name and version, a coloured status dot, and the buttons **Start**, **Stop** and **Open ↗**.
-2. Click the status dot (**Show details**) to see STATUS (for example **Running**), VERSION, PORT, CREATED, LAST STARTED, **LAST BACKUP**, the description and the container metrics.
+2. Click the status dot (**Show details**) to see **STATUS** (for example **Running**), **VERSION**, **PORT**, **CREATED**, **LAST STARTED**, **LAST BACKUP** and the description.
    ![App details](../screenshots/O3-01.png)
 3. To check that an app really works, click **Open ↗**: the app's page must load.
 4. Only start or stop an app when your IDEA contact asks you to. Do not touch apps your IDEA contact did not mention.

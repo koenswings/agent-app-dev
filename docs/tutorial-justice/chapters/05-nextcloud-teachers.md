@@ -16,7 +16,7 @@ Learners now see the folder but cannot change or delete files.
 
 ## 5.2 Write a document together
 
-1. Click **+ New** > **New document**.
+1. Click **+ New > New document**.
    ![New menu](../screenshots/N2-01.png)
 2. Type a name (`demo-Lesson plan`) and click **Create**.
    ![Name](../screenshots/N2-02.png)
@@ -25,7 +25,7 @@ Learners now see the folder but cannot change or delete files.
 4. Share the file with `demo-teachers` and/or your class group, with editing allowed.
    ![Shared document](../screenshots/N2-03.png)
 5. The document opens in Nextcloud Office. When others open it at the same time, you see their names and cursors.
-   ![Office editor](../screenshots/N2-04.png)
+   ![Nextcloud Office](../screenshots/N2-04.png)
 
 ## 5.3 Collect homework (File drop)
 
