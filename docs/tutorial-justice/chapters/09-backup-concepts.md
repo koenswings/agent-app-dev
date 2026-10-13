@@ -41,14 +41,23 @@ Never restore onto a disk that holds other apps you need.
 
 > **Erasing a Files Disk that an app is using.** If Nextcloud is using the Files Disk (School Files), the erase cannot run because the disk is busy, and the Console gives no clear error. Stop Nextcloud first (with your IDEA contact), then erase.
 
-#### B4 attempt on the demo box (2026-10-13): preparing a target disk
-To get a target disk, the operator erased the 128 GB Files Disk (**Erase this disk…** on the Files Disk view).
-1. The Files Disk view shows the share name, free space, **Eject** and **Erase this disk…**.
-   ![Files Disk before erase](../screenshots/B4-10.png)
-2. The dialog **Erase IDEA Disk?** shows size (125.4 GB), filesystem, number of files and a red warning. Both the Files Disk and the Backup Disk are called **IDEA Disk**, so check the **size and contents**: this must not be the Backup Disk or the System Disk.
-   ![Erase dialog](../screenshots/B4-11.png)
-3. Type the disk name exactly as written (**IDEA Disk**, not in capitals) to enable **Erase this disk**.
-   ![Name typed](../screenshots/B4-12.png)
-4. On the demo box the disk then disappeared from the list and had not come back after 8 minutes (the Engine bug described in chapter 8). The restore was stopped here; the original apps kept running on the System Disk.
-   ![After erase: disk missing](../screenshots/B4-13.png)
-The restore steps after this point are **to confirm** once the IDEA team has fixed the bug.
+#### B4 on the demo box (2026-10-13): restoring Kolibri onto a spare disk
+Before you start you need a spare, **empty IDEA Disk** (here the 128 GB disk, erased first; see the note above about stopping Nextcloud).
+1. Open the **Backup Disk**. In the **Backups** list each app shows **Last backup: <date, time>**, a **Select target disk…** list and a **Restore** button (grey until a target is chosen).
+   ![Backups list](../screenshots/B4-20.png)
+2. In **Select target disk…** choose the spare disk. Only spare, non-system disks are offered (here one **IDEA Disk**). Then click **Restore**.
+   ![Target chosen](../screenshots/B4-21.png)
+3. The Console asks: "Are you sure? This will overwrite **kolibri-1.0** on **IDEA Disk**." Click **Confirm Restore** (or **Cancel**).
+   ![Confirm Restore](../screenshots/B4-22.png)
+4. After about a minute the spare disk shows the **app** badge and lists **kolibri-1.0**.
+   ![Restore running](../screenshots/B4-23a.png)
+   ![Restored Kolibri on the spare disk](../screenshots/B4-25.png)
+5. **Important (seen on the demo box):** the restore **moves** the app. Kolibri is no longer listed on the System Disk (it now shows only the other apps), and the restored Kolibri is **stopped** (orange dot, **Start** button) until someone starts it. Kolibri is not reachable until it is started. So a restore is for a real breakdown, not for testing on a working school box.
+   ![System Disk after restore](../screenshots/B4-27.png)
+Starting the restored Kolibri and checking its classes: **to confirm** with the IDEA team.
+
+#### Known Console quirks (v0.2.85)
+- The **green dot** next to an app in ALL APPS is not always the real app state: on the demo box Nextcloud showed green while it was stopped. Check whether **Open** works.
+- An app's version label can be out of date (Nextcloud showed **1.0-31.0.1** while 1.1-31.0.1 was installed).
+- After an erase the disk can disappear from the list for a while (Engine lock bug). Do not erase again; call your IDEA contact.
+- Old red **Back up Failed** messages stay in OPERATIONS until closed with ✕.

@@ -48,3 +48,8 @@ The **System Disk** (the box's own disk) has no Eject button. A USB IDEA Disk ha
 
 ## O7. Backup and restore (later)
 See chapter 9 (hands-on): Make this a Backup Disk, On demand / Immediate / Scheduled, LINK TO INSTANCES, **Back up** button on each linked app row, **Restore** on the Backup Disk (needs a spare target disk). The **LAST BACKUP** line in app details (O3) shows when an app was last backed up.
+
+## O8. Known Console quirks
+- The coloured status dot can be wrong (Nextcloud showed green while stopped). Check that **Open** works.
+- Version labels can be stale (Nextcloud showed 1.0 while 1.1 was installed).
+- A restore moves the app to the target disk and leaves it stopped (chapter 9).
