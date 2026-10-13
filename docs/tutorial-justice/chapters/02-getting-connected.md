@@ -9,6 +9,7 @@ You need: a phone, tablet or laptop with a web browser, and the school's IDEA Wi
    ![Kolibri opened from the Console](../screenshots/CON-03.png)
 
 Important:
+
 - A card that is greyed out and says **Not available** is not running. Do not try to fix it: tell your IDEA contact or the school operator.
 - Do not type numbers (ports) into the address bar. Always use **Open** in the Console.
 - The Console has an operator area (person icon, **Operator Login**). Teachers do not need it.

@@ -1,6 +1,7 @@
 # 10. Console basics
 
 ## C1. Read the Console
+
 1. The **Apps** page shows one card per app with a short description and a category (education, office, …). ![Console](../screenshots/CON-01.png)
 2. A card with a blue **Open** button is running. A greyed-out card with **Not available** is not.
 3. The green dot and address at the top show the Console is connected to the IDEA box. Orange "Connecting…" means wait a moment.

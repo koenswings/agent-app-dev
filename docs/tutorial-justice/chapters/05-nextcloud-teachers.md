@@ -5,6 +5,7 @@ Open Nextcloud from the Console (chapter 2) and sign in. Click **Files** at the 
 ![Files](../screenshots/N0-01.png)
 
 ## N1. Share worksheets with the class (view only)
+
 1. Next to the folder `demo-Worksheets`, click the share icon (**Show sharing options**). The right panel opens on **Sharing**.
    ![Sharing panel](../screenshots/N1-01.png)
 2. In **Internal shares** ("Share with accounts and teams"), type `demo-Grade5A` and pick the group.
@@ -13,6 +14,7 @@ Open Nextcloud from the Console (chapter 2) and sign in. Click **Files** at the 
 Learners now see the folder but cannot change or delete files.
 
 ## N2. Write a document together
+
 1. Click **+ New** > **New document**.
    ![New menu](../screenshots/N2-01.png)
 2. Type a name (`demo-Lesson plan`) and click **Create**.
@@ -26,6 +28,7 @@ Learners now see the folder but cannot change or delete files.
 
 ## N3. Collect homework (File drop)
 Learners upload work, but cannot see each other's work.
+
 1. Open sharing for folder `demo-Drop Zone`.
    ![Sharing for Drop Zone](../screenshots/N3-00.png)
 2. Under **External shares**, click **+** next to **Create public link** and choose **File request** (upload only). Copy the link.

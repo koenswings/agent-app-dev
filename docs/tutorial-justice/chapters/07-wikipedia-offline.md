@@ -3,6 +3,7 @@
 The demo has **Wikipedia in simple English** (text, no pictures). It works without internet.
 
 ## W1. Look something up and use it in class
+
 1. Open Kiwix from the Console (chapter 2). The library shows the books available.
    ![Kiwix library](../screenshots/W1-01.png)
 2. Click **Wikipedia in simple English**. Its welcome page opens.

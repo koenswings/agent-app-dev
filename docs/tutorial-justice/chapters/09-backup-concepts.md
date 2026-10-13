@@ -1,6 +1,7 @@
 # 9. Keeping data safe: the Backup Disk (concepts)
 
 Making and restoring backups is done by the operator and practised on a test Pi. Teachers should know:
+
 - A **Backup Disk** is a separate disk with the **backup** badge in the Console.
 - It saves the **apps' data**: Kolibri (classes, learners, progress) and Nextcloud (accounts, files inside Nextcloud).
 - It does **not** save Files Disk content (version 1).
@@ -12,6 +13,7 @@ How often the school backs up (each time the disk is plugged in, or on request):
 ## Hands-on (operator, captured on the demo box 2026-10-12/13)
 
 ### B2. Make a Backup Disk
+
 1. Plug in a spare disk. If it is new, it first has to become an empty **IDEA Disk** (chapter 8, Erase).
 2. Select the **IDEA Disk** marked **empty** and click **Make this a Backup Disk** ("Link instances and choose a backup schedule").
    ![Empty disk options](../screenshots/B2-10.png)
@@ -23,6 +25,7 @@ How often the school backs up (each time the disk is plugged in, or on request):
    ![Backup Disk configured](../screenshots/B2-13.png)
 
 ### B3. Run a backup
+
 1. In **ALL APPS**, each linked app row has a **Back up** button next to Start / Stop / Open. Click it for Kolibri.
    ![Back up clicked](../screenshots/B3-10a.png)
 2. The app stops for a short time while it is copied, then starts again. On the Backup Disk the app shows **Operation in progress**. Do this outside lesson time.
@@ -32,6 +35,7 @@ How often the school backs up (each time the disk is plugged in, or on request):
 4. The **OPERATIONS** box at the top keeps old messages (in the demo: failed attempts from the day before, when the backup tool was not yet installed). Check the **Last backup** time, not old messages. Close old messages with ✕.
 
 ### B4. Restore after a crash
+
 1. On the Backup Disk, each app in the **Backups** list has a **Restore** button.
    ![Restore and no target disks](../screenshots/B4-01.png)
 2. Restore needs a **target disk**: a spare, empty IDEA Disk to put the app on. On the demo box it says **"No available target disks."** because the only other disks are the Files Disk and the System Disk, and the Console does not offer those as targets.
@@ -43,6 +47,7 @@ Never restore onto a disk that holds other apps you need.
 
 #### B4 on the demo box (2026-10-13): restoring Kolibri onto a spare disk
 Before you start you need a spare, **empty IDEA Disk** (here the 128 GB disk, erased first; see the note above about stopping Nextcloud).
+
 1. Open the **Backup Disk**. In the **Backups** list each app shows **Last backup: <date, time>**, a **Select target disk…** list and a **Restore** button (grey until a target is chosen).
    ![Backups list](../screenshots/B4-20.png)
 2. In **Select target disk…** choose the spare disk. Only spare, non-system disks are offered (here one **IDEA Disk**). Then click **Restore**.
@@ -66,6 +71,7 @@ Before you start you need a spare, **empty IDEA Disk** (here the 128 GB disk, er
 Anything done after the last backup is lost. Make a new backup of the restored app as soon as it runs.
 
 #### Known Console quirks (v0.2.85)
+
 - The **green dot** next to an app in ALL APPS is not always the real app state: on the demo box Nextcloud showed green while it was stopped. Check whether **Open** works.
 - An app's version label can be out of date (Nextcloud showed **1.0-31.0.1** while 1.1-31.0.1 was installed).
 - After an erase the disk can disappear from the list for a while (Engine lock bug). Do not erase again; call your IDEA contact.

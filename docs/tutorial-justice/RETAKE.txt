@@ -1,0 +1,6 @@
+# Screenshots that still show an error message in the app row; retake on Koen's Mac after Atlas's plan (a) + borg fix
+B3-10a.png  ch09 B3 step 1 (Back up clicked): old 'Failed: borg-init' text in Nextcloud row
+B3-15.png   ch09 B3 step 2 (Operation in progress): old 'Failed' text in app rows
+B4-25.png   ch09 B4 step 4 (restored Kolibri on spare disk): 'Failed' text in Kolibri row
+B4-27.png   ch09 B4 step 5 (System Disk after restore): 'Failed' text in Nextcloud row
+B4-29.png   ch09 B4 step 6 (restored Kolibri running): 'Failed' text in Kolibri row

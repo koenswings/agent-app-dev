@@ -3,6 +3,7 @@
 For the school's IDEA operator, not for every teacher. Console v0.2.85 on the demo box. Everything here is **look only**: do not press Start, Stop or other action buttons unless your IDEA contact asks you to.
 
 ## O1. Operator Login
+
 1. In the Console, click the person icon (top right). The **Operator Login** panel opens with a username and a password field (the eye icon shows/hides the password).
    ![Operator Login](../screenshots/O1-01.png)
 2. Type the operator username and password, click **Log in**. The **Account** panel then shows your name, role **Operator**, **Change Password**, **Manage Operators** and **Log out**.
@@ -11,6 +12,7 @@ For the school's IDEA operator, not for every teacher. Console v0.2.85 on the de
 4. Close the panel with **✕**. Use **Log out** in the same panel when you are done.
 
 ## O2. The Network view: Engine and disks
+
 1. After login the left side shows **NETWORK**: **ALL APPS**, then the IDEA box (Engine, here `wizardly-hugle`, with an **Online** status) and its disks.
    ![All apps](../screenshots/O2-01.png)
 2. Click the Engine name to select it.
@@ -19,12 +21,14 @@ For the school's IDEA operator, not for every teacher. Console v0.2.85 on the de
    ![Disk view](../screenshots/O2-03.png)
 
 ## O3. App status
+
 1. Each app row shows the app name and version (e.g. `kolibri-1.0`), a coloured status dot, and buttons **Start**, **Stop** and **Open ↗**.
 2. Click the status dot (**Show details**) to see: STATUS (e.g. **Running**), VERSION, ENGINE, PORT, CREATED, LAST STARTED, **LAST BACKUP** (e.g. "Never"), the description, a short log, and CONTAINER METRICS (CPU, memory, network, disk).
    ![App details](../screenshots/O3-01.png)
 3. Only Start or Stop an app when your IDEA contact asks you to. Never touch **MilkWise** or other non-school apps.
 
 ## O4. Command History
+
 1. The clipboard icon (top right) lists recent Engine commands (for example `startInstance`, `installApp`) with ✓ (done) or ✗ (failed) and how long ago. Use it when you report a problem.
    ![Command History](../screenshots/O4-01.png)
 
@@ -32,6 +36,7 @@ For the school's IDEA operator, not for every teacher. Console v0.2.85 on the de
 The small **↺** next to the Engine name is **Reboot engine** (it restarts the whole IDEA box). Never press it during lessons.
 
 ## O4c. A new (unformatted) USB disk
+
 1. A new disk appears under the Engine with its model and size and an **UNFORMATTED** badge (e.g. "INTENSO SSD 256 GB — 256.1 GB").
    ![Unformatted disk](../screenshots/B2-00.png)
 2. Its view shows Model, Size, "Contents unknown until the disk is erased into an empty IDEA disk", and two buttons: **Make this a Files Disk** and **Erase this disk…**.
@@ -50,6 +55,7 @@ The **System Disk** (the box's own disk) has no Eject button. A USB IDEA Disk ha
 See chapter 9 (hands-on): Make this a Backup Disk, On demand / Immediate / Scheduled, LINK TO INSTANCES, **Back up** button on each linked app row, **Restore** on the Backup Disk (needs a spare target disk). The **LAST BACKUP** line in app details (O3) shows when an app was last backed up.
 
 ## O8. Known Console quirks
+
 - The coloured status dot can be wrong (Nextcloud showed green while stopped). Check that **Open** works.
 - Version labels can be stale (Nextcloud showed 1.0 while 1.1 was installed).
 - A restore moves the app to the target disk and leaves it stopped (chapter 9).

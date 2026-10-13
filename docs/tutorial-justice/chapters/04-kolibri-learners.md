@@ -5,6 +5,7 @@ Sign in as a learner in a second browser window (private window) to see exactly 
 > **Note on passwords.** The demo learners sign in without a password. A school can turn learner passwords on: sign in as a Kolibri admin, open **Facility** > **SETTINGS**, tick **Require password for learners**, then click **SAVE CHANGES**. (Setting name from the Kolibri 0.15.5 source code; not yet clicked on IDEA.) Learners who have no password yet then need one set by the admin.
 
 ## S1. Do a lesson
+
 1. Sign in as `demo_learner1`. **HOME** shows *Your classes*, *Recent lessons* and *Recent quizzes*.
    ![Learner home](../screenshots/S1-01.png)
 2. Click **demo-Fractions lesson**. The 6 items are listed in order.
@@ -16,6 +17,7 @@ Sign in as a learner in a second browser window (private window) to see exactly 
 5. Sign out. Sign in as `demo_learner2` and open only one video, so the report shows a difference.
 
 ## S2. Take a quiz
+
 1. Open the quiz from **Recent quizzes** (or the class page).
    ![Quiz](../screenshots/S2-01.png)
 2. Answer each question and use **NEXT** / **PREVIOUS**. The list on the left shows answered questions.

@@ -3,17 +3,20 @@
 Demo: school (facility) `demo-School`, teacher `demo_teacher1`, class `demo-Grade5A`, channel **Khan Academy (English - US curriculum)** > Math by grade > 5th grade > Add and subtract fractions.
 
 ## Signing in
+
 1. Open Kolibri from the Console (chapter 2). Type your username and click **NEXT**, then type your password.
    ![Sign in](../screenshots/K1-01.png)
 
 ## K1. Create a class
 Creating classes needs a Kolibri admin account (in the demo, `demo_teacher1` is admin and coach).
+
 1. Open **Facility** > **CLASSES**. You see the list of classes.
    ![Classes list](../screenshots/K1-02.png)
 2. Click **NEW CLASS**, type the class name, click **SAVE**. (In the demo we pressed CANCEL because `demo-Grade5A` already exists.)
    ![Create new class](../screenshots/K1-03.png)
 
 ## K2. Enroll learners
+
 1. Click the class name. The class page lists **Coaches** and **Learners**. Click **ENROLL LEARNERS**.
    ![Enroll learners page](../screenshots/K2-01.png)
 2. The list only shows learners who are not yet in the class. Tick each learner (here: Learner Three), then click **CONFIRM**.
@@ -23,6 +26,7 @@ Creating classes needs a Kolibri admin account (in the demo, `demo_teacher1` is 
 
 ## K3. Make a lesson and show it to the class
 A good lesson has 3 videos (explain) and 3 exercises (practise).
+
 1. Open **Coach**, choose the class, click **PLAN** > **LESSONS** > **NEW LESSON**.
    ![Plan your class](../screenshots/K3-01a.png)
 2. Type a title (`demo-Fractions lesson`). Under **Recipients** keep **Entire class**. Click **SAVE CHANGES**.
@@ -39,6 +43,7 @@ A good lesson has 3 videos (explain) and 3 exercises (practise).
 
 ## K4. Make a quiz
 Quizzes are built from exercises only.
+
 1. **PLAN** > **QUIZZES** > **NEW QUIZ**.
    ![Quizzes tab](../screenshots/K4-01.png)
 2. Type a title (`demo-Fractions quiz`) and the **Number of questions** (6). Browse to Add and subtract fractions and tick a folder (or single exercises). Click **CONTINUE**.
@@ -50,6 +55,7 @@ Quizzes are built from exercises only.
 
 ## K5. See progress (Reports)
 Do this after learners have worked (chapter 4).
+
 1. Click **REPORTS**. Tabs: LESSONS, QUIZZES, GROUPS, LEARNERS.
    ![Reports](../screenshots/K5-01.png)
 2. **LESSONS** > the lesson > **LEARNERS**: who completed, started or did not start.
