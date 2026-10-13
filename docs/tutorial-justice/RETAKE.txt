@@ -1,3 +1,1 @@
-# Screenshots that show an error state; retake on Koen's Mac
-B3-10a.png  ch11 11.6 step 1
-B3-15.png   ch11 11.6 step 2
+# Screenshots that show an error state (none left)

@@ -46,9 +46,9 @@ An IDEA Disk has a small eject icon next to its name in the Network list and an 
 
 ## 11.6 Run a backup
 
-1. In **ALL APPS**, each linked app row has a **Back up** button next to Start, Stop and Open. Click it for Kolibri.
+1. In **ALL APPS**, each linked app row has a **Back up** button next to Start, Stop and Open. Click it for Kolibri. The row shows **Backing up…** with a progress bar, and the **OPERATIONS** box at the top shows the same job.
    ![Back up clicked](../screenshots/B3-10a.png)
-2. The app stops for a short time while it is copied, then starts again. The Console shows the progress. Do this outside lesson time.
+2. The app stops for a short time while it is copied, then starts again. When the job is finished the OPERATIONS box shows **Done**; close it with **✕**. A backup takes a few minutes. Do this outside lesson time.
    ![Backup in progress](../screenshots/B3-15.png)
 3. When it is done, the Backup Disk's **Backups** list shows **Last backup** with the date and time for each app. Repeat for Nextcloud.
    ![Last backup for both apps](../screenshots/B4-20.png)
