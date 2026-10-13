@@ -2,7 +2,7 @@
 
 The demo has **Wikipedia in simple English** (text, no pictures). It works without internet.
 
-## W1. Look something up and use it in class
+## 7.1 Look something up and use it in class
 
 1. Open Kiwix from the Console (chapter 2). The library shows the books available.
    ![Kiwix library](../screenshots/W1-01.png)
@@ -13,4 +13,5 @@ The demo has **Wikipedia in simple English** (text, no pictures). It works witho
    ![Fraction article](../screenshots/W1-03.png)
 4. Follow blue links to related articles.
    ![Linked article](../screenshots/W1-04.png)
-Classroom idea: give learners 3 questions to answer from one article; they read on their own device.
+
+> **Classroom idea.** give learners 3 questions to answer from one article; they read on their own device.
