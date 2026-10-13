@@ -12,7 +12,7 @@ This chapter is for the school operator, with the IDEA contact on the phone.
 
 1. Click **Erase this disk…**. The confirmation shows the disk name, model, size and contents, and the red warning "This erases everything on the disk…".
 2. Check the **size and contents**: several disks can have the same name (for example **IDEA Disk**). Make sure it is not the Backup Disk.
-3. Type the disk name exactly in the box **TYPE (disk name) TO CONFIRM**. The **Erase this disk** button stays grey until the name is right. Press **Cancel** if anything looks wrong.
+3. The box above the text field says **TYPE IDEA DISK TO CONFIRM** (the disk name in capitals). Type the name as it is written on the disk, for example `IDEA Disk`. The **Erase this disk** button stays grey until the name is right. Press **Cancel** if anything looks wrong.
    ![Erase confirmation](../screenshots/B2-01.png)
 4. After the erase, the disk shows as an **IDEA Disk** with the **empty** badge.
 
@@ -64,16 +64,13 @@ You need a **spare disk** (an empty IDEA Disk) to restore onto.
    ![Confirm Restore](../screenshots/B4-22.png)
 4. After about a minute the spare disk shows the **app** badge and lists the restored app.
    ![Restore running](../screenshots/B4-23a.png)
-   ![Restored Kolibri on the spare disk](../screenshots/B4-25.png)
 5. The restore **moves** the app: it is no longer listed on its old disk, and the restored app is **stopped** (orange dot, **Start** button). Until you start it, the app cannot be opened. A restore is for a real breakdown, not for practice on a working school box.
-   ![System Disk after restore](../screenshots/B4-27.png)
 6. Click **Start** on the restored app's row. After about 30 seconds it runs again and the row shows **Open ↗**.
    ![Start clicked](../screenshots/B4-28.png)
-   ![Restored Kolibri running](../screenshots/B4-29.png)
 7. Open the app from its card on the **Apps** page (as in Figure 2) and sign in as the teacher (coach).
-   ![Apps page](../screenshots/B4-30a.png)
 8. Check that the data is back: classes, learners, lessons, quizzes and reports, as at the last backup.
    ![Class after restore](../screenshots/B4-31.png)
    ![Reports after restore](../screenshots/B4-33.png)
+9. Later, your IDEA contact can move the app back to the System Disk and prepare the spare disk again.
 
 > **Important.** Anything done after the last backup is lost. Make a new backup of the restored app as soon as it runs.

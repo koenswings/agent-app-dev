@@ -13,7 +13,7 @@ for f in files:
     t = open(f, encoding="utf-8").read().replace("\\n", "\n")
     t = re.sub(r"<!--.*?-->", "", t, flags=re.S)
     for i, line in enumerate(t.split("\n"), 1):
-        if re.search(r"to confirm", line.replace("TYPE (disk name) TO CONFIRM",""), re.I): bad.append(f"{os.path.basename(f)}:{i}: {line.strip()[:90]}")
+        if re.search(r"to confirm", line.replace("TYPE IDEA DISK TO CONFIRM",""), re.I): bad.append(f"{os.path.basename(f)}:{i}: {line.strip()[:90]}")
     num = re.match(r"(\d+)-", os.path.basename(f))
     if num and int(num.group(1)) in PARTS:
         a, b = PARTS[int(num.group(1))]
