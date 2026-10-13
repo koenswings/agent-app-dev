@@ -34,6 +34,16 @@ Note (not yet tested on IDEA): Kolibri can also copy channels from **another Kol
 3. After a short wait the disk shows the **files** badge, "Share name: School Files", free space (here 119.0 GB free of 125.4 GB), an **Eject** button and **Erase this disk…**.
    ![Files Disk](../screenshots/F1-14.png)
 
-### F2. Files Disk in Nextcloud: not available on the demo box yet
-The Files Disk view says **"No App on this Engine uses Files Disks yet"**, and no School Files folder appears in Nextcloud for demo-teacher1. The Nextcloud app installed on the demo box (1.0-31.0.1) does not use Files Disks yet (**to confirm** with the App team which version adds it). Until then, teachers keep using normal Nextcloud folders (chapter 5).
-Reminder: in version 1 a Files Disk is for Nextcloud only (not Kolibri), and **backups do not cover Files Disk content**.
+### F2. Using the Files Disk in Nextcloud (captured 2026-10-13)
+1. In the Console, the Files Disk view now says **"Available in: Nextcloud (…)"**, with the share name, free space, **Eject** and **Erase this disk…**.
+   ![Files Disk available in Nextcloud](../screenshots/F2-01.png)
+2. In Nextcloud (as a teacher), **Files** shows a folder **School Files** (marked as External storage in the left menu).
+   ![School Files in Nextcloud](../screenshots/F2-02.png)
+3. Open **School Files** to see what is on the disk. Files copied onto the disk (here `demo-Fractions-Worksheet-1.pdf`) appear here.
+   ![School Files content](../screenshots/F2-03.png)
+4. **Sharing from School Files to a class did not work on the demo box**: the Sharing panel opens, but the class group cannot be selected (**to confirm** with the IDEA team whether sharing is meant to be enabled for this folder).
+   ![Sharing panel on School Files](../screenshots/F2-04.png)
+5. Workaround: use **Actions > Move or copy** to copy the file into a folder that is already shared with the class (here `demo-Worksheets`, chapter 5).
+   ![Copied into class folder](../screenshots/F2-05.png)
+
+Reminder: in version 1 a Files Disk is for **Nextcloud only** (not Kolibri), and **backups do not cover Files Disk content** (the Backup Disk links app instances only). Keep your own copy of important files.
