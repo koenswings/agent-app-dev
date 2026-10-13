@@ -39,14 +39,16 @@ How often the school backs up (each time the disk is plugged in, or on request):
 Never restore onto a disk that holds other apps you need.
 
 
+> **Erasing a Files Disk that an app is using.** If Nextcloud is using the Files Disk (School Files), the erase cannot run because the disk is busy, and the Console gives no clear error. Stop Nextcloud first (with your IDEA contact), then erase.
+
 #### B4 attempt on the demo box (2026-10-13): preparing a target disk
 To get a target disk, the operator erased the 128 GB Files Disk (**Erase this disk…** on the Files Disk view).
 1. The Files Disk view shows the share name, free space, **Eject** and **Erase this disk…**.
    ![Files Disk before erase](../screenshots/B4-10.png)
-2. The dialog **Erase IDEA Disk?** shows size (125.4 GB), filesystem, number of files and a red warning. Check the size: this must not be the Backup Disk or the System Disk.
+2. The dialog **Erase IDEA Disk?** shows size (125.4 GB), filesystem, number of files and a red warning. Both the Files Disk and the Backup Disk are called **IDEA Disk**, so check the **size and contents**: this must not be the Backup Disk or the System Disk.
    ![Erase dialog](../screenshots/B4-11.png)
 3. Type the disk name exactly as written (**IDEA Disk**, not in capitals) to enable **Erase this disk**.
    ![Name typed](../screenshots/B4-12.png)
-4. On the demo box the disk then disappeared from the list (the Engine bug described in chapter 8). The restore was stopped here; the original apps kept running on the System Disk.
+4. On the demo box the disk then disappeared from the list and had not come back after 8 minutes (the Engine bug described in chapter 8). The restore was stopped here; the original apps kept running on the System Disk.
    ![After erase: disk missing](../screenshots/B4-13.png)
 The restore steps after this point are **to confirm** once the IDEA team has fixed the bug.
