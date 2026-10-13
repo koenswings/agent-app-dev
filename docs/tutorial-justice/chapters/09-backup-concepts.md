@@ -37,3 +37,16 @@ How often the school backs up (each time the disk is plugged in, or on request):
 2. Restore needs a **target disk**: a spare, empty IDEA Disk to put the app on. On the demo box it says **"No available target disks."** because the only other disks are the Files Disk and the System Disk, and the Console does not offer those as targets.
 3. With a spare empty IDEA Disk plugged in, choose it as the target and confirm (**to confirm**: not tried yet; by design the latest backup is unpacked onto the target disk and the app runs from there).
 Never restore onto a disk that holds other apps you need.
+
+
+#### B4 attempt on the demo box (2026-10-13): preparing a target disk
+To get a target disk, the operator erased the 128 GB Files Disk (**Erase this disk…** on the Files Disk view).
+1. The Files Disk view shows the share name, free space, **Eject** and **Erase this disk…**.
+   ![Files Disk before erase](../screenshots/B4-10.png)
+2. The dialog **Erase IDEA Disk?** shows size (125.4 GB), filesystem, number of files and a red warning. Check the size: this must not be the Backup Disk or the System Disk.
+   ![Erase dialog](../screenshots/B4-11.png)
+3. Type the disk name exactly as written (**IDEA Disk**, not in capitals) to enable **Erase this disk**.
+   ![Name typed](../screenshots/B4-12.png)
+4. On the demo box the disk then disappeared from the list (the Engine bug described in chapter 8). The restore was stopped here; the original apps kept running on the System Disk.
+   ![After erase: disk missing](../screenshots/B4-13.png)
+The restore steps after this point are **to confirm** once the IDEA team has fixed the bug.
