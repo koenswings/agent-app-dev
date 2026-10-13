@@ -1,16 +1,11 @@
-# 8. Bringing your own content (Files Disk) — read-only parts
+# 8. Bringing your own content (Files Disk)
 
-Preparing a Files Disk changes a disk and is done by the operator on a test Pi (not in this demo). This chapter explains what it is and how teachers use it once it exists.
+An operator prepares a Files Disk in the Console (F1); teachers then use it in Nextcloud (F2).
 
 ## What a Files Disk is
 - A USB stick or disk that the operator turns into a shared file store in the Console. It shows the **files** badge.
 - Its folder (for example **School Files**) appears inside **Nextcloud**. In version 1 it is available **only in Nextcloud**, not in Kolibri.
 - **Backups do not cover Files Disk content** in version 1. Keep your own copy of important files.
-
-## F2. Use downloaded material in Nextcloud (disk already prepared)
-1. In the Console, click the disk: it says "Available in: Nextcloud" (**to confirm** deployed). <!-- screenshot:F2-01 -->
-2. Open Nextcloud. Open the **School Files** folder. <!-- screenshot:F2-02 -->
-3. Copy the worksheet you need into a class folder, then share it as in N1. <!-- screenshot:F2-03 -->
 
 ## F3. Can I put my own files into Kolibri?
 Not directly. Kolibri only imports ready-made **Kolibri channels** (from Kolibri Studio online, another Kolibri server, or a drive with a channel exported from another Kolibri). Your own videos/PDFs must first be built into a channel on Kolibri Studio, which needs internet and an account.
@@ -41,9 +36,10 @@ Note (not yet tested on IDEA): Kolibri can also copy channels from **another Kol
    ![School Files in Nextcloud](../screenshots/F2-02.png)
 3. Open **School Files** to see what is on the disk. Files copied onto the disk (here `demo-Fractions-Worksheet-1.pdf`) appear here.
    ![School Files content](../screenshots/F2-03.png)
-4. **Sharing from School Files to a class did not work on the demo box**: the Sharing panel opens, but the class group cannot be selected (**to confirm** with the IDEA team whether sharing is meant to be enabled for this folder).
-   ![Sharing panel on School Files](../screenshots/F2-04.png)
-5. Workaround: use **Actions > Move or copy** to copy the file into a folder that is already shared with the class (here `demo-Worksheets`, chapter 5).
-   ![Copied into class folder](../screenshots/F2-05.png)
+4. To share a file with a class: on the file's row click **⋯** (Actions) > **Show sharing options** (or the share icon). In **Internal shares**, type the class group name (here `demo-Grade5A`), choose it from the list, keep **View only** and save. The group then appears under Internal shares and the row shows "Shared with group demo-Grade5A".
+   ![File in School Files shared with demo-Grade5A](../screenshots/F2-06.png)
+5. A learner in that group (here `demo-learner1`) signs in and finds the file in **All files** (and under *Recently shared*).
+   ![Learner sees the shared file](../screenshots/F2-07.png)
+   Note: on the demo box the **School Files** folder itself is also visible to learners (the mount is available to all Nextcloud users; **to confirm** with the IDEA team whether it should be limited to teachers).
 
 Reminder: in version 1 a Files Disk is for **Nextcloud only** (not Kolibri), and **backups do not cover Files Disk content** (the Backup Disk links app instances only). Keep your own copy of important files.
