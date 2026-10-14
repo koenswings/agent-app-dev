@@ -1,0 +1,4 @@
+# Sources status (2026-10-11)
+- RESTORED: decks + reference cards + field docs from github.com/koenswings/agent-programme-manager (main, shallow) → /workspace/research/mecs/agent-programme-manager/ (presentations: kolibri-classroom-setup, kolibri-lessons-and-quizzes, nextcloud-classroom-use, nextcloud-user-registration, wikipedia-offline; reference-cards: kolibri, nextcloud, wikipedia, student-login-guide; field/*).
+- RESTORED: teacher manuals from agent-app-dev @ cdbb9a1 tests/duration-tests/lessons/teacher-manuals/ → /workspace/teacher-manuals/ (grade5a…, form3…, SCREENSHOTS.md).
+- Still missing / not found: no Console teacher deck; no backup/restore teacher material (only engine/console design docs); no Kiwix deck beyond wikipedia-offline; what wizardly-hugle actually runs (Atlas to confirm).
