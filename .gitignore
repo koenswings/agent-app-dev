@@ -36,3 +36,5 @@ varia/
 tests/duration-tests/fixtures/kolibri/content/seed/.work/
 .ricecookerfilecache/
 /storage/
+__pycache__/
+*.pyc

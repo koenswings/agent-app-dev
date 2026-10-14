@@ -49,7 +49,6 @@ An IDEA Disk has a small eject icon next to its name in the Network list and an 
 1. In **ALL APPS**, each linked app row has a **Back up** button next to Start, Stop and Open. Click it for Kolibri. The row shows **Backing up…** with a progress bar, and the **OPERATIONS** box at the top shows the same job.
    ![Back up clicked](../screenshots/B3-10a.png)
 2. The app stops for a short time while it is copied, then starts again. When the job is finished the OPERATIONS box shows **Done**; close it with **✕**. A backup takes a few minutes. Do this outside lesson time.
-   ![Backup in progress](../screenshots/B3-15.png)
 3. When it is done, the Backup Disk's **Backups** list shows **Last backup** with the date and time for each app. Repeat for Nextcloud.
    ![Last backup for both apps](../screenshots/B4-20.png)
 
@@ -63,7 +62,7 @@ You need a **spare disk** (an empty IDEA Disk) to restore onto.
 3. The Console asks: "Are you sure? This will overwrite **kolibri-1.0** on **IDEA Disk**." Click **Confirm Restore**.
    ![Confirm Restore](../screenshots/B4-22.png)
 4. After about a minute the spare disk shows the **app** badge and lists the restored app.
-   ![Restore running](../screenshots/B4-23a.png)
+   ![Restore done](../screenshots/B4-23a.png)
 5. The restore **moves** the app: it is no longer listed on its old disk, and the restored app is **stopped** (orange dot, **Start** button). Until you start it, the app cannot be opened. A restore is for a real breakdown, not for practice on a working school box.
 6. Click **Start** on the restored app's row. After about 30 seconds it runs again and the row shows **Open ↗**.
    ![Start clicked](../screenshots/B4-28.png)
