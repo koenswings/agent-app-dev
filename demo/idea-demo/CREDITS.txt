@@ -1,0 +1,40 @@
+IDEA-DEMO disk - credits. Format: path | title | author | source URL | licence
+Built by demo/idea-demo/fetch.sh from the publishers' own sites (checksums in MANIFEST.json).
+Wikimedia Commons images are the 1600 px renderings; Commons videos are trimmed to at most 90 s;
+all videos are transcoded to H.264/AAC MP4 (silent audio track added where the original had none).
+Khan Academy videos come from Khan Academy's own CDN (cdn.kastatic.org), never from a Kolibri channel;
+they are CC BY-NC-SA: non-commercial use only. Siyavula CC BY-ND books may be shared but not changed.
+
+kolibri/Grade 5 Science/Plants/Growing maize.mp4 | Growing of corn | Szabolcs Turuczki | https://commons.wikimedia.org/wiki/File:Growing_of_corn.webm | CC BY-SA 4.0
+kolibri/Grade 5 Science/Plants/Bean seed time-lapse.mp4 | Lima Bean Time Lapse | David Marvin | https://commons.wikimedia.org/wiki/File:Lima_Bean_Time_Lapse.webm | CC BY 3.0
+kolibri/Grade 5 Science/Plants/Parts of a flower.png | Parts of a peach flower | Teohalfen | https://commons.wikimedia.org/wiki/File:Parts_of_a_peach_flower.png | CC BY-SA 4.0
+kolibri/Grade 5 Science/Animals/Honey bee taking off.mp4 | Honey bee takes off in ultra slow motion | Joris Schaap | https://commons.wikimedia.org/wiki/File:Honey_bee_takes_off_in_ultra_slow_motion.webm | CC BY 3.0
+kolibri/Grade 5 Science/Animals/Elephant and zebra in Hwange.jpg | Elephant and Zebra in Hwange | Faypearse | https://commons.wikimedia.org/wiki/File:Elephant_and_Zebra_in_Hwange.jpg | CC BY-SA 4.0
+kolibri/Grade 5 Science/Animals/Curious elephant Zimbabwe.jpg | Curious elephant, Zim | JackyR | https://commons.wikimedia.org/wiki/File:Curious_elephant,_Zim.jpg | CC BY-SA 3.0
+kolibri/Grade 5 Science/Earth and Sky/The water cycle.png | Water Cycle-en | Water_Cycle_-_blank.svg: *Wasserkreislauf.png: de:Benutzer:Joooo derivative work: moyogo (talk) derivative work: Alexchr | https://commons.wikimedia.org/wiki/File:Water_Cycle-en.png | CC BY-SA 3.0
+kolibri/Grade 5 Science/Earth and Sky/The solar system.png | Solar System graphic by NASA | NASA | https://commons.wikimedia.org/wiki/File:Solar_System_graphic_by_NASA.png | Public domain
+kolibri/Grade 5 Science/Earth and Sky/Phases of the moon.jpg | Moon phases en | Orion 8 | https://commons.wikimedia.org/wiki/File:Moon_phases_en.jpg | CC BY-SA 3.0
+kolibri/Early Reading/Our Country/Victoria Falls.jpg | Victoria Falls, Zimbabwe 01 | Bernard Gagnon | https://commons.wikimedia.org/wiki/File:Victoria_Falls,_Zimbabwe_01.jpg | CC BY-SA 4.0
+kolibri/Early Reading/Our Country/Herd of elephants Hwange.jpg | Herd of elephants in the Hwange national park. Zimbabwe. - panoramio | Jürgen Kehrberger | https://commons.wikimedia.org/wiki/File:Herd_of_elephants_in_the_Hwange_national_park._Zimbabwe._-_panoramio.jpg | CC BY-SA 3.0
+kolibri/Maths/Fractions/Fraction circles.png | Fraction Circles Shaded | Zapotz | https://commons.wikimedia.org/wiki/File:Fraction_Circles_Shaded.png | CC0
+kolibri/Maths/Fractions/Cake in quarters.jpg | Cake-quarters | Ian Tresman | https://commons.wikimedia.org/wiki/File:Cake-quarters.jpg | CC BY 2.5
+kolibri/Maths/Fractions/Paper fraction pies.jpg | Foam paper fraction pies | Bernát Kalló | https://commons.wikimedia.org/wiki/File:Foam_paper_fraction_pies.JPG | CC BY-SA 4.0
+kolibri/Maths/Times Tables/Multiplication table.pdf | Multiplication Table | TYalaA | https://commons.wikimedia.org/wiki/File:Multiplication_Table.pdf | CC BY-SA 4.0
+kolibri/Maths/Times Tables/Easy multiplication tables.pdf | Easy-multiplication-tables | Antonellaper | https://commons.wikimedia.org/wiki/File:Easy-multiplication-tables.pdf | CC0
+Worksheets/Blank fraction circles.png | FractionCircles Blank | Zapotz | https://commons.wikimedia.org/wiki/File:FractionCircles_Blank.PNG | CC0
+kolibri/Grade 5 Science/Textbooks/Natural Sciences Grade 5.epub | Natural Sciences and Technology Grade 5 (unbranded) | Siyavula and volunteers, Sasol Inzalo Foundation | https://www.siyavula.com/downloads/books/science/Gr5_NaturalSciences_Learner_Eng_CC-BY.epub | CC BY 3.0
+kolibri/Grade 5 Science/Textbooks/Natural Sciences Grade 4.epub | Natural Sciences and Technology Grade 4 (unbranded) | Siyavula and volunteers, Sasol Inzalo Foundation | https://www.siyavula.com/downloads/books/science/Gr4_NaturalSciences_Learner_Eng_CC-BY.epub | CC BY 3.0
+kolibri/Grade 5 Science/Textbooks/Natural Sciences Grade 5A.pdf | Natural Sciences and Technology Grade 5-A Learner's Book | Siyavula and volunteers, Sasol Inzalo Foundation | https://www.siyavula.com/downloads/books/science/Gr5A_NaturalSciences_Learner_Eng.pdf | CC BY-ND 3.0
+Teacher Notes/Natural Sciences Gr 5A Teacher Guide.pdf | Natural Sciences and Technology Grade 5-A Teacher's Guide | Siyavula and volunteers, Sasol Inzalo Foundation | https://www.siyavula.com/downloads/books/science/Gr5A_NaturalSciences_Teacher_Eng.pdf | CC BY-ND 3.0
+kolibri/Early Reading/Stories/Is there someone like me.pdf | Is there someone like me? (With activities) | Fred Strydom; ill. Jess Jardim-Wedepohl; Book Dash / African Storybook | https://www.africanstorybook.org/read/downloadbook.php?layout=landscape&id=37083 | CC BY 4.0
+kolibri/Early Reading/Stories/Nena and love.pdf | Nena and love | Elizabeth Imobieye and Ella Imobieye; ill. Offei Tettey Eugene; African Storybook | https://www.africanstorybook.org/read/downloadbook.php?layout=landscape&id=40114 | CC BY 4.0
+kolibri/Early Reading/Stories/Mom and Me Love Always Wins.pdf | Mom and Me. Love Always Wins | Adeyemi Yemisi 'Theo; African Storybook | https://www.africanstorybook.org/read/downloadbook.php?layout=landscape&id=36966 | CC BY 4.0
+kolibri/Early Reading/Stories/Lady Amelia and her butterfly.pdf | Lady Amelia and her butterfly, Beauty | Fortunate Banda; tr. Glanice Masilo; ill. Fortunate Sedie; African Storybook | https://www.africanstorybook.org/read/downloadbook.php?layout=landscape&id=49407 | CC BY 4.0
+Worksheets/How Tortoise got a crooked nose (colour-in).pdf | How Tortoise got a crooked nose (Colour-in) | Taiwo Ehineni; adapt. African Storybook and Judith Baker; ill. Marlene Visser | https://www.africanstorybook.org/read/downloadbook.php?layout=landscape&id=19763 | CC BY 4.0
+kolibri/Early Reading/Stories/Magozwe.pdf | Magozwe | Lesley Koyi; ill. Wiehan de Jager; African Storybook | https://www.africanstorybook.org/read/downloadbook.php?layout=landscape&id=13213 | CC BY 4.0
+kolibri/Early Reading/Stories/The Honeyguides revenge.pdf | The Honeyguide's revenge | Zulu folktale, adapt. Ingrid Schechter; ill. Wiehan de Jager; African Storybook | https://www.africanstorybook.org/read/downloadbook.php?layout=landscape&id=2099 | CC BY 4.0
+kolibri/Early Reading/Stories/Grandmas bananas.pdf | Grandma's bananas | Ursula Nafula; ill. Catherine Groenewald; African Storybook | https://www.africanstorybook.org/read/downloadbook.php?layout=landscape&id=2094 | CC BY 4.0
+kolibri/Maths/Fractions/Visually adding fractions 5-6 plus 1-4.mp4 | Visually adding fractions: 5/6+1/4 | Sal Khan; Khan Academy | https://www.youtube.com/watch?v=qbFCneQthhM | CC BY-NC-SA 3.0 (non-commercial use only)
+kolibri/Maths/Fractions/Visually subtracting fractions 3-4 minus 5-8.mp4 | Visually subtracting fractions: 3/4-5/8 | Sal Khan; Khan Academy | https://www.youtube.com/watch?v=poGjjX_VNbM | CC BY-NC-SA 3.0 (non-commercial use only)
+kolibri/Maths/Fractions/Multiplying fractions and whole numbers.mp4 | Conceptual understanding of multiplying fractions and whole numbers | Sal Khan; Khan Academy | https://www.youtube.com/watch?v=XaJQse2u5TQ | CC BY-NC-SA 3.0 (non-commercial use only)
+kolibri/Maths/Multiplication/Multiplying multi-digit numbers.mp4 | Multiplying multiple digit numbers | Sal Khan; Khan Academy | https://www.youtube.com/watch?v=-h3Oqhl8fPg | CC BY-NC-SA 3.0 (non-commercial use only)

@@ -1,0 +1,12 @@
+IDEA-DEMO disk
+The kolibri folder holds three channels (Grade 5 Science, Early Reading, Maths).
+When the disk is plugged in, IDEA builds them into Kolibri automatically.
+Worksheets and Teacher Notes appear in Nextcloud Files as "USB: IDEA-DEMO".
+All files are openly licensed; see CREDITS.txt. The Khan Academy maths videos
+are CC BY-NC-SA: use them for non-commercial teaching only.
+The Siyavula Grade 5A Learner's Book and Teacher's Guide are CC BY-ND: share
+them freely, but do not change them.
+
+Demo sign-in (Kolibri "IDEA Demo School"): admin, teacher1, learner1,
+learner2, learner3. Each password is the account name followed by 911!
+(for example teacher1911!). Change them before real use.
