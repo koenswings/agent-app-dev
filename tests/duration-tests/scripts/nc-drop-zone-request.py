@@ -6,7 +6,7 @@ Usage: nc-drop-zone-request.py BASE_URL [TOKEN] [TARGET_PATH] [MOUNT_ROOT]
   TOKEN        custom link token (default grade5adropzone; [A-Za-z0-9] only)
   TARGET_PATH  default "/Drop Zone/inbox"  (a SUBFOLDER inside the mount)
   MOUNT_ROOT   default "/Drop Zone"        (Local external mount root)
-Env: NC_DROP_USER / NC_DROP_PASS (default teacher / TeacherGrade5A!).
+Env: NC_DROP_USER / NC_DROP_PASS (default teacher / teacher911!).
 
 WHY a subfolder: uploads land in a dedicated "Drop Zone/inbox" instead of
 next to the preload README/.gitkeep on the Local external mount root, and the
@@ -51,7 +51,7 @@ want = argv[1] if len(argv) > 1 and argv[1] else "grade5adropzone"
 target = argv[2] if len(argv) > 2 and argv[2] else "/Drop Zone/inbox"
 mount_root = argv[3] if len(argv) > 3 and argv[3] else "/Drop Zone"
 user = os.environ.get("NC_DROP_USER", "teacher")
-pw = os.environ.get("NC_DROP_PASS", "TeacherGrade5A!")
+pw = os.environ.get("NC_DROP_PASS", "teacher911!")
 
 base = f"{base_url}/ocs/v2.php/apps/files_sharing/api/v1/shares"
 auth = "Basic " + base64.b64encode(f"{user}:{pw}".encode()).decode()

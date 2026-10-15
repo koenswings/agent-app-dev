@@ -32,7 +32,7 @@
   },
   "coach": {
     "username": "teacher",
-    "passwordHint": "teacher",
+    "passwordHint": "teacher911!",
     "id": "778fa42b3063f66fd6fc730bc85d85d9",
     "idDashed": "778fa42b-3063-f66f-d6fc-730bc85d85d9",
     "liveStatus": "provisioned"

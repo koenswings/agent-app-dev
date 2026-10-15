@@ -329,7 +329,7 @@ services:
       - MYSQL_HOST=nextcloud-db
       - MYSQL_ROOT_PASSWORD=\${pass}
       - NEXTCLOUD_ADMIN_USER=admin
-      - NEXTCLOUD_ADMIN_PASSWORD=admin
+      - NEXTCLOUD_ADMIN_PASSWORD=admin911!
       - NEXTCLOUD_TRUSTED_DOMAINS=localhost 127.0.0.1 idea01 idea03
       - PHP_UPLOAD_LIMIT=10G
       - PHP_MEMORY_LIMIT=512M
@@ -399,7 +399,7 @@ seed_nextcloud_users() {
   # NC31 password_policy rejects short/common passwords — disable for duration sidecar
   docker exec -u www-data "$cname" php occ app:disable password_policy >/dev/null 2>&1 || true
   # Create duration accounts (idempotent), then refresh passwords on every run.
-  for pair in "teacher:TeacherGrade5A!" "student01:Student01Grade5A!" "student02:Student02Grade5A!" "student03:Student03Grade5A!"; do
+  for pair in "teacher:teacher911!" "student01:student01911!" "student02:student02911!" "student03:student03911!"; do
     local user="${pair%%:*}" pass="${pair##*:}"
     if docker exec -u www-data "$cname" php occ user:info "$user" >/dev/null 2>&1; then
       echo "occ user exists: $user"
@@ -579,12 +579,12 @@ s.update({
     "image": "koenswings/nextcloud:1.0-31.0.1",
     "dbImage": "koenswings/nextcloud-mariadb:1.0-11.7.2-MariaDB-ubu2404",
     "tempDataDir": f"{live}/data/nextcloud",
-    "admin": {"username": "admin", "passwordHint": "admin"},
+    "admin": {"username": "admin", "passwordHint": "admin911!"},
     "accounts": [
-        {"username": "teacher", "role": "teacher", "passwordHint": "TeacherGrade5A!"},
-        {"username": "student01", "role": "learner", "passwordHint": "Student01Grade5A!"},
-        {"username": "student02", "role": "learner", "passwordHint": "Student02Grade5A!"},
-        {"username": "student03", "role": "learner", "passwordHint": "Student03Grade5A!"},
+        {"username": "teacher", "role": "teacher", "passwordHint": "teacher911!"},
+        {"username": "student01", "role": "learner", "passwordHint": "student01911!"},
+        {"username": "student02", "role": "learner", "passwordHint": "student02911!"},
+        {"username": "student03", "role": "learner", "passwordHint": "student03911!"},
     ],
     "groups": [{"name": "Grade 5A", "members": ["teacher", "student01", "student02", "student03"]}],
     "urls": {

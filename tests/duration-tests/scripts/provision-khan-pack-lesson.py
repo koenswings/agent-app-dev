@@ -63,7 +63,7 @@ learners = []
 for uname, dname in [("learner01", "Learner One"), ("learner02", "Learner Two"), ("learner03", "Learner Three")]:
     u, c = FacilityUser.objects.get_or_create(username=uname, facility=facility, defaults={"full_name": dname})
     if c:
-        u.set_password(uname)
+        u.set_password(uname + "911!")  # IDEA default <account>911!
         u.save()
     Membership.objects.get_or_create(user=u, collection=classroom)
     learners.append({"username": u.username, "id": dash(u.id), "id_raw": u.id, "created": c})
