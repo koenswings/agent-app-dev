@@ -187,7 +187,7 @@ phase_3_intents:
       lesson_logicalId: lesson-grade5a-video-exercise
       resources: [video-grade5a-01, exercise-grade5a-01]
       app_steps:
-        - "Class → Lessons → New/open lesson Grade 5A Duration Lesson"
+        - "Class → Lessons → New/open lesson Duration Test Grade 5A Lesson"
         - "Add resources: video-grade5a-01 + exercise-grade5a-01"
         - "Recipients = Grade 5A; toggle Visible"
       selector_binding: Pixel Phase 3
