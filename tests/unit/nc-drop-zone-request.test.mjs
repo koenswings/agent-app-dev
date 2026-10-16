@@ -15,7 +15,7 @@ import { fileURLToPath } from 'node:url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SCRIPT = join(__dirname, '../duration-tests/scripts/nc-drop-zone-request.py');
 const API = '/ocs/v2.php/apps/files_sharing/api/v1/shares';
-const AUTH = 'Basic ' + Buffer.from('teacher:TeacherGrade5A!').toString('base64');
+const AUTH = 'Basic ' + Buffer.from('teacher:teacher911!').toString('base64');
 
 function fakeOcs(initial) {
   const state = { shares: initial.map((s) => ({ ...s })), nextId: 1 + Math.max(0, ...initial.map((s) => +s.id)), calls: [] };

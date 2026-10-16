@@ -13,28 +13,28 @@
   "tempDataDir": "/home/pi/idea166-nextcloud-live/data/nextcloud",
   "admin": {
     "username": "admin",
-    "passwordHint": "admin"
+    "passwordHint": "admin911!"
   },
   "accounts": [
     {
       "username": "teacher",
       "role": "teacher",
-      "passwordHint": "TeacherGrade5A!"
+      "passwordHint": "teacher911!"
     },
     {
       "username": "student01",
       "role": "learner",
-      "passwordHint": "Student01Grade5A!"
+      "passwordHint": "student01911!"
     },
     {
       "username": "student02",
       "role": "learner",
-      "passwordHint": "Student02Grade5A!"
+      "passwordHint": "student02911!"
     },
     {
       "username": "student03",
       "role": "learner",
-      "passwordHint": "Student03Grade5A!"
+      "passwordHint": "student03911!"
     }
   ],
   "groups": [
@@ -55,7 +55,7 @@
     "fileRequest": "http://idea01:18280/s/grade5adropzone"
   },
   "note": "Sidecar path for App-open when dock strips instances/. Console Running cards still need Axle startInstances / Engine startInstance on docked tree. Proven 2026-10-01 on idea01+idea03 :18280 HTTP 302 + teacher/student* users.",
-  "passwordPolicyNote": "password_policy disabled on sidecar; passwords >=10 chars",
+  "passwordPolicyNote": "password_policy disabled on sidecar; IDEA default <account>911! (admin911! is 9 chars)",
   "hosts": {
     "idea01": {
       "nextcloudHttpPort": 18280,

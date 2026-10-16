@@ -237,8 +237,9 @@ describe('duration-tests fixtures (idea#166)', () => {
     assert.equal(live.diskId, 'duration-nextcloud-grade5a-001');
     assert.equal(live.instanceId, 'nextcloud-grade5a-001');
     const pw = Object.fromEntries(live.accounts.map((a) => [a.username, a.passwordHint]));
-    assert.equal(pw.teacher, 'TeacherGrade5A!');
-    assert.equal(pw.student01, 'Student01Grade5A!');
+    assert.equal(pw.teacher, 'teacher911!');
+    assert.equal(live.admin.passwordHint, 'admin911!');
+    for (const [u, p] of Object.entries(pw)) assert.equal(p, u + '911!');
     assert.deepEqual(live.groups[0].members, ['teacher', 'student01', 'student02', 'student03']);
     assert.deepEqual(live.folders.map((f) => f.name), ['Class Materials', 'Drop Zone', 'Collab']);
     for (const f of live.folders) {
