@@ -14,11 +14,11 @@ instanceId: kolibri-grade5a-001
 instanceName: kolibri
 
 facility:
-  name: Duration Tests Facility
+  name: Duration Test Facility
   logicalId: facility-duration-grade5a
 
 class:
-  name: Grade 5A
+  name: Duration Test Grade 5A
   logicalId: class-grade5a
 
 learners:
@@ -35,10 +35,10 @@ learners:
 coach:
   username: teacher
   logicalId: coach-grade5a
-  displayName: Grade 5A Teacher
+  displayName: Duration Test Teacher
 
 lesson:
-  title: Grade 5A Duration Lesson
+  title: Duration Test Grade 5A Lesson
   logicalId: lesson-grade5a-video-exercise
   resources:
     - kind: video

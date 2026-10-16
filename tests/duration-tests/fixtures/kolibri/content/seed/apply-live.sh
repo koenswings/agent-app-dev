@@ -46,9 +46,9 @@ echo
 echo "Next (manual / manage on the Running container):"
 echo "  1. Import channel duration-kolibri-grade5a (Studio upload from seed/build,"
 echo "     or kolibri manage importchannel from a peer export)."
-echo "  2. Provision facility 'Duration Tests Facility', coach teacher,"
-echo "     class Grade 5A, learners learner01..03."
-echo "  3. Lesson 'Grade 5A Duration Lesson' with video+exercise resources."
+echo "  2. Provision facility 'Duration Test Facility', coach teacher,"
+echo "     class 'Duration Test Grade 5A', learners learner01..03."
+echo "  3. Lesson 'Duration Test Grade 5A Lesson' with video+exercise resources."
 echo "  4. Optionally rewrite facility/class/lesson live IDs in CONTENT.seeded.json."
 echo "Pinned content IDs (from CONTENT.seeded.json):"
 python3 - <<PY

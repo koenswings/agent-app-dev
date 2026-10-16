@@ -214,20 +214,20 @@ def build() -> dict:
         },
         "facility": {
             "logicalId": "facility-duration-grade5a",
-            "name": "Duration Tests Facility",
+            "name": "Duration Test Facility",
             "id": logical_uuid("facility-duration-grade5a"),
             "liveStatus": "placeholder_until_provision",
         },
         "class": {
             "logicalId": "class-grade5a",
-            "name": "Grade 5A",
+            "name": "Duration Test Grade 5A",
             "id": logical_uuid("class-grade5a"),
             "liveStatus": "placeholder_until_provision",
         },
         "coach": {
             "logicalId": "coach-grade5a",
             "username": "teacher",
-            "displayName": "Grade 5A Teacher",
+            "displayName": "Duration Test Teacher",
             "id": logical_uuid("coach-grade5a"),
             "liveStatus": "placeholder_until_provision",
         },
@@ -243,7 +243,7 @@ def build() -> dict:
         ],
         "lesson": {
             "logicalId": "lesson-grade5a-video-exercise",
-            "title": "Grade 5A Duration Lesson",
+            "title": "Duration Test Grade 5A Lesson",
             "id": logical_uuid("lesson-grade5a-video-exercise"),
             "resourceLogicalIds": ["video-grade5a-01", "exercise-grade5a-01"],
             "liveStatus": "placeholder_until_provision",

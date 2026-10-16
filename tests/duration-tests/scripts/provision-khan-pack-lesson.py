@@ -9,8 +9,10 @@ from kolibri.core.lessons.models import Lesson, LessonAssignment
 PACK = os.environ.get("PACK", "form3").lower()
 PACKS = {
     "form3": {
-        "class_name": "Form 3",
-        "lesson_title": "Form 3 Duration Lesson",
+        "class_name": "Duration Test Form 3",
+        "legacy_class_name": "Form 3",
+        "lesson_title": "Duration Test Form 3 Lesson",
+        "legacy_lesson_title": "Form 3 Duration Lesson",
         "channel_id": "c9d7f950ab6b5a1199e3d6c10d7f0103",
         "videos": [
             ("video-form3-01", "b3677df2bf9e5e5fa1f19e57a2f26b97", "0a2fdaad532c56b2b90f62f9204e3be8"),
@@ -26,8 +28,10 @@ PACKS = {
         "open_exercise": "exercise-form3-01",
     },
     "g5a": {
-        "class_name": "Grade 5A",
-        "lesson_title": "Grade 5A Duration Lesson",
+        "class_name": "Duration Test Grade 5A",
+        "legacy_class_name": "Grade 5A",
+        "lesson_title": "Duration Test Grade 5A Lesson",
+        "legacy_lesson_title": "Grade 5A Duration Lesson",
         "channel_id": "c9d7f950ab6b5a1199e3d6c10d7f0103",
         "videos": [
             ("video-grade5a-khan-01", "ef35763056fe5113946710a750e4e75c", "757e1a6e9ea15168b99a0bf7eeb30662"),
@@ -52,7 +56,21 @@ def dash(h):
         return h
     return "%s-%s-%s-%s-%s" % (h[0:8], h[8:12], h[12:16], h[16:20], h[20:32])
 
-facility = Facility.objects.get(name="Duration Tests Facility")
+# Relabelled "Duration Test ..." so fixtures are never mistaken for the demo;
+# legacy names are still accepted (and renamed) on already-provisioned instances.
+facility = Facility.objects.filter(name__in=["Duration Test Facility", "Duration Tests Facility"]).first()
+if facility is None:
+    raise SystemExit("no Duration Test Facility")
+if facility.name != "Duration Test Facility":
+    facility.name = "Duration Test Facility"
+    facility.save()
+for _old, _new in [(cfg["legacy_class_name"], cfg["class_name"])]:
+    for _c in Classroom.objects.filter(name=_old, parent=facility):
+        _c.name = _new
+        _c.save()
+for _l in Lesson.objects.filter(title=cfg["legacy_lesson_title"]):
+    _l.title = cfg["lesson_title"]
+    _l.save()
 teacher = FacilityUser.objects.get(username="teacher", facility=facility)
 classroom, created = Classroom.objects.get_or_create(name=cfg["class_name"], parent=facility)
 print("classroom", classroom.id, "created", created)

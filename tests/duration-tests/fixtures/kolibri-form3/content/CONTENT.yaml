@@ -10,11 +10,11 @@ instanceId: kolibri-form3-001
 instanceName: kolibri
 
 facility:
-  name: Duration Tests Facility
+  name: Duration Test Facility
   logicalId: facility-duration-form3
 
 class:
-  name: Form 3
+  name: Duration Test Form 3
   logicalId: class-form3
 
 learners:
@@ -31,10 +31,10 @@ learners:
 coach:
   username: teacher
   logicalId: coach-form3
-  displayName: Form 3 Teacher
+  displayName: Duration Test Teacher
 
 lesson:
-  title: Form 3 Duration Lesson
+  title: Duration Test Form 3 Lesson
   logicalId: lesson-form3-video-exercise
   # All 6 locked leaves. walkerAction on leaf 01 is the open_* entry pin only.
   assignment: 3 videos + 3 exercises
