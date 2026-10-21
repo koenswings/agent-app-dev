@@ -1,0 +1,15 @@
+{
+  "title": "Times tables practice",
+  "description": "Type the answer. Get 4 of the last 5 right.",
+  "mastery": {"m": 4, "n": 5},
+  "questions": [
+    {"type": "number", "question": "What is 6 x 7?", "answer": 42},
+    {"type": "number", "question": "What is 8 x 4?", "answer": 32},
+    {"type": "number", "question": "What is 9 x 3?", "answer": 27},
+    {"type": "number", "question": "What is 5 x 12?", "answer": 60},
+    {"type": "number", "question": "A box holds 6 eggs. How many eggs are in 4 boxes?", "answer": 24,
+     "hint": "4 boxes of 6 is 4 x 6."},
+    {"type": "choice", "question": "Which is the same as 3 x 8?",
+     "choices": ["8 x 3", "3 + 8", "8 - 3", "38"], "answer": "8 x 3", "hint": "You can swap the numbers in a times sum."}
+  ]
+}
