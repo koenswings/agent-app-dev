@@ -1,0 +1,19 @@
+{
+  "title": "Reading: Rudo and the goat",
+  "description": "Read the short story, then answer the questions. Answer all 4.",
+  "mastery": "do_all",
+  "randomize": false,
+  "passage": "**Rudo and the goat**\n\nEvery morning Rudo takes her goat, Nyasha, to the river. The path is long and dusty. At the river Nyasha drinks the cold water, and Rudo fills a bucket for her mother. One day Nyasha runs away into the tall grass. Rudo is worried. Then she hears a bell. It is Nyasha's bell! Rudo finds her goat eating sweet green leaves, and they walk home together.",
+  "questions": [
+    {"type": "choice", "question": "What is the name of Rudo's goat?",
+     "choices": ["Nyasha", "Tendai", "Rudo", "Bell"], "answer": "Nyasha"},
+    {"type": "choice", "question": "Where does Rudo take her goat every morning?",
+     "choices": ["To the river", "To school", "To the market", "To the city"], "answer": "To the river"},
+    {"type": "choice", "question": "How does Rudo find Nyasha?",
+     "choices": ["She hears Nyasha's bell", "Her mother finds her", "Nyasha comes back to the river", "She sees her on the path"],
+     "answer": "She hears Nyasha's bell"},
+    {"type": "choice", "question": "How does Rudo feel when Nyasha runs away?",
+     "choices": ["Worried", "Happy", "Sleepy", "Angry"], "answer": "Worried",
+     "hint": "Look at the sentence just after Nyasha runs away."}
+  ]
+}
