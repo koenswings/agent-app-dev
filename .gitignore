@@ -38,3 +38,4 @@ tests/duration-tests/fixtures/kolibri/content/seed/.work/
 /storage/
 __pycache__/
 *.pyc
+.deps-installed.lock

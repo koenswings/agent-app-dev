@@ -1,15 +1,17 @@
 {
   "name": "agent-app-dev",
   "version": "1.0.0",
-  "description": "IDEA App Dev workspace — App Harness (lib/) and per-App smoke tests (tests/)",
+  "description": "IDEA App Dev workspace \u2014 App Harness (lib/) and per-App smoke tests (tests/)",
   "type": "module",
   "scripts": {
+    "setup": "sh script/ensure-deps.sh",
+    "pretest": "sh script/ensure-deps.sh",
     "test": "for f in tests/*/smoke.mjs; do node \"$f\" || exit 1; done",
     "test:unit": "node --test lib/*.test.mjs tests/unit/*.test.mjs"
   },
   "dependencies": {
-    "@automerge/automerge-repo": "^2.1.0",
-    "@automerge/automerge-repo-network-websocket": "^2.1.0",
+    "@automerge/automerge-repo": "2.3.1",
+    "@automerge/automerge-repo-network-websocket": "2.3.1",
     "zx": "^8.1.0"
   },
   "private": true
