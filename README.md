@@ -50,11 +50,13 @@ This matches what `koenswings/idea/tools/quality/quality-scan.sh` expects: it de
 
 ### Running tests
 
+The harness imports `@automerge/automerge-repo` (pinned to the Engine's 2.3.1) from this repo's own `node_modules`. A checkout without installed deps fails every smoke test with `ERR_MODULE_NOT_FOUND`, so run `sh script/ensure-deps.sh` (or `npm run setup`) after cloning or pulling. `npm test` does this automatically through `pretest`.
+
 ```bash
 # On a claimed pool Pi (idea01 / idea03 / idea04; never golden idea02 — see AGENTS.md
 # claim protocol) with the Engine checked out and built
 cd /home/pi/idea/agents/agent-app-dev
-npm ci
+sh script/ensure-deps.sh   # npm ci if node_modules is missing/stale (idea#335); re-run after every pull
 ENGINE_CWD=/home/pi/idea/agents/agent-engine-dev \
 ENGINE_BIN=/home/pi/idea/agents/agent-engine-dev/dist/src/index.js \
 ENGINE_MODULES=/home/pi/idea/agents/agent-engine-dev/node_modules \
