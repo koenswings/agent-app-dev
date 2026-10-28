@@ -60,6 +60,28 @@ it('an Engine done marker at the bundle root does not break verification', () =>
   assert.equal(verify(s).status, 0);
 });
 
+it("the Engine's apps/<appId>/.idea-fetched done marker is ignored, but a nested .idea-* file is not", () => {
+  const s = setup(); assert.equal(build(s).status, 0);
+  writeFileSync(join(s.disk, 'apps/demo-1.2/.idea-fetched'), '{"at":"2026-10-28"}\n');
+  const r = verify(s); assert.equal(r.status, 0, r.stderr);
+  writeFileSync(join(s.disk, 'apps/demo-1.2/hooks/.idea-fetched'), 'x');
+  assert.notEqual(verify(s).status, 0, 'only bundle-root markers are exempt');
+});
+
+it('verifies regardless of the caller locale (mixed-case and punctuation names, as in app-nextcloud)', () => {
+  const s = setup();
+  for (const f of ['B-hook.sh', 'a_file.txt', 'Zz.md', 'docs/b.md', 'docs/A.md']) {
+    mkdirSync(dirname(join(s.app, f)), { recursive: true }); writeFileSync(join(s.app, f), f);
+  }
+  execFileSync('git', ['-C', s.app, 'add', '.'], { stdio: 'pipe' });
+  execFileSync('git', ['-C', s.app, '-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'y']);
+  assert.equal(build(s).status, 0);
+  for (const loc of ['C.UTF-8', 'en_US.UTF-8']) {
+    const r = spawnSync('bash', [VERIFY, s.disk, 'demo-1.2'], { encoding: 'utf8', env: { ...process.env, LC_ALL: loc, LANG: loc } });
+    assert.equal(r.status, 0, `${loc}: ${r.stderr}`);
+  }
+});
+
 it('verification fails on a changed file, a changed tar, or an extra file', () => {
   for (const mutate of [
     (s) => appendFileSync(join(s.disk, 'apps/demo-1.2/compose.yaml'), '#x'),

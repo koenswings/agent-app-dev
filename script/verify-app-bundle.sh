@@ -12,7 +12,7 @@ if sed -E 's/^[0-9a-f]{64} [ *]//' "$B/SHA256SUMS" | grep -Ev "^($B/|services/[^
   echo "FAIL: SHA256SUMS lists a path outside $B/ and services/*.tar" >&2; exit 1
 fi
 sha256sum --quiet --strict -c "$B/SHA256SUMS"
-extra=$(comm -23 <(find "$B" \( -type f -o -type l \) ! -path "$B/SHA256SUMS" ! -path "$B/.idea-*" | LC_ALL=C sort) \
+extra=$(LC_ALL=C comm -23 <(find "$B" \( -type f -o -type l \) ! -path "$B/SHA256SUMS" ! -path "$B/.idea-*" | LC_ALL=C sort) \
                  <(sed -E 's/^[0-9a-f]{64} [ *]//' "$B/SHA256SUMS" | LC_ALL=C sort))
 [ -z "$extra" ] || { echo "FAIL: files not in SHA256SUMS:" >&2; echo "$extra" >&2; exit 1; }
 echo "ok: $B"
