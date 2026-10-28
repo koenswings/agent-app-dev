@@ -8,6 +8,7 @@ Update this file whenever an authoritative doc is added or significantly revised
 
 | Doc | Purpose |
 |-----|---------|
+| [app-bundle-integrity.md](./app-bundle-integrity.md) | Build-time `SHA256SUMS`, image tar names and updateApp `x-app` fields (idea#351, #23) |
 | [files-mount.md](./files-mount.md) | `x-app.filesMount` convention, `restart: no`, Engine Files Disk binds allowed (idea#137) |
 
 User-facing manuals and the PDF house style are kept in the idea repo (DOCUMENTATION-RULES.md rule 7, idea#191):

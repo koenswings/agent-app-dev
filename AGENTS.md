@@ -116,6 +116,10 @@ docker push koenswings/<app>:<ver>
 docker manifest inspect koenswings/<app>:<ver> | grep arm64  # verify every image
 ```
 
+## App bundles for an App Disk (idea#351, #23)
+
+Write a bundle with `script/build-app-bundle.sh --app-dir <App checkout> --disk-root <root> --ref <tag>`: it copies the tracked files (modes kept), saves each image to `services/<image>.tar` (image+tag name, never overwritten) and writes `apps/<appId>/SHA256SUMS` relative to the disk root. Check with `script/verify-app-bundle.sh`. Every image needs a release tag (never `latest`), and a tag is never re-pushed with other content. Every App compose needs the updateApp `x-app` fields, checked by `node script/check-xapp-update-fields.mjs`. See [docs/app-bundle-integrity.md](docs/app-bundle-integrity.md).
+
 ## Test (required before any PR touching an App Disk)
 
 On a claimed pool Pi (never idea02): stop the pm2 Engine **as pi**, then from the workspace root (`/home/pi/idea/agents/agent-app-dev`, after `npm ci`) run the harness against the deployed Engine tree (read-only — do not modify it):
