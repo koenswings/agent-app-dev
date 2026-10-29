@@ -31,6 +31,7 @@ services:
       retries: 5
       start_period: 5s
 
+# Deliberate test-only exception to the ./data rule (koenswings/idea#141): this fixture tests erase of named-volume data.
 volumes:
   erase-seed-data:
     name: erase-test-seed-data
