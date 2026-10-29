@@ -33,7 +33,7 @@ Apps that use `filesMount` **must** keep `restart: no` on every service. Docker 
 
 ## Engine-generated Files Disk binds are allowed
 
-Engine-generated Files Disk binds (the override above) are **allowed**. They are not an exception to a ban — they are how Files Disks reach Apps. Reconciling the general App volume convention (named volumes vs relative App Disk binds) is a separate issue ([idea#141](https://github.com/koenswings/idea/issues/141)); do not rewrite that convention here.
+Engine-generated Files Disk binds (the override above) are **allowed**. They are not an exception to a ban — they are how Files Disks reach Apps. For all other App data the rule is: use relative `./data` bind mounts on the App Disk (relative to the App's folder on the disk), never Docker named volumes, so the data travels with the disk. Host absolute-path binds stay banned ([idea#141](https://github.com/koenswings/idea/issues/141)).
 
 Relative binds that live on the App Disk itself (for example `./data/...`, or a read-only script next to `compose.yaml`) remain normal App Disk content.
 

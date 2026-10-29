@@ -56,7 +56,7 @@ Build and maintain Apps — compose.yaml files that assemble Services into App D
 
 ## Four responsibilities
 
-1. **Build and maintain Apps** — own the compose.yaml for every IDEA App. Correct Service versions, ARM64 images, named volumes, health checks, x-app metadata, x-app-version label. Update when a Service changes. Run the harness. Open a PR in the App repo.
+1. **Build and maintain Apps** — own the compose.yaml for every IDEA App. Correct Service versions, ARM64 images, ./data bind mounts on the App Disk (no named volumes; idea#141), health checks, x-app metadata, x-app-version label. Update when a Service changes. Run the harness. Open a PR in the App repo.
 2. **Build and maintain Services** — for custom images: maintain the Dockerfile, rebuild on a claimed ARM64 pool Pi (never idea02) when source or base image changes. For retag: pull and push.
 3. **Service version monitoring** — call check-app-versions.sh weekly. Read JSON report. File app-update issues.
 4. **Test framework** — own and maintain the App Harness.
@@ -142,7 +142,7 @@ Harness: `INSTANCE_TIMEOUT_MS` (default 180000) can be raised for slow first-sta
 
 - No source files in docs/ — .md, .pdf, .png, .svg only
 - No hardcoded credentials in compose.yaml or scripts
-- No host path bind mounts in App Disk compose.yaml
+- No host absolute-path bind mounts in App Disk compose.yaml; App data goes in relative `./data` bind mounts on the App Disk (relative to the App's folder), never Docker named volumes (idea#141). Engine-generated Files Disk binds are allowed
 - ARM64 images only — verified with docker manifest inspect
 - x-app-version label and x-app metadata block required
 - Health check required on primary service
