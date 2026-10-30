@@ -151,7 +151,11 @@ kolibri_up() {   # kolibri_up <pool>: (re)create the throwaway container with th
   # effective pool: Kolibri's default is min(RAM-scaled 50..150, (soft nofile - 64) // 19) (kolibri/utils/options.py)
   kp="$(s_get "docker inspect -f '{{.State.Pid}}' $CNAME" 0)"
   lim="$(s_get "for c in \$(cat /proc/$kp/task/$kp/children 2>/dev/null) $kp; do awk '/^Max open files/{print \$4; exit}' /proc/\$c/limits 2>/dev/null && break; done" 1024)"
-  POOL_NOTE="pool $1: container nofile soft ${lim:-?}"
+  # explicit: `ulimit -n` (soft) and `ulimit -Hn` inside the Kolibri container, saved per pool pass (Steve, idea#159 run 2)
+  local un unh
+  un="$(s_get "docker exec $CNAME sh -c 'ulimit -n'" '?')"; unh="$(s_get "docker exec $CNAME sh -c 'ulimit -Hn'" '?')"
+  echo "pool $1: docker exec $CNAME sh -c 'ulimit -n' = $un (hard ulimit -Hn = $unh); kolibri pid limits soft = ${lim:-?}" | tee -a "$OUT/container-nofile.txt" >> "$OUT/capacity.log"
+  POOL_NOTE="pool $1: container ulimit -n $un (hard $unh), kolibri nofile soft ${lim:-?}"
   if [ "$1" = default ] && [[ "$lim" =~ ^[0-9]+$ ]]; then POOL_NOTE="$POOL_NOTE, fd-cap $(( (lim - 64) / 19 )) threads (RAM-scaled default capped by it)"; fi
   say "Kolibri up: $POOL_NOTE"
 }
