@@ -6,13 +6,23 @@
 //
 //   node sim-laptop.mjs --runner http://127.0.0.1:3159 --laptop A [--tab 1] [--mode field|preflight]
 //        [--skew-ms 0] [--rate 300000] [--drop-after-s 0] [--exit-after-s 600] [--pf-s 30] [--out sim-A.jsonl]
+//   node sim-laptop.mjs --mode load --url <kolibri content mp4> --n 32 --bps 902541 [--hold-s 120] [--ramp-s 15]
+//        [--ahead-s 4] [--startup-s 2] [--out load.jsonl] [--summary load.summary.json]
+//   (capacity measurement, CAPACITY-PLAN.md: N paced streams with a player buffer model; no runner needed)
 import http from 'node:http';
 import { appendFileSync } from 'node:fs';
 import { clockOffset, timerDrift } from './lib.mjs';
+import { runLoad } from './load-streams.mjs';
 
 export function parseArgs(argv) {
   const a = { mode: 'field', tab: '1', 'skew-ms': '0', rate: '300000', 'drop-after-s': '0', 'exit-after-s': '600', 'pf-s': '30' };
   for (let i = 0; i < argv.length; i++) if (argv[i].startsWith('--')) a[argv[i].slice(2)] = argv[i + 1]?.startsWith('--') || argv[i + 1] === undefined ? '1' : argv[++i];
+  if (a.mode === 'load') {
+    if (!a.url || !(Number(a.n) > 0) || !(Number(a.bps) > 0)) throw new Error('--mode load needs --url, --n > 0 and --bps > 0');
+    const num = (k, d) => (a[k] === undefined ? d : Number(a[k]));
+    return { mode: 'load', url: a.url, n: Number(a.n), bps: Number(a.bps), holdS: num('hold-s', 120), rampS: num('ramp-s', 15), aheadS: num('ahead-s', 4),
+      startupS: num('startup-s', 2), resumeS: num('resume-s', 1), out: a.out || null, summary: a.summary || null };
+  }
   if (!a.runner || !a.laptop) throw new Error('--runner and --laptop are required');
   if (!['field', 'preflight'].includes(a.mode)) throw new Error('--mode field|preflight');
   return { runner: a.runner.replace(/\/+$/, ''), laptop: a.laptop, tab: Number(a.tab), mode: a.mode, skew: Number(a['skew-ms']), rate: Number(a.rate),
@@ -152,7 +162,11 @@ export class SimLaptop {
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const sim = new SimLaptop(parseArgs(process.argv.slice(2)));
+  const args = parseArgs(process.argv.slice(2));
+  if (args.mode === 'load') { runLoad(args).then(() => process.exit(0), e => { console.error(e); process.exit(1); }); }
+  else {
+  const sim = new SimLaptop(args);
   for (const sig of ['SIGTERM', 'SIGINT']) process.on(sig, async () => { sim.done = true; await sim.end('sim exit'); process.exit(0); });
   sim.run().then(code => process.exit(code));
+  }
 }

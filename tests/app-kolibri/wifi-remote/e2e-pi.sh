@@ -17,27 +17,8 @@ E2E_ALLOW="${E2E_ALLOW:-}"
 DRY_RUN="${DRY_RUN:-0}"; CHECK_ONLY="${CHECK_ONLY:-0}"
 PORT=3159; TPORT=3160; NODE="${NODE:-/usr/local/bin/node}"
 OUT="${OUT:-./results/e2e-$(date +%Y%m%d-%H%M%S)}"
-DENY_NAMES="happy-zebra sunny-robin kind-panda wh idea idea01 idea02 wizardly-hugle"
-# wh/idea, kit Engines + routers (koenswings/idea deployments records), extendable via E2E_DENY_IPS
-DENY_IPS="100.115.60.6 100.102.94.100 100.110.73.52 100.96.98.10 100.99.84.61 100.80.238.59 ${E2E_DENY_IPS:-}"
-ALLOW_NAMES="idea03 idea04 $E2E_ALLOW"
-
-# ---- guard: deny always wins; allow only by hostname ----
-host_of() { local h="${1#*@}"; h="${h%%:*}"; case "$h" in *[a-z]*) echo "${h%%.*}";; *) echo "$h";; esac; }  # pi@idea04.x.ts.net -> idea04
-denied() { local x; for x in $DENY_NAMES $DENY_IPS; do [ "$1" = "$x" ] && return 0; done; return 1; }
-allowed() { local x; for x in $ALLOW_NAMES; do [ "$1" = "$x" ] && return 0; done; return 1; }
-is_ip() { [[ "$1" =~ ^[0-9.]+$ ]]; }
-# guard <target> [remote hostname]: a raw IP passes the first (local) check only if not denied; the remote
-# hostname must then be allowlisted. Names must be allowlisted directly.
-guard() {
-  local n; n="$(host_of "$1")"
-  denied "$n" && { echo "REFUSED: $1 ($n) is a kit, production, golden or client host"; return 2; }
-  if [ -n "${2:-}" ]; then denied "$2" && { echo "REFUSED: $1 is $2 (kit, production, golden or client host)"; return 2; }
-    allowed "$2" || { echo "REFUSED: $1 is $2, not on the allowlist ($ALLOW_NAMES)"; return 2; }
-    is_ip "$n" || [ "$n" = "$2" ] || { echo "REFUSED: $1 reports hostname $2"; return 2; }; return 0; fi
-  is_ip "$n" && return 0
-  allowed "$n" || { echo "REFUSED: $1 is not on the allowlist ($ALLOW_NAMES)"; return 2; }
-}
+# guard (deny always wins; allow only by hostname): shared with capacity.sh
+source "$HERE/pi-guard.sh"
 guard "$ENGINE" || exit 2
 [ "$CHECK_ONLY" = 1 ] && { echo "allowed: $ENGINE"; exit 0; }
 
