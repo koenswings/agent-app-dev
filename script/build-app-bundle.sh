@@ -91,13 +91,15 @@ node "$HERE/check-compose.mjs" --tag "$VER" "$TMP/compose.yaml" >/dev/null || di
 
 TARS=()
 for img in "${IMAGES[@]}"; do
-  tar_rel="services/${img//\//_}.tar"
+  # Engine#296/#322 serviceImageTarName(): a pinned repo:tag@sha256 ref is saved by repo:tag
+  save="${img%%@*}"
+  tar_rel="services/${save//\//_}.tar"
   TARS+=("$tar_rel")
   if [ -e "$ROOT/$tar_rel" ]; then
     echo "==> $tar_rel exists, reused"
   else
-    echo "==> docker save $img -> $tar_rel"
-    "$DOCKER" save "$img" > "$ROOT/$tar_rel.partial" || { rm -f "$ROOT/$tar_rel.partial"; die "docker save $img failed"; }
+    echo "==> docker save $save -> $tar_rel"
+    "$DOCKER" save "$save" > "$ROOT/$tar_rel.partial" || { rm -f "$ROOT/$tar_rel.partial"; die "docker save $img failed"; }
     mv "$ROOT/$tar_rel.partial" "$ROOT/$tar_rel"
   fi
 done
