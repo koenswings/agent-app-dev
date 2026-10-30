@@ -114,3 +114,47 @@ export function markdown({ rows, groups }) {
   for (const g of groups) L.push(`| ${g.quality} | ${g.step} | ${g.streams} | ${g.all_smooth ? 'yes' : 'NO'} | ${g.stalls} | ${g.stall_total_s} | ${g.worst_rebuffers_per_min} | ${g.dropped_frames} |`);
   return L.join('\n') + '\n';
 }
+
+// ---- Player-page mode (idea#159, option B): pure helpers shared by runner.mjs and the tests ----
+
+// NTP-style offset from ping samples [{t0, ts, t1}] (t0/t1 page clock, ts Engine clock).
+// Uses the sample with the smallest round trip. engine_time = page_time + offset.
+export function clockOffset(samples) {
+  const ok = samples.filter(s => [s.t0, s.ts, s.t1].every(Number.isFinite) && s.t1 >= s.t0);
+  if (!ok.length) return null;
+  const best = ok.reduce((a, b) => (b.t1 - b.t0 < a.t1 - a.t0 ? b : a));
+  return { offset: Math.round(best.ts - (best.t0 + best.t1) / 2), rtt: best.t1 - best.t0, n: ok.length };
+}
+
+// Engine start time T: now + lead, rounded up to a whole second, and late enough for the slowest round trip.
+export function scheduleStart(nowMs, leadMs = 5000, rtts = []) {
+  const lead = Math.max(leadMs, 3 * Math.max(0, ...rtts));
+  return Math.ceil((nowMs + lead) / 1000) * 1000;
+}
+
+// Page-clock events -> Engine-clock events in the lib format ({t, ev, ...}); keeps the page time as t_page.
+export function toEngineTime(events, offset) {
+  return events.filter(e => e && Number.isFinite(e.t) && typeof e.ev === 'string')
+    .map(e => ({ ...e, t_page: e.t, t: e.t + (offset ?? 0) }));
+}
+
+// Merge uploads for one stream: dedupe by seq (retries resend), sort by Engine time.
+export function mergeLog(existing, incoming) {
+  const seen = new Set(existing.map(e => e.seq).filter(s => s !== undefined));
+  const out = [...existing];
+  for (const e of incoming) { if (e.seq !== undefined && seen.has(e.seq)) continue; if (e.seq !== undefined) seen.add(e.seq); out.push(e); }
+  return out.sort((a, b) => a.t - b.t || (a.seq ?? 0) - (b.seq ?? 0));
+}
+
+export function streamFile(laptop, quality, step, tab) {
+  const safe = s => String(s).replace(/[^A-Za-z0-9_]/g, '_');
+  return `${safe(laptop)}-${safe(quality)}-${safe(step)}-tab${Number(tab) || 1}.jsonl`;
+}
+
+// Thermal state machine: pause above hi, resume below lo (hysteresis).
+export function thermalNext(paused, tempC, hi = 75, lo = 65) {
+  if (!Number.isFinite(tempC)) return paused;
+  if (!paused && tempC > hi) return true;
+  if (paused && tempC < lo) return false;
+  return paused;
+}

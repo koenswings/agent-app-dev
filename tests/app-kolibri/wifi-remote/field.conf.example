@@ -1,14 +1,13 @@
-# field.conf for run-remote.sh (idea#159). Copy, fill in, keep out of git. No secrets here.
-KOLIBRI_BASE="http://happy-zebra.local:18080"   # LAN name or LAN IP, as the laptops see it. Never a 100.x address.
-PI_SSH="pi@100.x.y.z"                           # the Pi over Tailscale (tag:idea, admins may reach it)
-# Laptops: LABEL=ssh-target. Over Tailscale if they joined the tailnet, else via SSH_JUMP on the school LAN.
-LAPTOPS="A=admin@idea-pc-fc95 B=admin@idea-pc-7d02 C=admin@idea-pc-9f95 D=admin@idea-pc-35f2"
-#SSH_JUMP="root@100.a.b.c"                      # the school router over Tailscale (fallback, see the doc §3)
-# quality=<content md5>:<measured bitrate bps>, in this order
+# field.conf for run-remote.sh (idea#159, option B). No secrets: SSH uses your agent/keys.
+ENGINE_SSH="pi@100.a.b.c"                       # the Engine, DIRECTLY over Tailscale (never a jump host)
+KOLIBRI_BASE="http://<engine>.local:18080"      # what the LAPTOPS use on the school LAN (not Tailscale)
+#KOLIBRI_BASE="http://10.42.0.x:18080"          # fallback if client mDNS does not resolve (open check)
+LAPTOPS="A B C D"                               # labels teachers type on the page (or ?laptop=A in the URL)
 QUALITIES="360p=<md5>:370489 480p=<md5>:751877 720p=<md5>:902541 1080p=<md5>:2133290"
-STEPS="L1:1:1 L2:2:1 L3:3:1 L4:4:1 T2:4:2 T3:4:3 T4:4:4"
+STEPS="L1:1:1 L2:2:1 L3:3:1 L4:4:1 T2:4:2 T3:4:3 T4:4:4"   # T-steps need 2-4 tabs open per laptop (&tab=2 ...)
 DURATION=180
 COOLDOWN=120
-SYNTH_N=0
-# On the IDEA client image the desktop belongs to 'learner' (Wayland). Launch Chrome there:
-#LAUNCH_PREFIX="sudo -n -u learner env XDG_RUNTIME_DIR=/run/user/1000 WAYLAND_DISPLAY=wayland-0"
+SYNTH_N=0              # keep modest (e.g. 2-4) so Kolibri stays responsive
+PORT=3159              # >= 3000
+NODE=/usr/local/bin/node   # falls back to `command -v node` on the Engine
+COOL_TIMEOUT=1800
