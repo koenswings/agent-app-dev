@@ -1,0 +1,9 @@
+{"t":1798000000000,"ev":"start","laptop":"A","quality":"720p","step":"L2","tab":1}
+{"t":1798000000800,"ev":"waiting","ct":0}
+{"t":1798000001200,"ev":"playing","ct":0}
+{"t":1798000002200,"ev":"quality","videoWidth":1280,"videoHeight":720,"droppedVideoFrames":0,"totalVideoFrames":25}
+{"t":1798000060000,"ev":"waiting","ct":58.8}
+{"t":1798000061500,"ev":"playing","ct":58.8}
+{"t":1798000181000,"ev":"quality","videoWidth":1280,"videoHeight":720,"droppedVideoFrames":3,"totalVideoFrames":4470}
+{"t":1798000181200,"ev":"end"}
+not json torn line
