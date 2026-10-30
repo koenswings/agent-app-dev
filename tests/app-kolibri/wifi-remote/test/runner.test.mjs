@@ -61,7 +61,7 @@ test('e2e: runner serves page, syncs clock, starts at T, collects JSONL, pauses 
   const tempF = join(dir, 'temp'), thrF = join(dir, 'thr'); writeFileSync(tempF, '60000'); writeFileSync(thrF, '0x0');
   const port = 3000 + Math.floor(Math.random() * 20000);
   const child = spawn(process.execPath, [RUNNER, '--dir', join(dir, 'i159'), '--port', String(port)],
-    { env: { ...process.env, I159_TEMP_FILE: tempF, I159_THROTTLE_FILE: thrF, I159_THERMAL_MS: '100' }, stdio: ['ignore', 'pipe', 'inherit'] });
+    { env: { ...process.env, I159_TEST_MODE: '1', I159_TEMP_FILE: tempF, I159_THROTTLE_FILE: thrF, I159_THERMAL_MS: '100' }, stdio: ['ignore', 'pipe', 'inherit'] });
   await new Promise(r => child.stdout.once('data', r));
   try {
     assert.match((await req(port, 'GET', '/')).body, /Start/);

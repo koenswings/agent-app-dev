@@ -71,5 +71,31 @@ On the Engine: temperature, throttling, vmstat, memory and load. All timestamps 
 - **No Wake Lock** on a plain-http page, so it relies on playing video and the desktop settings.
 - **No remote tab restart.** A closed or crashed tab needs a person; reconnects after a network drop are automatic.
 
+## Automated test (unattended)
+`e2e-pi.sh` tests the whole tool without people or laptops, **on a pool test Pi only**. This is not the field run; the field run stays gated on [idea#391](https://github.com/koenswings/idea/issues/391).
+
+```
+ENGINE=idea04 DRY_RUN=1 bash e2e-pi.sh   # print the commands
+ENGINE=idea04 bash e2e-pi.sh             # about 6-10 min; exit 0 = PASS
+```
+
+**Target:**
+- Only idea03 and idea04 are allowed, plus hosts you add with `E2E_ALLOW`.
+- It always refuses the kit Engines and routers (by name and Tailscale IP), wh/`idea` (100.115.60.6), idea01 and idea02. The refusal wins over `E2E_ALLOW`.
+- It also checks the Pi's own `hostname`.
+
+**Needs:** a running Kolibri with at least one mp4 under `/disks` (or set `KOLIBRI_PORT` and `MD5`), Node, and free ports 3159 and 3160.
+
+**What it does:**
+1. Starts 3 simulated laptops (`sim-laptop.mjs`, Node clients) on the Pi itself, in `/tmp/i159-sim`. They follow the page protocol: event stream, clock sync, start at T, a slow paced video download, JSONL upload with retry, and reconnect. Their clocks are deliberately skewed (0, +3 s, −2 s), and one drops its connection once.
+2. Runs `run-remote.sh preflight` (expects PASS), then a 2.5-minute low-load field run with `run-remote.sh`, both unchanged.
+3. Checks that every laptop's logs are present, that clocks line up within 500 ms of the start time, and that `summarise.mjs` works.
+4. **Thermal stop, without real heat:** a second runner on port 3160 in test mode reads a fake temperature file. It's set to 76 °C (expect pause), then 64 °C (expect resume), then throttled is set non-zero (expect abort).
+5. **Cleanup and verify:** kills from the pid files, moves `/tmp/i159-sim` and `/tmp/i159-thermal` to `.quarantine-<stamp>`, then checks: no listener on 3159 or 3160, pids gone, `pm2 jlist` unchanged, Kolibri answering and throttled 0x0.
+
+It waits whenever the **real** temperature is above 75 °C, until it drops below 65 °C.
+
+**Test mode (default off):** `I159_TEST_MODE=1` lets `I159_TEMP_FILE`, `I159_THROTTLE_FILE` and `I159_THERMAL_MS` replace the real sources. Without it, the runner ignores those variables, so production behaviour can't change.
+
 ## Tests
 `node --test test/*.test.mjs` runs unit tests and local end-to-end tests with a fake player. No Pi is needed.
