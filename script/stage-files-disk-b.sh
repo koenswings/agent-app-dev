@@ -3,7 +3,7 @@
 # instance, no FILES.yaml, no files/) for build-app-disk-image.sh.
 #
 # Usage: stage-files-disk-b.sh --app-dir <app-nextcloud checkout> --tree <new dir> \
-#          --disk-id <id> [--ref 1.0] [--instance nextcloud-files-b-001] [--port 18080]
+#          --disk-id <id> [--ref 1.2-31.0.1] [--instance nextcloud-files-b-001] [--port 18080]
 #
 # The App goes in with build-app-bundle.sh (tars by docker save repo:tag + SHA256SUMS).
 # The instance is made like the Engine's createInstance(): a copy of the App folder
@@ -11,9 +11,9 @@
 # a .env with port and a random internal DB pass (never printed).
 set -euo pipefail
 D="$(cd "$(dirname "$0")" && pwd)"
-# idea#76: --ref must be a release tag at HEAD. Until the app-nextcloud tag (1.2-31.0.1) exists,
-# rebuild with ALLOW_UNTAGGED=1 (dev bundle nextcloud-0.0-dev+<sha12>; pass that folder version on).
-APP_DIR="" TREE="" DID="" REF=1.0 INST=nextcloud-files-b-001 PORT=18080
+# idea#76: --ref is an app-nextcloud release tag, checked out at HEAD (default 1.2-31.0.1).
+# ALLOW_UNTAGGED=1 (dev bundle nextcloud-0.0-dev+<sha12>) is for dev trees only, never a real Disk B.
+APP_DIR="" TREE="" DID="" REF=1.2-31.0.1 INST=nextcloud-files-b-001 PORT=18080
 die() { echo "ERROR: $*" >&2; exit 1; }
 while [ $# -gt 0 ]; do case "$1" in
   --app-dir) APP_DIR="$2"; shift 2;; --tree) TREE="$2"; shift 2;; --disk-id) DID="$2"; shift 2;;
