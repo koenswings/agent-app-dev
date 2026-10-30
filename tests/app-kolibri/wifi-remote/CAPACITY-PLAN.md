@@ -42,7 +42,7 @@ Run 1 (`capacity.sh`, idea03 Pi 5 4 GB server, idea04 load host, `koenswings/kol
 | med_480p | 751877 | 32 | **48** | SAFE 48, NOT SAFE 64 (+retry) |
 | 720p | 902541 | 32 | **48** | SAFE 48, NOT SAFE 64 (+retry) |
 | high_1080p | 2133290 | 12 | **48** | SAFE 48, NOT SAFE 64 (+retry) |
-| real (Khan Academy, 68 kbps) | 68458 | 128 | **128 — UNMEASURED, flagged** | not run (3 h cap hit) |
+| real (Khan Academy, 68 kbps) | 68458 | 128 | **48 — UNMEASURED, flagged; capped by the same concurrency wall** | not run (3 h cap hit) |
 
 - The wall is the same at every bitrate, so it is a **concurrency limit, not bandwidth**: server CPU ≈3%,
   load1 < 0.5, ≥2.1 GiB RAM free, no throttling, while the load host saw ECONNRESET and queued starts
