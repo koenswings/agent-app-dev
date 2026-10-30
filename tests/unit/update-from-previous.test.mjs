@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 import { updatePair, compareVersions } from '../../lib/update-pair.mjs';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const BUILD = join(ROOT, 'script/build-app-bundle.sh'), VERIFY = join(ROOT, 'script/verify-app-bundle.sh');
-const compose = (v, tag) => `x-app:\n  name: demo\n  version: ${v}\nservices:\n  web:\n    image: koenswings/demo-web:${tag}\n  db:\n    image: "mariadb:11.7"\n`;
+const compose = (v, tag) => `x-app:\n  name: demo\n  version: ${v}\nservices:\n  web:\n    image: koenswings/demo-web:${tag}\n    labels:\n      x-app-version: "${v}"\n  db:\n    image: "mariadb:11.7"\n    labels:\n      x-app-version: "${v}"\n`;
 
 function twoReleases() {
   const d = mkdtempSync(join(tmpdir(), 'upd-')), app = join(d, 'app'), disk = join(d, 'disk'), bin = join(d, 'bin');
@@ -22,7 +22,7 @@ function twoReleases() {
   g('init', '-q');
   const release = (v, tag) => {
     writeFileSync(join(app, 'compose.yaml'), compose(v, tag)); g('add', '.');
-    g('-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', v);
+    g('-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', v); g('tag', v);
     const r = spawnSync('bash', [BUILD, '--app-dir', app, '--disk-root', disk, '--ref', v], { env, encoding: 'utf8' });
     assert.equal(r.status, 0, r.stderr);
   };
