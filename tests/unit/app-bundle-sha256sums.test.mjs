@@ -17,8 +17,12 @@ services:
   web:
     #image: upstream/web
     image: koenswings/demo-web:1.2-3.4
+    labels:
+      x-app-version: "1.2"
   db:
     image: "mariadb:11.7"
+    labels:
+      x-app-version: "1.2"
 `;
 
 function setup(compose = COMPOSE) {
@@ -37,7 +41,11 @@ function setup(compose = COMPOSE) {
   chmodSync(join(bin, 'docker'), 0o755);
   return { d, app, disk, log, env: { ...process.env, DOCKER: join(bin, 'docker') } };
 }
-const build = (s, ref = '1.2') => spawnSync('bash', [BUILD, '--app-dir', s.app, '--disk-root', s.disk, '--ref', ref], { env: s.env, encoding: 'utf8' });
+// Release refs are git tags at HEAD (idea#76); the helper tags HEAD like a release would.
+const build = (s, ref = '1.2', env = {}) => {
+  if (/^[0-9]+\.[0-9]+(-[A-Za-z0-9._]+)?$/.test(ref)) spawnSync('git', ['-C', s.app, 'tag', '-f', ref], { stdio: 'pipe' });
+  return spawnSync('bash', [BUILD, '--app-dir', s.app, '--disk-root', s.disk, '--ref', ref], { env: { ...s.env, ...env }, encoding: 'utf8' });
+};
 const verify = (s, id = 'demo-1.2') => spawnSync('bash', [VERIFY, s.disk, id], { encoding: 'utf8' });
 
 it('writes bundle, image+tag tars and a disk-root-relative SHA256SUMS that verifies', () => {
@@ -118,14 +126,14 @@ it('refuses :latest, untagged images, an existing bundle and an appId receive-ap
   assert.match(build(setup(COMPOSE.replace('mariadb:11.7', 'mariadb:latest'))).stderr, /latest/);
   assert.match(build(setup(COMPOSE.replace('mariadb:11.7', 'mariadb'))).stderr, /no tag/);
   const s = setup(); assert.equal(build(s).status, 0); assert.match(build(s).stderr, /already exists/);
-  assert.equal(build(setup(), 'feat/x').status, 0, 'slash in ref becomes "-" like the Engine');
+  assert.match(build(setup(), 'feat/x').stderr, /not a release tag/);
   assert.notEqual(build(setup(COMPOSE.replace('name: demo', 'name: .demo'))).status, 0);
 });
 
 it('idea#139: bundled compose x-app.version is the folder version', () => {
-  const s = setup(); const r = build(s, 'feat/x');
+  const s = setup(); const r = build(s, '1.2');
   assert.equal(r.status, 0, r.stderr);
-  const c = readFileSync(join(s.disk, 'apps/demo-feat-x/compose.yaml'), 'utf8');
-  assert.match(c, /^  version: "feat-x"$/m);
+  const c = readFileSync(join(s.disk, 'apps/demo-1.2/compose.yaml'), 'utf8');
+  assert.match(c, /^  version: "1.2"$/m);
   assert.match(c, /#image: upstream\/web/);
 });
