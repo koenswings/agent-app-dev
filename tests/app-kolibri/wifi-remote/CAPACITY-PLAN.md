@@ -20,7 +20,7 @@ cleanup, the thermal logic in lib.mjs) and the `scripts/` capacity tools from ag
 #159 already has a LAN result: **≥128 paced streams at every quality, no hard failure**. That run used idea01
 (**Pi 5**, 4 GB) as the server, idea04 as the client, and Kolibri **0.15.5**. The planning numbers came from
 it: 360p **64**, 480p **32**, 720p **32**, 1080p **12** (rule: `32 × 902541 / bps`, capped at 50% of measured
-SAFE). Three things are not covered yet:
+SAFE). **Superseded by run 1 below.** Three things are not covered yet:
 
 1. **Kolibri 0.19.5 and viewer-side rules** on a Pi 5 server (idea03), with the clients on a separate host (idea04).
 2. **The kit image.** The kit runs `koenswings/kolibri:1.1-0.19.5` (Kolibri 0.19.5), not 0.15.5.
@@ -30,6 +30,27 @@ SAFE). Three things are not covered yet:
 This plan measures those, unattended. It measures the **Pi's serving capacity over wired LAN (or
 loopback)**, **not Wi-Fi airtime**. Wi-Fi capacity stays with the field run (WIFI-FIELD-TEST*.md, gated on
 idea#391).
+
+## 0a. Planning numbers, measured (run 1, 30 Oct 2026, agent-app-dev#34)
+
+Run 1 (`capacity.sh`, idea03 Pi 5 4 GB server, idea04 load host, `koenswings/kolibri:1.1-0.19.5`, fleet LAN,
+14:07–17:19 CET) replaces the derived numbers above:
+
+| Quality | bps | Old planning N | **New planning N** | Measured |
+|---|---|---|---|---|
+| low_360p | 370489 | 64 | **48** | SAFE 48, NOT SAFE 64 (+retry) |
+| med_480p | 751877 | 32 | **48** | SAFE 48, NOT SAFE 64 (+retry) |
+| 720p | 902541 | 32 | **48** | SAFE 48, NOT SAFE 64 (+retry) |
+| high_1080p | 2133290 | 12 | **48** | SAFE 48, NOT SAFE 64 (+retry) |
+| real (Khan Academy, 68 kbps) | 68458 | 128 | **48 — UNMEASURED, flagged; capped by the same concurrency wall** | not run (3 h cap hit) |
+
+- The wall is the same at every bitrate, so it is a **concurrency limit, not bandwidth**: server CPU ≈3%,
+  load1 < 0.5, ≥2.1 GiB RAM free, no throttling, while the load host saw ECONNRESET and queued starts
+  (TTFF p95 ≈106 s at 360p N=64). Hypothesis: Kolibri's CherryPy thread pool (default
+  `CHERRYPY_THREAD_POOL` 50) — 48 streams + API probe fit, 64 do not. Unconfirmed.
+- Caveats: idea03 has 4 GB RAM (kits 8 GB); wired LAN, not Wi-Fi airtime; real video not measured.
+- **Proposals:** (1) raise `CAP_S` to ≥ 4 h, or run `QUALITIES=real` on its own, to measure the real
+  video; (2) a follow-up step test at N = 50/56 and with a larger thread pool to confirm the hypothesis.
 
 ## 1. Definition of "safe" (per quality, per step N)
 
