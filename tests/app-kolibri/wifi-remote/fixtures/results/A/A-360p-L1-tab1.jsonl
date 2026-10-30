@@ -1,0 +1,3 @@
+{"t":1798000000000,"ev":"playing"}
+{"t":1798000120000,"ev":"quality","videoWidth":640,"videoHeight":360,"droppedVideoFrames":0,"totalVideoFrames":3000}
+{"t":1798000120000,"ev":"end"}

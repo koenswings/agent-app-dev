@@ -1,0 +1,17 @@
+# field.conf for run-remote.sh (idea#159, option B). No secrets: SSH uses your agent/keys.
+ENGINE_SSH="pi@100.a.b.c"                       # the Engine, DIRECTLY over Tailscale (never a jump host)
+KOLIBRI_BASE="http://<engine>.local:18080"      # what the LAPTOPS use on the school LAN (not Tailscale)
+#KOLIBRI_BASE="http://10.42.0.x:18080"          # fallback if client mDNS does not resolve (open check)
+LAPTOPS="A B C D"                               # labels teachers type on the page (or ?laptop=A in the URL)
+QUALITIES="360p=<md5>:370489 480p=<md5>:751877 720p=<md5>:902541 1080p=<md5>:2133290"
+STEPS="L1:1:1 L2:2:1 L3:3:1 L4:4:1 T2:4:2 T3:4:3 T4:4:4"   # T-steps need 2-4 tabs open per laptop (&tab=2 ...)
+DURATION=180
+COOLDOWN=120
+SYNTH_N=0              # keep modest (e.g. 2-4) so Kolibri stays responsive
+PORT=3159              # >= 3000
+NODE=/usr/local/bin/node   # falls back to `command -v node` on the Engine
+COOL_TIMEOUT=1800
+# preflight (run-remote.sh preflight): both URLs the page should try; the first is the one teachers open
+ENGINE_URLS="http://<engine>.local:3159,http://10.42.0.x:3159"
+PREFLIGHT_S=120        # seconds of playback in the check
+PREFLIGHT_WAIT=900     # how long we wait for the teacher to finish

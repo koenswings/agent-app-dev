@@ -10,6 +10,8 @@ Measures how many simultaneous video streams one Kolibri instance on one Pi can 
 | `scripts/run_ramp.sh` | Ramp N until unsafe for one URL/bitrate |
 | `scripts/run_quality_matrix.sh` | Loop a qualities `manifest.json` and ramp each |
 
+Real‑school Wi‑Fi field test: [WIFI-FIELD-TEST.md](WIFI-FIELD-TEST.md) (on site) and [WIFI-FIELD-TEST-REMOTE.md](WIFI-FIELD-TEST-REMOTE.md) (remote‑run, scripts in `wifi-remote/`).
+
 ## Encode / seed fixtures
 
 Encode representative MP4s (180s classroom-like), then place each under Kolibri content storage by MD5:

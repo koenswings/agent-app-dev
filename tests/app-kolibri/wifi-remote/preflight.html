@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>IDEA Wi-Fi test: preflight</title>
+<style>body{font-family:sans-serif;margin:0;background:#111;color:#eee}header{padding:8px 12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+button{font-size:1.4em;padding:10px 24px}video{width:100vw;max-height:55vh;background:#000}
+#verdict{font-size:4em;font-weight:bold;text-align:center;padding:16px}.PASS{background:#1b5e20}.FAIL{background:#b71c1c}.WAIT{background:#333}
+#items{font-size:1.1em;padding:0 12px}#items li.ok{color:#8f8}#items li.bad{color:#f88}</style></head>
+<body><header><label>Laptop <input id="laptop" size="3"></label><button id="go">Start check</button>
+<span id="st">Click Start check, then leave this tab in front and full screen for about 2 minutes. Don't touch the laptop.</span></header>
+<div id="verdict" class="WAIT">Not started</div><ul id="items"></ul><video id="v" muted playsinline loop></video>
+<script src="/preflight.js"></script></body></html>

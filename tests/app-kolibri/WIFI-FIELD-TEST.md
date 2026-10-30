@@ -8,6 +8,9 @@ Run it **once a school with 3–4 client laptops is set up**. The hands‑on ste
 Steve's list in [idea#375](https://github.com/koenswings/idea/issues/375); nobody runs it until Steve
 schedules it there.
 
+**Remote‑run version:** [WIFI-FIELD-TEST-REMOTE.md](WIFI-FIELD-TEST-REMOTE.md) — teachers only set up the laptops;
+the IDEA team runs everything else over Tailscale with a scripted browser player instead of counting stalls by hand.
+
 Planning numbers to compare with (wired LAN, Sep 29):
 
 | Quality | Bitrate | Planning N (students per Kolibri) |

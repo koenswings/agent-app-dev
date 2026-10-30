@@ -1,0 +1,11 @@
+{"t":1798000000000,"ev":"start","laptop":"B","quality":"720p","step":"L2","tab":1}
+{"t":1798000002000,"ev":"playing","ct":0}
+{"t":1798000030000,"ev":"waiting"}
+{"t":1798000030500,"ev":"stalled"}
+{"t":1798000034000,"ev":"playing"}
+{"t":1798000090000,"ev":"waiting"}
+{"t":1798000091000,"ev":"playing"}
+{"t":1798000150000,"ev":"waiting"}
+{"t":1798000150500,"ev":"playing"}
+{"t":1798000180000,"ev":"quality","videoWidth":1280,"videoHeight":720,"droppedVideoFrames":40,"totalVideoFrames":4450}
+{"t":1798000182000,"ev":"end"}

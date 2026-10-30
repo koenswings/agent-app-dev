@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>IDEA Wi-Fi test player</title>
+<style>body{font-family:sans-serif;margin:0;background:#111;color:#eee}header{padding:8px 12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+button{font-size:1.4em;padding:10px 24px}video{width:100vw;max-height:80vh;background:#000}#st{font-size:1.1em}</style></head>
+<body><header>
+<label>Laptop <input id="laptop" size="3"></label><label>Tab <input id="tab" size="2" value="1"></label>
+<button id="go">Start</button><span id="st">Not started. Click Start, then keep this tab in front and full screen.</span>
+</header><video id="v" muted playsinline preload="none"></video>
+<script src="/player.js"></script></body></html>
