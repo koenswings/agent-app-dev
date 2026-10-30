@@ -126,7 +126,7 @@ Write a bundle with `script/build-app-bundle.sh --app-dir <App checkout> --disk-
 - **Bump rule:** a **minor** bump (`1.0` → `1.1`) whenever the upstream image changes, or any compose/bundle change ships. A **major** bump (`1.x` → `2.0`) only when the update needs a one-way data migration, and the new release then lists the old major in `x-app.updatesFrom`.
 - Every service in `compose.yaml` carries `labels: x-app-version: "<version>"` equal to `x-app.version`, and both equal the tag when built from one. Checked by `node script/check-compose.mjs [--tag <tag>] compose.yaml`; the build stamps and checks it.
 - Dev override: `ALLOW_UNTAGGED=1` builds HEAD as `0.0-dev+<sha12>`. That version reads as 0.0 and never wins an update compare. Never ship a dev bundle, and never tag a real release `0.0`.
-- Creating or pushing a release tag needs Koen's OK.
+- Release tags are set by the Lead bot and reported to Koen. Plain git tags only, no GitHub Releases. Never move an existing tag.
 
 ## Test (required before any PR touching an App Disk)
 
