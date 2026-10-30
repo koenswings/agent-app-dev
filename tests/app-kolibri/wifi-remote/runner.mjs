@@ -6,8 +6,10 @@
 // The runner never dials a laptop. Control endpoints (/control/*) accept 127.0.0.1 only (driven over SSH).
 //
 //   node runner.mjs --dir /tmp/i159 [--port 3159] [--pf-urls http://e.local:3159,http://10.42.0.x:3159] [--pf-video <kolibri mp4 url>]
-// env: I159_TEMP_FILE (default /sys/class/thermal/thermal_zone0/temp), I159_THROTTLE_FILE (test override for
-//      `vcgencmd get_throttled`), I159_THERMAL_MS (poll, default 10000)
+// Thermal source: /sys/class/thermal/thermal_zone0/temp and `vcgencmd get_throttled` (production, always).
+// TEST MODE ONLY (default off): with I159_TEST_MODE=1, I159_TEMP_FILE and I159_THROTTLE_FILE replace those
+// sources (files the test writes), and I159_THERMAL_MS sets the poll (default 10000). Without I159_TEST_MODE=1
+// these env vars are ignored, so production behaviour cannot be changed by a stray env var.
 import http from 'node:http';
 import { readFileSync, writeFileSync, appendFileSync, mkdirSync, existsSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -120,7 +122,7 @@ const server = http.createServer(async (req, res) => {
 });
 
 function status() {
-  return { now: Date.now(), port: PORT, paused, aborted, step,
+  return { now: Date.now(), port: PORT, testMode: TEST_MODE, tempSource: TEMP_FILE, paused, aborted, step,
     players: [...players.values()].map(p => ({ id: p.id, laptop: p.laptop, tab: p.tab, connected: !!p.res, offset: p.offset ?? null, rtt: p.rtt ?? null, lastSeen: p.lastSeen })) };
 }
 
@@ -134,10 +136,12 @@ function startRamp(cmd, at) {
 function stopRamp() { if (ramp) { try { ramp.kill('SIGCONT'); ramp.kill('SIGTERM'); } catch {} ramp = null; } }
 
 // Thermal watch: pause >HI, resume <LO, abort if throttled != 0x0.
-const TEMP_FILE = process.env.I159_TEMP_FILE || '/sys/class/thermal/thermal_zone0/temp';
+const TEST_MODE = process.env.I159_TEST_MODE === '1';
+const TEMP_FILE = (TEST_MODE && process.env.I159_TEMP_FILE) || '/sys/class/thermal/thermal_zone0/temp';
+const THROTTLE_FILE = TEST_MODE ? process.env.I159_THROTTLE_FILE : undefined;
 function readTemp() { try { const v = Number(readFileSync(TEMP_FILE, 'utf8').trim()); return v > 1000 ? v / 1000 : v; } catch { return NaN; } }
 function readThrottled(cb) {
-  if (process.env.I159_THROTTLE_FILE) { try { return cb(readFileSync(process.env.I159_THROTTLE_FILE, 'utf8').trim()); } catch { return cb(null); } }
+  if (THROTTLE_FILE) { try { return cb(readFileSync(THROTTLE_FILE, 'utf8').trim()); } catch { return cb(null); } }
   execFile('vcgencmd', ['get_throttled'], { timeout: 5000 }, (e, out) => cb(e ? null : String(out).trim().replace(/^throttled=/, '')));
 }
 function thermalTick() {
@@ -147,8 +151,8 @@ function thermalTick() {
   readThrottled(v => { if (v && v !== '0x0' && !aborted) { aborted = `throttled=${v}`; log('abort', { throttled: v, tempC: t }); broadcast('stop', { reason: aborted }); stopRamp(); step = null; } });
   appendFileSync(join(DIR, 'thermal.log'), JSON.stringify({ t: Date.now(), tempC: t, paused }) + '\n');
 }
-const thermal = setInterval(thermalTick, Number(process.env.I159_THERMAL_MS || 10000)); thermalTick();
+const thermal = setInterval(thermalTick, Number((TEST_MODE && process.env.I159_THERMAL_MS) || 10000)); thermalTick();
 
 function shutdown() { clearInterval(thermal); stopRamp(); broadcast('stop', { reason: 'runner exit' }); log('exit'); for (const p of players.values()) try { p.res?.end(); } catch {} server.close(); setTimeout(() => process.exit(0), 200).unref(); }
 process.on('SIGTERM', shutdown); process.on('SIGINT', shutdown);
-server.listen(PORT, '0.0.0.0', () => { writeFileSync(join(DIR, 'runner.pid'), String(process.pid)); log('listen', { port: PORT, pid: process.pid, node: process.version }); console.log(`i159 runner on :${PORT} pid ${process.pid}`); });
+server.listen(PORT, '0.0.0.0', () => { writeFileSync(join(DIR, 'runner.pid'), String(process.pid)); log('listen', { port: PORT, pid: process.pid, node: process.version, testMode: TEST_MODE, tempSource: TEMP_FILE }); console.log(`i159 runner on :${PORT} pid ${process.pid}`); });

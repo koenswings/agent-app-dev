@@ -47,7 +47,7 @@ test('e2e preflight: runner serves /preflight, config, CORS ping, collects the r
   const port = 3000 + Math.floor(Math.random() * 20000);
   const urls = `http://e.local:${port},http://10.42.0.5:${port}`;
   const child = spawn(process.execPath, [RUNNER, '--dir', join(dir, 'i159'), '--port', String(port), '--pf-urls', urls, '--pf-video', 'http://e.local:18080/v.mp4'],
-    { env: { ...process.env, I159_TEMP_FILE: tempF, I159_THROTTLE_FILE: thrF, I159_THERMAL_MS: '200' }, stdio: ['ignore', 'pipe', 'inherit'] });
+    { env: { ...process.env, I159_TEST_MODE: '1', I159_TEMP_FILE: tempF, I159_THROTTLE_FILE: thrF, I159_THERMAL_MS: '200' }, stdio: ['ignore', 'pipe', 'inherit'] });
   await new Promise(r => child.stdout.once('data', r));
   try {
     assert.match((await req(port, 'GET', '/preflight')).body, /Start check/);
