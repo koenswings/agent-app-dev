@@ -15,11 +15,29 @@
 #    folder, and every instances/*/compose.yaml x-app <name>-<version> is an existing
 #    apps/ folder. The Engine sets instanceOf from the instance compose, so a mismatch
 #    (idea#139: instance 1.0-smoke vs apps/nextcloud-1.0) makes it skip filesMounts.
+# 5. META.yaml has every field the Engine's DiskMeta requires: diskId, diskName,
+#    created and lastDocked, with created/lastDocked as epoch milliseconds. Without
+#    created the dock fails: "Cannot assign undefined value at /diskDB/<id>/created".
 set -euo pipefail
 ROOT="${1:-}"
 [ -n "$ROOT" ] && [ -d "$ROOT" ] || { echo "usage: $0 <disk-root>" >&2; exit 2; }
 fail=0
 bad() { echo "FAIL: $*" >&2; fail=1; }
+
+if [ ! -f "$ROOT/META.yaml" ]; then
+  bad "META.yaml missing at the disk root"
+else
+  metav() { awk -v k="$1" '$1==k":"{v=$0; sub(/^[^:]*:[ \t]*/,"",v); gsub(/^["\047]|["\047][ \t]*$/,"",v); print v; exit}' "$ROOT/META.yaml"; }
+  for k in diskId diskName; do
+    if [ -n "$(metav "$k")" ]; then echo "PASS: META.yaml $k"; else bad "META.yaml has no $k (the Engine requires it)"; fi
+  done
+  for k in created lastDocked; do
+    v=$(metav "$k")
+    if [[ "$v" =~ ^[0-9]{12,14}$ ]]; then echo "PASS: META.yaml $k = $v"
+    elif [ -z "$v" ]; then bad "META.yaml has no $k (the Engine requires it; epoch ms)"
+    else bad "META.yaml $k is '$v'; must be epoch milliseconds"; fi
+  done
+fi
 
 if [ -e "$ROOT/files" ]; then
   while IFS= read -r -d '' p; do

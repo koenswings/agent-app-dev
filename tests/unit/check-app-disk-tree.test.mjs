@@ -9,12 +9,13 @@ import { fileURLToPath } from 'node:url';
 const CHECK = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'script/check-app-disk-tree.sh');
 const COMPOSE = 'x-app:\n  name: nextcloud\n  version: "1.0"\nservices:\n  app:\n    image: koenswings/nextcloud:1.0-31\n  db:\n    image: "mariadb:11.7"\n';
 
+const META = 'diskId: x\nisHardwareId: false\ndiskName: IDEA Disk\ncreated: 1793359200000\nlastDocked: 1793359200000\n';
 function tree({ files, filesYaml = false, tars = true, sums = true } = {}) {
   const r = mkdtempSync(join(tmpdir(), 'disk-'));
   mkdirSync(join(r, 'apps/nextcloud-1.0'), { recursive: true });
   mkdirSync(join(r, 'instances/nc-001'), { recursive: true });
   mkdirSync(join(r, 'services'));
-  writeFileSync(join(r, 'META.yaml'), 'diskId: x\n');
+  writeFileSync(join(r, 'META.yaml'), META);
   writeFileSync(join(r, 'apps/nextcloud-1.0/compose.yaml'), COMPOSE);
   writeFileSync(join(r, 'instances/nc-001/compose.yaml'), COMPOSE);
   if (sums) writeFileSync(join(r, 'apps/nextcloud-1.0/SHA256SUMS'), 'x\n');
@@ -74,4 +75,22 @@ it('the app-nextcloud smoke fixture agrees with itself', () => {
   const fx = join(dirname(CHECK), '..', 'tests/app-nextcloud/fixture');
   const p = spawnSync('bash', ['-c', `bash ${CHECK} ${fx} 2>&1 | grep -E "x-app|instanceOf"`], { encoding: 'utf8' });
   assert.doesNotMatch(p.stdout, /FAIL/); assert.match(p.stdout, /instanceOf nextcloud-1.0 exists/);
+});
+
+// idea#139: Engine readMeta needs diskId, diskName, created, lastDocked (epoch ms)
+for (const [name, body, re] of [
+  ['created missing', 'diskId: x\nname: IDEA Disk\n', /no diskName|no created/],
+  ['created missing only', 'diskId: x\ndiskName: D\nlastDocked: 1793359200000\n', /no created/],
+  ['lastDocked missing', 'diskId: x\ndiskName: D\ncreated: 1793359200000\n', /no lastDocked/],
+  ['diskName missing', 'diskId: x\ncreated: 1793359200000\nlastDocked: 1793359200000\n', /no diskName/],
+  ['created not epoch ms', 'diskId: x\ndiskName: D\ncreated: 2026-10-30\nlastDocked: 1793359200000\n', /created is '2026-10-30'; must be epoch milliseconds/],
+]) {
+  it(`fails when META.yaml ${name}`, () => {
+    const r = tree(); writeFileSync(join(r, 'META.yaml'), body);
+    const p = run(r); assert.equal(p.status, 1); assert.match(p.stderr, re);
+  });
+}
+it('fails when META.yaml is absent', () => {
+  const r = tree(); spawnSync('mv', [join(r, 'META.yaml'), join(r, 'META.off')]);
+  assert.match(run(r).stderr, /META.yaml missing/);
 });
