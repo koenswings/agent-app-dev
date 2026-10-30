@@ -6,7 +6,7 @@ x-app:
   category: office
   icon: nextcloud.png
   author: Koen Swings
-  version: 1.0-smoke
+  version: "1.0"
   instanceName: nextcloud
   filesMount:
     path: /mnt/idea-files
