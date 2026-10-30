@@ -8,7 +8,7 @@
 #   CONF=./field.conf bash run-remote.sh            # full run (only if preflight passed)
 #   CONF=./field.conf DRY_RUN=1 bash run-remote.sh  # print the commands only
 #
-# NEVER on a kit Engine without Koen's go (separate idea#375 item). Build/test on pool or test hardware only.
+# DO NOT RUN anywhere (test Pi, kit Engine, production) until idea#391 is decided (Koen, 30 Oct 2026). Tests: local/CI only.
 # Cleanup rule (Atlas): no rm -rf, no pkill -f/pgrep -f, no pm2, no systemd. nohup + pid file; stop with
 # kill $(cat pidfile); quarantine /tmp/i159 by mv. A verify step proves port closed, pid gone, pm2 unchanged, Engine healthy.
 set -euo pipefail

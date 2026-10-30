@@ -4,7 +4,7 @@ This is the remote version of [WIFI-FIELD-TEST.md](WIFI-FIELD-TEST.md): the same
 
 **Design (option B, approved by Steve, 30 Oct 2026):** a temporary runner on the school Engine serves a player page. Laptops need **nothing installed**: no Tailscale, no SSH, no Node, no keys. This resolves decision D-1 on idea#375. There's no Tailscale on the laptops and no jump host. We reach only the Engine, directly over Tailscale.
 
-> **Never run this on a kit Engine without Koen's go.** The field run is a separate idea#375 item. Build and test only on pool or test hardware.
+> **Code only: not to be run anywhere until [idea#391](https://github.com/koenswings/idea/issues/391) is decided.** That means no test Pi, no kit Engine, no production. Koen's decision, 30 Oct 2026. Tests run locally or in CI only. The short operating guide is [wifi-remote/README.md](wifi-remote/README.md).
 
 ## 1. How it works
 
@@ -121,7 +121,7 @@ CONF=./field.conf bash wifi-remote/run-remote.sh
 1. **Plain-http screen blank and tab throttling (stays open):** no Pi 400/500 learner client is reachable from the lab, so the school preflight (§2) checks it.
 2. **Chrome policy and mDNS (stays open, preflight):** does the client Chrome policy (`LocalNetworkAccessAllowedForUrls`) allow `http://<engine>.local:3159`? Does client-side mDNS resolve `<engine>.local`? If not, use the `http://10.42.0.x:3159` fallback.
 3. **Laptop count and teacher timing:** for Steve and Marco.
-4. **Test-Pi run:** run on pool or test hardware before any field run.
+4. **Running it at all:** tracked in [idea#391](https://github.com/koenswings/idea/issues/391), together with checks 1 and 2.
 
 ## 6. Option A (not used)
 
