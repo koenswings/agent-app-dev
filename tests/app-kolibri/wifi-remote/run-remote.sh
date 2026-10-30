@@ -73,7 +73,7 @@ PF_ARGS="--pf-urls ${ENGINE_URLS:-none} --pf-video ${KOLIBRI_BASE%/}/content/sto
 essh "mkdir -p $R"
 run scp -q -o BatchMode=yes "$HERE/runner.mjs" "$HERE/lib.mjs" "$HERE/player.html" "$HERE/player.js" "$HERE/preflight.html" "$HERE/preflight.js" "$ENGINE_SSH:$R/"
 [ "$SYNTH_N" -gt 0 ] && run scp -q -o BatchMode=yes "$HERE/../scripts/kolibri_stream_loadtest.py" "$ENGINE_SSH:$R/"
-essh "cd $R && nohup $NODE runner.mjs --dir $R --port $PORT $PF_ARGS > $R/runner.out 2>&1 < /dev/null & sleep 2; cat $R/runner.pid"
+essh "cd $R || exit 1; nohup $NODE runner.mjs --dir $R --port $PORT $PF_ARGS > $R/runner.out 2>&1 < /dev/null & sleep 2; cat $R/runner.pid"
 # Pi log (same fields as WIFI-FIELD-TEST.md §4.3), into /tmp/i159 as well.
 # shellcheck disable=SC2016
 essh 'nohup bash -c '\''while true; do echo "=== $(date -Iseconds) $(vcgencmd measure_temp) $(vcgencmd get_throttled)"; vmstat 1 2 | tail -1; free -m | awk "/Mem:/{print \"mem_used_mb=\"\$3\" mem_avail_mb=\"\$7}"; uptime; sleep 10; done'\'' > '$R'/pi.log 2>&1 < /dev/null & echo $! > '$R'/pilog.pid'

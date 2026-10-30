@@ -77,7 +77,7 @@ essh "mkdir -p $SIM"
 run scp -q -o BatchMode=yes "$HERE/sim-laptop.mjs" "$HERE/lib.mjs" "$HERE/runner.mjs" "$HERE/player.html" "$HERE/player.js" "$HERE/preflight.html" "$HERE/preflight.js" "$SSH_T:$SIM/"
 sim_start() {   # sim_start <label> <args...>
   local l="$1"; shift
-  essh "cd $SIM && nohup $NODE sim-laptop.mjs --laptop $l $* --out $SIM/sim-$l.jsonl > $SIM/sim-$l.out 2>&1 < /dev/null & echo \$! >> $SIM/sim.pids"
+  essh "cd $SIM || exit 1; nohup $NODE sim-laptop.mjs --laptop $l $* --out $SIM/sim-$l.jsonl > $SIM/sim-$l.out 2>&1 < /dev/null & echo \$! >> $SIM/sim.pids"
 }
 CONF="$OUT/e2e.conf"
 cat > "$CONF" <<C
@@ -123,7 +123,7 @@ fi
 real_heat_wait || exit 1
 say "phase 3: thermal stop (test mode, port $TPORT)"
 TH=/tmp/i159-thermal
-essh "mkdir -p $TH && cp $SIM/runner.mjs $SIM/lib.mjs $SIM/player.html $SIM/player.js $SIM/preflight.html $SIM/preflight.js $TH/ && echo 50000 > $TH/fake-temp && echo 0x0 > $TH/fake-throttled && cd $TH && I159_TEST_MODE=1 I159_TEMP_FILE=$TH/fake-temp I159_THROTTLE_FILE=$TH/fake-throttled I159_THERMAL_MS=500 nohup $NODE runner.mjs --dir $TH --port $TPORT > $TH/runner.out 2>&1 < /dev/null & sleep 2; cat $TH/runner.pid"
+essh "mkdir -p $TH && cp $SIM/runner.mjs $SIM/lib.mjs $SIM/player.html $SIM/player.js $SIM/preflight.html $SIM/preflight.js $TH/ && echo 50000 > $TH/fake-temp && echo 0x0 > $TH/fake-throttled && cd $TH || exit 1; I159_TEST_MODE=1 I159_TEMP_FILE=$TH/fake-temp I159_THROTTLE_FILE=$TH/fake-throttled I159_THERMAL_MS=500 nohup $NODE runner.mjs --dir $TH --port $TPORT > $TH/runner.out 2>&1 < /dev/null & sleep 2; cat $TH/runner.pid"
 sim_start T --runner http://127.0.0.1:$TPORT --rate 100000 --exit-after-s 120
 ctl() { eget "curl -s -m 10 ${2:+-X POST -d '$2'} http://127.0.0.1:$TPORT/control/$1" '{"paused":true,"aborted":"x"}'; }
 until_status() { local i; for i in $(seq 1 20); do ctl status | grep -q "$1" && return 0; [ "$DRY_RUN" = 1 ] && return 0; sleep 1; done; return 1; }
