@@ -52,7 +52,7 @@ shopt -s nullglob
 for c in "$ROOT"/apps/*/compose.yaml "$ROOT"/instances/*/compose.yaml; do
   while IFS= read -r img; do
     [ -n "$img" ] || continue
-    tar="services/${img//\//_}.tar"
+    save="${img%%@*}"; tar="services/${save//\//_}.tar"   # Engine#296 serviceImageTarName(): repo:tag
     if [ -s "$ROOT/$tar" ]; then echo "PASS: ${c#"$ROOT"/}: $img -> $tar"
     else bad "${c#"$ROOT"/}: image $img has no tar at $tar"; fi
   done < <(awk '/^services:/{s=1;next} s&&/^[^ #]/{s=0} s&&/^    image:/{print $2}' "$c" | tr -d "\"'" | sort -u)

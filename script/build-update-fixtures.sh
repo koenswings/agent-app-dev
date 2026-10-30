@@ -10,6 +10,7 @@
 # The image tar is saved on an arm64 Pi (docker save busybox:1.36.1) and passed in; a DOCKER
 # shim copies it, so this runs on the box without a docker daemon.
 # Trees: <out>/disk-<v>/ with META.yaml + apps/updtest-<v>/ + services/busybox:1.36.1.tar.
+# disk-1.0 also carries instances/updtest-i76{minor,major,stale} (ports 18481-18483).
 set -euo pipefail
 D="$(cd "$(dirname "$0")" && pwd)"; FX="$D/../tests/fixtures/update-app"
 OUT="" TAR="" IMG=0
@@ -33,6 +34,20 @@ for spec in "1.0|[]|Base release." "1.1|[]|Minor: no data change." "2.0|[1]|Majo
   printf 'diskId: %s\nisHardwareId: false\ndiskName: Update Test %s\ncreated: %s\nlastDocked: %s\n' "$did" "$v" "$NOW_MS" "$NOW_MS" > "$T/META.yaml"
   DOCKER="$OUT/bin/docker" bash "$D/build-app-bundle.sh" --app-dir "$APP" --disk-root "$T" --ref "$v"
   bash "$D/verify-app-bundle.sh" "$T" "updtest-$v"
+  if [ "$v" = 1.0 ]; then
+    # Three instances on the one base disk (minor / major / stale-backup cases). Engine dock lists
+    # <root>/instances/* and uses each folder name as the instanceId (Disk.ts processDisk);
+    # extractAppName() takes the part before the first '-', so ids start with "updtest-".
+    # Distinct x-app.instanceName avoids updateApp's AMBIGUOUS name lookup. Copy like createInstance().
+    p=18481
+    for c in minor major stale; do
+      I="$T/instances/updtest-i76$c"; mkdir -p "$I"
+      (cd "$T/apps/updtest-1.0" && tar --exclude=./SHA256SUMS -cf - .) | tar -xpf - -C "$I"
+      sed -i "s/^  instanceName: .*/  instanceName: updtest-$c/" "$I/compose.yaml"
+      printf 'port=%s\n' "$p" > "$I/.env"; p=$((p+1))
+    done
+    bash "$D/check-app-disk-tree.sh" "$T"
+  fi
   if [ "$IMG" = 1 ]; then
     bash "$D/build-app-disk-image.sh" --tree "$T" --out "$OUT/updtest-$v.img" --uuid "$(cat /proc/sys/kernel/random/uuid)" --disk-id "$did" --size-mib 64 --label "UPDTEST $v" --hw-refuse-json /dev/null 2>&1 | tail -2 || true
   fi
