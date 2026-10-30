@@ -11,6 +11,8 @@
 # a .env with port and a random internal DB pass (never printed).
 set -euo pipefail
 D="$(cd "$(dirname "$0")" && pwd)"
+# idea#76: --ref must be a release tag at HEAD. Until the app-nextcloud tag (1.2-31.0.1) exists,
+# rebuild with ALLOW_UNTAGGED=1 (dev bundle nextcloud-0.0-dev+<sha12>; pass that folder version on).
 APP_DIR="" TREE="" DID="" REF=1.0 INST=nextcloud-files-b-001 PORT=18080
 die() { echo "ERROR: $*" >&2; exit 1; }
 while [ $# -gt 0 ]; do case "$1" in
