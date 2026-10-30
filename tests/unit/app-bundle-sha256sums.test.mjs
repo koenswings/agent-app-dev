@@ -121,3 +121,11 @@ it('refuses :latest, untagged images, an existing bundle and an appId receive-ap
   assert.equal(build(setup(), 'feat/x').status, 0, 'slash in ref becomes "-" like the Engine');
   assert.notEqual(build(setup(COMPOSE.replace('name: demo', 'name: .demo'))).status, 0);
 });
+
+it('idea#139: bundled compose x-app.version is the folder version', () => {
+  const s = setup(); const r = build(s, 'feat/x');
+  assert.equal(r.status, 0, r.stderr);
+  const c = readFileSync(join(s.disk, 'apps/demo-feat-x/compose.yaml'), 'utf8');
+  assert.match(c, /^  version: "feat-x"$/m);
+  assert.match(c, /#image: upstream\/web/);
+});

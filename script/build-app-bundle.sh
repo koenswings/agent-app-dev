@@ -64,6 +64,11 @@ mkdir "$TMP"
 [ ! -e "$TMP/SHA256SUMS" ] || die "App repo has its own SHA256SUMS at the root; that name is reserved"
 if ls -A "$TMP" | grep -q '^\.idea-'; then die "App repo has a .idea-* file at the root; reserved for Engine markers"; fi
 
+# idea#139: the bundled compose's x-app.version is the folder version, so the App folder,
+# its compose and any instance made from it agree (check-app-disk-tree.sh rule 4).
+awk -v v="$VER" '/^x-app:/{x=1;print;next} x&&/^[^ #]/{x=0} x&&/^  version:/{print "  version: \"" v "\""; next} {print}' "$TMP/compose.yaml" > "$TMP/.compose.$$" && cat "$TMP/.compose.$$" > "$TMP/compose.yaml" && rm "$TMP/.compose.$$"
+grep -q "^  version: \"$VER\"" "$TMP/compose.yaml" || die "compose.yaml x-app has no version line to set"
+
 TARS=()
 for img in "${IMAGES[@]}"; do
   tar_rel="services/${img//\//_}.tar"
