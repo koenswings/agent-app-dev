@@ -94,9 +94,13 @@ cleanup() {
   for h in server loadgen; do for sec in 'docker ps -a' 'docker images' 'pm2' 'lsblk' 'losetup'; do
     diff <(sed -n "/^## $sec\$/,/^## /p" "$OUT/before-$h.txt") <(sed -n "/^## $sec\$/,/^## /p" "$OUT/after-$h.txt") > /dev/null; check "$h: $sec identical" $?
   done; done
-  s_ssh "! (ss -ltn | grep -q ':$KPORT ')"; check "server: no listener on :$KPORT" $?
-  s_ssh "test ! -e $SCR && test ! -e $RS && ls -d $SCR.quarantine-$STAMP >/dev/null"; check "server: scratch + sampler dirs quarantined" $?
-  l_ssh "test ! -e $RL"; check "load host: $RL quarantined" $?
+  # Release probes: an ssh failure (exit 255, e.g. the Pi briefly unreachable right after the 64-stream
+  # overload) used to read as FAIL. Retry on 255 and log UNREACHABLE separately from a real FAIL (#159 run 1).
+  probe() { local h="$1" c="$2" rc i; for i in 1 2 3 4 5; do "${h}_ssh" "$c"; rc=$?; [ $rc = 255 ] || return $rc; say "probe: ssh $h exit 255, retry $i/5 in 20s"; sleep 20; done; return 255; }
+  pcheck() { if [ "$2" = 255 ]; then say "FAIL $1 (UNREACHABLE: ssh exit 255, state not checked)"; echo "$1|UNREACHABLE" >> "$OUT/release.txt"; RESULT=1; else check "$1" "$2"; fi; }
+  probe s "! (ss -ltn | grep -q ':$KPORT ')"; pcheck "server: no listener on :$KPORT" $?
+  probe s "test ! -e $SCR && test ! -e $RS && ls -d $SCR.quarantine-$STAMP >/dev/null"; pcheck "server: scratch + sampler dirs quarantined" $?
+  probe l "test ! -e $RL"; pcheck "load host: $RL quarantined" $?
   [ "$(throttled)" = 0x0 ]; check "server: throttled 0x0 ($(temp) C)" $?
 }
 trap 'ABORT="${ABORT:-interrupted}"; cleanup; exit 1' INT TERM
