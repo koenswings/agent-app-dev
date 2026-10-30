@@ -26,7 +26,7 @@ guard() {
 
 # Protected disks, refused BY ID (never by device name): test stick (USB bridge serial, disk serial, the old
 # vfat/ext4 UUIDs) and idea03's root SSD. Docked Disk B / any /disks mount is never touched either.
-PROTECTED_DISK_IDS="26A1EE83197F 3813430-532011020 3E50-902A 378383c9-0612-4c82-9c07-8c34d15253ba AA202000000000004820 ${E2E_PROTECTED_IDS:-}"
+PROTECTED_DISK_IDS="26A1EE83197F 3813430-532011020 3E50-902A 378383c9-0612-4c82-9c07-8c34d15253ba AA202000000000004820 AA000000000000005638 9bgojj2asocyf7gxtci ${E2E_PROTECTED_IDS:-}"
 # path_guard_cmd <path>: remote shell snippet that fails unless <path> is under /home/pi or /tmp, is not
 # under /disks, and lives on the root filesystem (findmnt -T -> "/"), i.e. not on any docked/protected disk.
 path_guard_cmd() {
