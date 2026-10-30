@@ -182,6 +182,18 @@ test('pi-sampler.sh writes valid JSON lines and stops with kill <pid>', async ()
   assert.ok(line.mem_avail_kb > 0 && line.cpu_total > 0);
 });
 
+test('pi-sampler.sh reads threads + RSS from the process tree under the root pid (run-1 bug: threads 1, mem 0)', async () => {
+  const d = tmp(); const out = join(d, 's.jsonl');
+  const root = spawn('bash', ['-c', 'sleep 30 & sleep 30 & wait'], { stdio: 'ignore' });
+  await new Promise(r => setTimeout(r, 300));
+  const p = spawn('bash', [here('pi-sampler.sh'), out, 'no-such-container', '1', 'eth0', 'sda', String(root.pid)], { stdio: 'ignore' });
+  for (let i = 0; i < 60 && !(existsSync(out) && readFileSync(out, 'utf8').trim()); i++) await new Promise(r => setTimeout(r, 100));
+  process.kill(p.pid, 'SIGTERM'); await new Promise(r => p.once('exit', r)); process.kill(root.pid, 'SIGTERM');
+  const line = JSON.parse(readFileSync(out, 'utf8').trim().split('\n')[0]);
+  assert.equal(line.k_procs, 2); assert.equal(line.k_threads, 2); assert.ok(line.k_mem > 0, `k_mem ${line.k_mem}`); assert.ok(line.k_pid > 0);
+  assert.ok('k_mem_docker' in line);
+});
+
 test('capacity.sh guards: refuses kit, production, golden and client hosts and SERVER = LOADGEN (no SSH)', () => {
   const run = env => spawnSync('bash', [here('capacity.sh')], { env: { ...process.env, CHECK_ONLY: '1', ...env }, encoding: 'utf8' });
   for (const bad of ['idea02', 'idea01', 'idea', 'wh', 'happy-zebra', 'pi@100.115.60.6', 'wizardly-hugle', 'idea05']) {
@@ -207,4 +219,27 @@ test('capacity.sh DRY_RUN: full flow, scratch never under /disks, cd||exit nohup
   assert.match(all, /importchannel network c9d7f950ab6b5a1199e3d6c10d7f0103/);
   assert.match(all, /PASS server: docker images identical/); assert.match(all, /PASS loadgen: losetup identical/);
   assert.ok(existsSync(join(d, 'out', 'REPORT.md'))); assert.match(readFileSync(join(d, 'out', 'compose.yaml'), 'utf8'), /KOLIBRI_HTTP_PORT=3190/);
+  // run 2: step test, both pools, real video as its own phase per pool, load-host limits, 4 h cap
+  assert.match(all, /mode step \(48 50 52 56 60 64\), pools \[default 128\].*cap 14400s \+ real 2400s\/pool/);
+  for (const pool of ['default', '128']) { assert.match(all, new RegExp(`step pool=${pool} 720p N=48`)); assert.match(all, new RegExp(`pool ${pool}: real channel video phase \\(own cap 2400s\\)`)); assert.ok(existsSync(join(d, 'out', `pool-${pool}`, 'REPORT.md'))); }
+  const def = readFileSync(join(d, 'out', 'compose-default.yaml'), 'utf8'), big = readFileSync(join(d, 'out', 'compose-128.yaml'), 'utf8');
+  assert.doesNotMatch(def, /THREAD_POOL|ulimits/); assert.match(big, /KOLIBRI_CHERRYPY_THREAD_POOL=128/); assert.match(big, /soft: 65536/);
+  assert.match(all, /docker compose -p kid-cap-\S+ up -d --force-recreate/);
+  assert.match(readFileSync(join(d, 'out', 'before-loadgen.txt'), 'utf8'), /## load-host limits/);
+  assert.match(src, /ulimit -Sn.*ip_local_port_range/);
+  assert.match(readFileSync(join(d, 'out', 'REPORT.md'), 'utf8'), /\[CherryPy pool 128\]/);
+});
+
+test('capacity.sh: global cap cannot skip the real phase; STEPS/THREAD_POOL configurable; bad THREAD_POOL refused', () => {
+  const d = tmp(); const fx = join(d, 'fx'); mkdirSync(fx);
+  writeFileSync(join(fx, 'manifest.json'), JSON.stringify([{ file: 'q_720p.mp4', md5: '99ad895daf5c1aeb216c5c2e7b8cfd3f', bitrate_bps: 902541 }]));
+  const base = { ...process.env, SERVER: 'idea03', LOADGEN: 'idea04', DRY_RUN: '1', FIXTURES: fx, QUALITIES: '720p real' };
+  const r = spawnSync('bash', [here('capacity.sh')], { env: { ...base, OUT: join(d, 'a'), CAP_S: '60', THREAD_POOL: '96', STEPS: '50 56' }, encoding: 'utf8' });
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  assert.match(r.stdout, /pool 96 720p: time cap \(global\) before N=50/); assert.doesNotMatch(r.stdout, /step pool=96 720p/);
+  assert.match(r.stdout, /step pool=96 real N=50/); assert.match(r.stdout, /mode step \(50 56\), pools \[96\]/);
+  const r2 = spawnSync('bash', [here('capacity.sh')], { env: { ...base, OUT: join(d, 'b'), REAL_CAP: '10', THREAD_POOL: 'default' }, encoding: 'utf8' });
+  assert.match(r2.stdout, /REAL_CAP 10s reached before N=48/);
+  assert.equal(spawnSync('bash', [here('capacity.sh')], { env: { ...base, CHECK_ONLY: '1', THREAD_POOL: 'big' }, encoding: 'utf8' }).status, 2);
+  assert.equal(spawnSync('bash', [here('capacity.sh')], { env: { ...base, CHECK_ONLY: '1', MODE: 'x' }, encoding: 'utf8' }).status, 2);
 });

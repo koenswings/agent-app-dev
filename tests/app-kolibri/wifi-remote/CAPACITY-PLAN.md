@@ -218,3 +218,21 @@ on idea03 (server) and idea04 (load host) after both are claimed.
    channel on the pool Pi is OK.
 4. Ramp to 128; go to 256 only if 128 is still SAFE.
 5. If the results differ from the planning N, a follow-up PR updates them.
+
+## Run 2 (idea#159, after run 1: every quality 48 safe, 64 fails)
+
+`SERVER=idea03 LOADGEN=idea04 bash capacity.sh` now defaults to:
+
+- **Step test** `MODE=step STEPS="48 50 52 56 60 64"` to pin the break (`MODE=ramp` restores run 1's ramp). Stops at the first step that fails its retry.
+- **Two CherryPy pools** `THREAD_POOL="default 128"`, a full pass each. `default` = the image as shipped. A number sets
+  Kolibri's `[Server] CHERRYPY_THREAD_POOL` through its env var `KOLIBRI_CHERRYPY_THREAD_POOL` and raises the container's nofile to `NOFILE` (65536).
+  Source: Kolibri v0.19.5 `kolibri/utils/options.py`. The default `calculate_thread_pool()` is 50 to 150 threads, scaled by RAM (about 106 at 4 GB), then capped at
+  `(soft RLIMIT_NOFILE - 64) // 19` (19 fds per thread). At nofile 1024 that cap is **50 threads**, which would fit a break between 48 and 64.
+  The env var name comes from `_get_option_spec()` (`KOLIBRI_<OPTION>`), and `utils/server/__init__.py` passes the value as CherryPy `numthreads`. The run logs the container's soft nofile at each start.
+- **Real channel video** (68 kbps) gets its own phase per pool, with its own `REAL_CAP` (2400 s). The global cap `CAP_S` (14400 s = 4 h)
+  applies only to the synthetic qualities and keeps `REAL_CAP` free for every real phase still to run, so it can never skip the real phase.
+- **Sampler fix:** run 1 always showed threads 1 and mem 0. `.State.Pid` is docker-init (`init: true`), and Pi OS boots without the memory cgroup, so docker stats reads 0 B.
+  The sampler now sums NLWP and RSS over all of Kolibri's processes under that pid in host `ps` (`k_threads`, `k_mem`, `k_pid`, `k_procs`; docker's value is kept as `k_mem_docker`).
+- **Load host limits:** `before-loadgen.txt` and `after-loadgen.txt` end with `## load-host limits` (nofile soft and hard, `ip_local_port_range`, `tcp_fin_timeout`, `somaxconn`). The log also records the open-files limit of the load process.
+
+Estimated duration: about 3 to 3.5 h (about 3 min per step, plus the retry of the failing step, 5 qualities × 2 pools, about 15 min of setup and import). The hard limit is about 4 h plus cleanup.
