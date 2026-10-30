@@ -130,6 +130,9 @@ elif [ "$ROLE" = b ]; then
   ok "Disk B: filesMount + wrapper + hook; App-only (no FILES.yaml)"
 fi
 
+$SUDO "$(cd "$(dirname "$0")" && pwd)/check-app-disk-tree.sh" "$MNT" || die "check-app-disk-tree.sh failed (files/ placeholder or missing service tar)"
+ok "no files/ placeholder; every service image has its tar"
+
 $SUDO umount "$MNT"
 MNT=""
 $SUDO "$LOSETUP" -d "$LOOP"
