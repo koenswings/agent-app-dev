@@ -74,4 +74,8 @@ NS="8 16 32 48 64 80 96 128" \
 - Kolibri stays up; MemAvailable ≥ 150 MiB; loadavg_1 ≤ 3× nproc
 - Planning N leaves headroom below last SAFE (and below Wi‑Fi / browser reality)
 
+## Real-school Wi‑Fi field test
+
+For the on-site test with 3–4 real laptops on a school's Wi‑Fi, see [WIFI-FIELD-TEST.md](WIFI-FIELD-TEST.md).
+
 See idea#159 comments for measured quality → concurrency tables.
