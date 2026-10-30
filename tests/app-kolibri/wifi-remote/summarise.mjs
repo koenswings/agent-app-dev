@@ -3,11 +3,11 @@
 // Writes RESULTS_DIR/summary.json and RESULTS_DIR/summary.md, prints the markdown.
 import { readdirSync, readFileSync, writeFileSync, statSync } from 'node:fs';
 import { join, basename } from 'node:path';
-import { parseJsonl, summarise, markdown } from './lib.mjs';
+import { parseJsonl, summarise, markdown, preflightVerdict, preflightMarkdown } from './lib.mjs';
 
 export function loadStreams(dir) {
   const streams = [];
-  const walk = d => { for (const n of readdirSync(d)) { const p = join(d, n); if (statSync(p).isDirectory()) walk(p); else if (n.endsWith('.jsonl')) {
+  const walk = d => { for (const n of readdirSync(d)) { const p = join(d, n); if (statSync(p).isDirectory()) walk(p); else if (n.endsWith('.jsonl') && !n.startsWith('preflight-')) {
     const events = parseJsonl(readFileSync(p, 'utf8'));
     const meta = events.find(e => e.ev === 'start') || {};
     const m = basename(n, '.jsonl').match(/^(.+?)-(\d+p)-(.+)-tab(\d+)$/) || [];
@@ -18,6 +18,15 @@ export function loadStreams(dir) {
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
+  if (process.argv[2] === '--preflight') {   // exit 0 only if every preflight file passed (and there is one)
+    const dir = process.argv[3]; const files = [];
+    const walk = d => { for (const n of readdirSync(d)) { const p = join(d, n); if (statSync(p).isDirectory()) walk(p); else if (/^preflight-.*\.jsonl$/.test(n)) files.push(p); } };
+    walk(dir);
+    const vs = files.map(f => preflightVerdict(parseJsonl(readFileSync(f, 'utf8'))));
+    const md = vs.length ? vs.map(preflightMarkdown).join('\n') : '# Preflight: FAIL (no result uploaded)\n';
+    writeFileSync(join(dir, 'preflight.md'), md); process.stdout.write(md);
+    process.exit(vs.length && vs.every(v => v.pass) ? 0 : 1);
+  }
   const dir = process.argv[2];
   if (!dir) { console.error('usage: summarise.mjs RESULTS_DIR'); process.exit(2); }
   const s = summarise(loadStreams(dir));

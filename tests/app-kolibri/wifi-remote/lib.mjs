@@ -158,3 +158,43 @@ export function thermalNext(paused, tempC, hi = 75, lo = 65) {
   if (paused && tempC < lo) return false;
   return paused;
 }
+
+// ---- Teacher preflight (idea#159): ~2 min on one laptop before the field run ----
+// Required items must all pass; info items are reported but do not decide the verdict.
+export const PREFLIGHT_REQUIRED = ['page_loaded', 'fetch', 'events', 'post', 'playback', 'stayed_visible', 'no_throttle', 'no_frame_gaps'];
+export const PREFLIGHT_INFO = ['other_url', 'fullscreen', 'wake_lock'];
+
+// Timer drift: worst lateness of a 1 s interval (ms). Chrome throttles hidden tabs to >=1 s (often 60 s).
+export function timerDrift(ticksMs, periodMs = 1000) {
+  let worst = 0;
+  for (let i = 1; i < ticksMs.length; i++) worst = Math.max(worst, ticksMs[i] - ticksMs[i - 1] - periodMs);
+  return Math.round(worst);
+}
+
+// requestAnimationFrame gaps: rAF stops when the tab is hidden or the compositor stops drawing (minimised,
+// occluded, display off). It does NOT reliably stop for a screensaver dim/blank on Wayland, so this is a proxy.
+export function frameGaps(frameMs, gapMs = 1000) {
+  const gaps = [];
+  for (let i = 1; i < frameMs.length; i++) if (frameMs[i] - frameMs[i - 1] > gapMs) gaps.push(Math.round(frameMs[i] - frameMs[i - 1]));
+  return { gaps: gaps.length, worst_ms: gaps.length ? Math.max(...gaps) : 0 };
+}
+
+// events: preflight JSONL ({ev:'item', name, pass, detail}, ...). Last result per item wins.
+export function preflightVerdict(events) {
+  const items = {};
+  for (const e of events) if (e.ev === 'item' && e.name) items[e.name] = { pass: !!e.pass, detail: e.detail ?? null };
+  const missing = PREFLIGHT_REQUIRED.filter(n => !(n in items));
+  const failed = PREFLIGHT_REQUIRED.filter(n => items[n] && !items[n].pass);
+  const laptop = events.find(e => e.laptop)?.laptop ?? null;
+  const url = events.find(e => e.ev === 'start')?.url ?? null;
+  return { laptop, url, pass: !missing.length && !failed.length, failed, missing, items };
+}
+
+export function preflightMarkdown(v) {
+  const L = [`# Preflight ${v.laptop ?? '?'}: ${v.pass ? 'PASS' : 'FAIL'}`, '', `Loaded: ${v.url ?? '-'}`, '', '| Item | Result | Detail |', '|---|---|---|'];
+  for (const n of [...PREFLIGHT_REQUIRED, ...PREFLIGHT_INFO]) {
+    const i = v.items[n];
+    L.push(`| ${n}${PREFLIGHT_INFO.includes(n) ? ' (info)' : ''} | ${i ? (i.pass ? 'PASS' : 'FAIL') : 'missing'} | ${i?.detail != null ? JSON.stringify(i.detail).replace(/\|/g, '/') : ''} |`);
+  }
+  return L.join('\n') + '\n';
+}

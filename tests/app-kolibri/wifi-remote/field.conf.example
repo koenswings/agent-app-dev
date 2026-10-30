@@ -11,3 +11,7 @@ SYNTH_N=0              # keep modest (e.g. 2-4) so Kolibri stays responsive
 PORT=3159              # >= 3000
 NODE=/usr/local/bin/node   # falls back to `command -v node` on the Engine
 COOL_TIMEOUT=1800
+# preflight (run-remote.sh preflight): both URLs the page should try; the first is the one teachers open
+ENGINE_URLS="http://<engine>.local:3159,http://10.42.0.x:3159"
+PREFLIGHT_S=120        # seconds of playback in the check
+PREFLIGHT_WAIT=900     # how long we wait for the teacher to finish

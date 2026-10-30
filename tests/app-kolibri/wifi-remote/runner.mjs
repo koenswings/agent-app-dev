@@ -5,21 +5,24 @@
 // stream (GET /events) for commands, pings (POST /ping) for clock sync, and uploads JSONL (POST /results).
 // The runner never dials a laptop. Control endpoints (/control/*) accept 127.0.0.1 only (driven over SSH).
 //
-//   node runner.mjs --dir /tmp/i159 [--port 3159] [--kolibri http://127.0.0.1:18080]
+//   node runner.mjs --dir /tmp/i159 [--port 3159] [--pf-urls http://e.local:3159,http://10.42.0.x:3159] [--pf-video <kolibri mp4 url>]
 // env: I159_TEMP_FILE (default /sys/class/thermal/thermal_zone0/temp), I159_THROTTLE_FILE (test override for
 //      `vcgencmd get_throttled`), I159_THERMAL_MS (poll, default 10000)
 import http from 'node:http';
-import { readFileSync, writeFileSync, appendFileSync, mkdirSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, appendFileSync, mkdirSync, existsSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawn, execFile } from 'node:child_process';
-import { clockOffset, scheduleStart, toEngineTime, mergeLog, streamFile, parseJsonl, thermalNext } from './lib.mjs';
+import { clockOffset, scheduleStart, toEngineTime, mergeLog, streamFile, parseJsonl, thermalNext, preflightVerdict } from './lib.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const args = Object.fromEntries(process.argv.slice(2).reduce((a, x, i, all) => { if (x.startsWith('--')) a.push([x.slice(2), all[i + 1]?.startsWith('--') || all[i + 1] === undefined ? '1' : all[i + 1]]); return a; }, []));
 const DIR = args.dir || '/tmp/i159';
 const PORT = Number(args.port || 3159);
 if (!(PORT >= 3000)) { console.error('port must be >= 3000'); process.exit(2); }
+// preflight: the two URLs the page should try (.local and the 10.42.0.x fallback) and a short test video URL
+const PF_URLS = (args['pf-urls'] || '').split(',').filter(Boolean);
+const PF_VIDEO = args['pf-video'] || null;
 const HI = Number(args.hi || 75), LO = Number(args.lo || 65);
 const RES = join(DIR, 'results'); mkdirSync(RES, { recursive: true });
 const RUNLOG = join(DIR, 'runner.log');
@@ -36,7 +39,8 @@ const inStep = p => step && step.laptops.includes(p.laptop) && p.tab <= step.tab
 function body(req, limit = 8 << 20) {
   return new Promise((res, rej) => { let n = 0; const c = []; req.on('data', d => { n += d.length; if (n > limit) { rej(new Error('too big')); req.destroy(); } else c.push(d); }); req.on('end', () => res(Buffer.concat(c).toString('utf8'))); req.on('error', rej); });
 }
-const json = (res, code, obj) => { res.writeHead(code, { 'content-type': 'application/json', 'cache-control': 'no-store' }); res.end(JSON.stringify(obj)); };
+const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-methods': 'GET, POST', 'access-control-allow-headers': 'content-type' };
+const json = (res, code, obj) => { res.writeHead(code, { 'content-type': 'application/json', 'cache-control': 'no-store', ...CORS }); res.end(JSON.stringify(obj)); };
 const local = req => ['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(req.socket.remoteAddress);
 
 const server = http.createServer(async (req, res) => {
@@ -44,6 +48,22 @@ const server = http.createServer(async (req, res) => {
   try {
     if (req.method === 'GET' && (u.pathname === '/' || u.pathname === '/player.html')) {
       res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' }); return res.end(readFileSync(join(HERE, 'player.html')));
+    }
+    if (req.method === 'GET' && u.pathname === '/preflight') {
+      res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' }); return res.end(readFileSync(join(HERE, 'preflight.html')));
+    }
+    if (req.method === 'GET' && u.pathname === '/preflight.js') {
+      res.writeHead(200, { 'content-type': 'text/javascript', 'cache-control': 'no-store' }); return res.end(readFileSync(join(HERE, 'preflight.js')));
+    }
+    if (req.method === 'GET' && u.pathname === '/preflight-config') return json(res, 200, { urls: PF_URLS, video: PF_VIDEO });
+    if (req.method === 'OPTIONS') { res.writeHead(204, CORS); return res.end(); }
+    if (req.method === 'POST' && u.pathname === '/preflight-result') {
+      const laptop = u.searchParams.get('laptop') || 'unknown';
+      const evs = parseJsonl(await body(req)).map(e => ({ ...e, t_page: e.t, t_engine: Date.now() }));
+      const f = join(RES, 'preflight-' + streamFile(laptop, 'pf', 'pf', 1).replace(/-pf-pf-tab1/, ''));
+      writeFileSync(f, evs.map(e => JSON.stringify(e)).join('\n') + '\n');
+      const v = preflightVerdict(evs); log('preflight', { laptop, pass: v.pass, failed: v.failed, missing: v.missing });
+      return json(res, 200, { ok: true, pass: v.pass });
     }
     if (req.method === 'GET' && u.pathname === '/player.js') {
       res.writeHead(200, { 'content-type': 'text/javascript', 'cache-control': 'no-store' }); return res.end(readFileSync(join(HERE, 'player.js')));
@@ -80,6 +100,10 @@ const server = http.createServer(async (req, res) => {
     if (u.pathname.startsWith('/control/')) {
       if (!local(req)) return json(res, 403, { error: 'control is localhost only' });
       if (u.pathname === '/control/status') return json(res, 200, status());
+      if (u.pathname === '/control/preflight') {
+        const out = readdirSync(RES).filter(n => n.startsWith('preflight-')).map(n => preflightVerdict(parseJsonl(readFileSync(join(RES, n), 'utf8'))));
+        return json(res, 200, { results: out });
+      }
       if (req.method === 'POST' && u.pathname === '/control/start') {
         if (aborted) return json(res, 409, { error: 'aborted: ' + aborted });
         const b = JSON.parse(await body(req));

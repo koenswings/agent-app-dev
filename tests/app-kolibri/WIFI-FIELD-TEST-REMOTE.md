@@ -31,7 +31,37 @@ The runner:
 - It **aborts** if `vcgencmd get_throttled` is not `0x0`.
 - Keep `SYNTH_N` modest (2–4) so Kolibri stays responsive.
 
-## 2. Teacher steps (on the day)
+## 2. Preflight first (about 2 minutes, one laptop)
+
+**The field run goes ahead only if the preflight passes.** There's no reachable Pi 400/500 learner client in our lab, so open checks 1 and 2 (§5) are answered here, at the school, as part of the field-run go.
+
+**Us:** `CONF=./field.conf bash wifi-remote/run-remote.sh preflight`. It starts the runner exactly as for the field run (nohup, port 3159), waits for a result, prints a PASS/FAIL table (`preflight.md`), then does the same cleanup and verify. The exit code is non-zero on any FAIL or if no result arrives.
+
+**Teacher:** on one laptop, open `http://<engine>.local:3159/preflight?laptop=A`. If it doesn't load, use `http://10.42.0.x:3159/preflight?laptop=A`.
+1. Click **Start check**.
+2. Leave the tab in front and full screen for about 2 minutes, and don't touch the laptop.
+3. The page shows a big **PASS** or **FAIL**.
+4. Tell us the verdict, and **whether the screen went dark or dim**.
+
+| Item | Required | What the page checks |
+|---|---|---|
+| page_loaded | yes | which URL loaded (`.local` or the IP) |
+| fetch / events / post | yes | Chrome policy or local-network access lets the page fetch, open the event stream, and POST to :3159 |
+| other_url | info | probes the other URL (`.local` ↔ 10.42.0.x) through CORS, so we learn whether both work |
+| playback | yes | about 2 min of muted Kolibri video: plays, no errors, no stalls hidden |
+| stayed_visible | yes | no `visibilitychange` to hidden |
+| no_throttle | yes | a 1 s timer is never more than 1.5 s late (Chrome throttles hidden or occluded tabs) |
+| no_frame_gaps | yes | no `requestAnimationFrame` gap over 1 s |
+| fullscreen | info | stayed full screen |
+| wake_lock | info | expected to **FAIL**: plain http isn't a secure page |
+
+**Limits (what a page can't know):**
+- A page can't see the real display state. rAF stops when the tab is hidden, occluded or not being drawn. But a desktop idle dim, or a display-off that doesn't stop the compositor, may not show up as a gap. That's why the teacher's own "did the screen go dark?" answer is part of the result.
+- The page can't stop the desktop idle timer. Wake Lock would need https or localhost.
+- If the desktop blanks the screen during a 2-minute check, the real 3-minute steps will blank too, so a FAIL here stops the run.
+- A PASS over 2 minutes doesn't prove a 20-minute session. The field logs keep recording visibility and frame data, so a later blank still shows up in the results.
+
+## 2b. Teacher steps (field run, after a PASS)
 
 1. Turn on each test laptop and let it join the classroom Wi-Fi as usual.
 2. In Chrome, open **`http://<engine>.local:3159/?laptop=A`** (B, C, D on the other laptops). If that doesn't load, use **`http://10.42.0.x:3159/?laptop=A`**; we'll tell you the number.
@@ -88,8 +118,8 @@ CONF=./field.conf bash wifi-remote/run-remote.sh
 
 ## 5. Open checks
 
-1. **Plain-http screen blank and tab throttling:** a 20-minute play on a Pi 400 and a Pi 500 learner client. Does the screen blank, or the tab get throttled, while the video plays?
-2. **Chrome policy and mDNS:** does the client Chrome policy (`LocalNetworkAccessAllowedForUrls`) allow `http://<engine>.local:3159`? Does client-side mDNS resolve `<engine>.local`? If not, use the `http://10.42.0.x:3159` fallback.
+1. **Plain-http screen blank and tab throttling (stays open):** no Pi 400/500 learner client is reachable from the lab, so the school preflight (§2) checks it.
+2. **Chrome policy and mDNS (stays open, preflight):** does the client Chrome policy (`LocalNetworkAccessAllowedForUrls`) allow `http://<engine>.local:3159`? Does client-side mDNS resolve `<engine>.local`? If not, use the `http://10.42.0.x:3159` fallback.
 3. **Laptop count and teacher timing:** for Steve and Marco.
 4. **Test-Pi run:** run on pool or test hardware before any field run.
 
