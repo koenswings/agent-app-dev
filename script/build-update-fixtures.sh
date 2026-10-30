@@ -11,6 +11,10 @@
 # shim copies it, so this runs on the box without a docker daemon.
 # Trees: <out>/disk-<v>/ with META.yaml + apps/updtest-<v>/ + services/busybox:1.36.1.tar.
 # disk-1.0 also carries instances/updtest-i76{minor,major,stale} (ports 18481-18483).
+# services/ also gets a copy named by the full pinned ref (busybox:1.36.1@sha256:<digest>.tar):
+# Engines older than agent-engine-dev 46da985 (#296), e.g. idea04 on 631475e, look the tar up by
+# the whole compose image string (serviceImageTarPath = ref with / -> _ + .tar). Engines with #296
+# use repo:tag.tar. Same bytes under both names, so a disk starts on either Engine (idea#76).
 set -euo pipefail
 D="$(cd "$(dirname "$0")" && pwd)"; FX="$D/../tests/fixtures/update-app"
 OUT="" TAR="" IMG=0
@@ -48,6 +52,10 @@ for spec in "1.0|[]|Base release." "1.1|[]|Minor: no data change." "2.0|[1]|Majo
     done
     bash "$D/check-app-disk-tree.sh" "$T"
   fi
+  REF=$(sed -n 's/^    image: //p' "$T/apps/updtest-$v/compose.yaml" | head -1)
+  case "$REF" in busybox:1.36.1@sha256:*) ;; *) die "unexpected image ref '$REF'";; esac
+  cp "$T/services/busybox:1.36.1.tar" "$T/services/${REF//\//_}.tar"
+  cmp -s "$T/services/busybox:1.36.1.tar" "$T/services/${REF//\//_}.tar" || die "legacy tar copy differs"
   if [ "$IMG" = 1 ]; then
     bash "$D/build-app-disk-image.sh" --tree "$T" --out "$OUT/updtest-$v.img" --uuid "$(cat /proc/sys/kernel/random/uuid)" --disk-id "$did" --size-mib 64 --label "UPDTEST $v" --hw-refuse-json /dev/null 2>&1 | tail -2 || true
   fi
