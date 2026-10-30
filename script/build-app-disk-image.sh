@@ -50,6 +50,9 @@ case "$OUT" in
   *) die "--out must end in .img" ;;
 esac
 [ -f "$TREE/META.yaml" ] || die "META.yaml missing in tree"
+# idea#139: refuse a staging tree with files/ placeholders or missing service tars.
+# Stage apps with build-app-bundle.sh so services/*.tar and SHA256SUMS are written.
+"$(dirname "$0")/check-app-disk-tree.sh" "$TREE" || die "staging tree failed check-app-disk-tree.sh"
 if [ -n "$DISK_ID" ]; then
   grep -q "diskId: ${DISK_ID}" "$TREE/META.yaml" || die "META.yaml diskId does not match --disk-id $DISK_ID"
 fi
@@ -119,11 +122,16 @@ mkdir -p "$MNT"
 $SUDO mount -t ext4 "$PART" "$MNT"
 
 echo "==> Copying App Disk tree"
-$SUDO cp -a "$TREE"/. "$MNT"/
+# Placeholders under files/ never ship (idea#139), even if a tree slips past the check.
+tar -C "$TREE" --exclude='./files/.gitkeep' --exclude='./files/*/.gitkeep' \
+  --exclude='./files/.keep' --exclude='./files/*/.keep' -cf - . | $SUDO tar -xpf - -C "$MNT"
 $SUDO chown -R 1000:1000 "$MNT"
 if [ -d "$MNT/lost+found" ]; then
   $SUDO chown 1000:1000 "$MNT/lost+found" || true
 fi
+
+echo "==> Checking the built filesystem"
+$SUDO "$(cd "$(dirname "$0")" && pwd)/check-app-disk-tree.sh" "$MNT" || die "built image failed check-app-disk-tree.sh"
 
 sync
 $SUDO umount "$MNT"

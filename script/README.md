@@ -7,3 +7,4 @@ Build throwaway GPT+ext4 App Disk `.img` files for hardware tests (Atlas writes 
 - `build-files-disk-test-images.sh` — convenience wrapper for Disk A + Disk B from a `build-ids.env`.
 
 Never targets block devices; idea03 stick IDs from `hw-roundtrip-disks.json` are refused (fail closed if missing on a fleet Pi). Images go on a GitHub Release, not in git.
+- `check-app-disk-tree.sh <root>` — idea#139: fails if any placeholder (.gitkeep, .keep, …) is under `files/`, if `files/` exists on an App-only disk, if any compose service image has no `services/<image, '/'→'_'>.tar` (Engine `serviceImageTarPath()`), or if an App has no build-time `SHA256SUMS`. `build-app-disk-image.sh` runs it on the staging tree and on the built filesystem; `validate-app-disk-image.sh` runs it on the image. Stage every App with `build-app-bundle.sh` (it writes the tars by `docker save <repo:tag>` and SHA256SUMS); never hand-copy an App folder into a tree.
