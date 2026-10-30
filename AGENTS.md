@@ -120,6 +120,14 @@ docker manifest inspect koenswings/<app>:<ver> | grep arm64  # verify every imag
 
 Write a bundle with `script/build-app-bundle.sh --app-dir <App checkout> --disk-root <root> --ref <tag>`: it copies the tracked files (modes kept), saves each image to `services/<image>.tar` (image+tag name, never overwritten) and writes `apps/<appId>/SHA256SUMS` relative to the disk root. Check with `script/verify-app-bundle.sh`. Every image needs a release tag (never `latest`), and a tag is never re-pushed with other content. Every App compose needs the updateApp `x-app` fields, checked by `node script/check-xapp-update-fields.mjs`. See [docs/app-bundle-integrity.md](docs/app-bundle-integrity.md).
 
+### App versions and release tags (idea#76)
+
+- An App Disk bundle is built only from a git tag `<major>.<minor>[-<upstream>]` of the App repo (e.g. `1.1-0.19.5` or `1.1`; three-number tags such as `1.0.1` are refused), checked out at that tag. `build-app-bundle.sh` refuses commit SHAs, dates (`zimbabwe-2026-10-20`) and branches, because the Engine orders updates by the first numbers in the version.
+- **Bump rule:** a **minor** bump (`1.0` → `1.1`) whenever the upstream image changes, or any compose/bundle change ships. A **major** bump (`1.x` → `2.0`) only when the update needs a one-way data migration, and the new release then lists the old major in `x-app.updatesFrom`.
+- Every service in `compose.yaml` carries `labels: x-app-version: "<version>"` equal to `x-app.version`, and both equal the tag when built from one. Checked by `node script/check-compose.mjs [--tag <tag>] compose.yaml`; the build stamps and checks it.
+- Dev override: `ALLOW_UNTAGGED=1` builds HEAD as `0.0-dev+<sha12>`. That version reads as 0.0 and never wins an update compare. Never ship a dev bundle, and never tag a real release `0.0`.
+- Release tags are set by the Lead bot and reported to Koen. Plain git tags only, no GitHub Releases. Never move an existing tag.
+
 ## Test (required before any PR touching an App Disk)
 
 On a claimed pool Pi (never idea02): stop the pm2 Engine **as pi**, then from the workspace root (`/home/pi/idea/agents/agent-app-dev`, after `npm ci`) run the harness against the deployed Engine tree (read-only — do not modify it):
@@ -144,7 +152,7 @@ Harness: `INSTANCE_TIMEOUT_MS` (default 180000) can be raised for slow first-sta
 - No hardcoded credentials in compose.yaml or scripts
 - No host absolute-path bind mounts in App Disk compose.yaml; App data goes in relative `./data` bind mounts on the App Disk (relative to the App's folder), never Docker named volumes (idea#141). Engine-generated Files Disk binds are allowed
 - ARM64 images only — verified with docker manifest inspect
-- x-app-version label and x-app metadata block required
+- x-app-version label on every service (== x-app.version == release tag, `script/check-compose.mjs`) and x-app metadata block required
 - Health check required on primary service
 - No ports below 3000
 - Build/conventions changed → update this file in same PR

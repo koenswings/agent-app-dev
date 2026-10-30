@@ -3,7 +3,15 @@
 # image tars and a build-time SHA256SUMS (agent-app-dev#23, idea#351 updateApp).
 #
 # Usage:
-#   build-app-bundle.sh --app-dir <App repo checkout> --disk-root <dir> --ref <git ref>
+#   build-app-bundle.sh --app-dir <App repo checkout> --disk-root <dir> --ref <release tag>
+#
+# idea#76: --ref must be a git tag of the App repo matching <major>.<minor>[-<upstream>]
+# (e.g. 1.1-0.19.5) and must point at the checked-out HEAD. Commit SHAs, dates and other refs
+# are refused: the Engine reads the first number of the version to order updates.
+# Dev override: ALLOW_UNTAGGED=1 builds HEAD as version 0.0-dev+<sha12>, which never wins
+# an update compare. Never put a dev bundle on a disk that leaves the bench.
+# The x-app.version line and every service's x-app-version label are stamped with the
+# version, then checked with script/check-compose.mjs --tag.
 #
 # Writes, relative to --disk-root:
 #   apps/<appId>/...          every git-tracked file of the App checkout, file modes kept
@@ -36,13 +44,23 @@ done
 git -C "$APP_DIR" rev-parse --git-dir >/dev/null 2>&1 || die "--app-dir is not a git checkout"
 ROOT=$(cd "$ROOT" && pwd)
 
-# Same rule as agent-engine-dev src/data/Instance.ts versionDirName()
-VER=$(printf '%s' "$REF" | sed -E 's/[^A-Za-z0-9._+-]+/-/g; s/-+/-/g; s/^[-.]+//; s/-+$//')
-[ -n "$VER" ] || VER=ref
+HERE=$(cd "$(dirname "$0")" && pwd)
+ID_RE='^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$'
+if [ "${ALLOW_UNTAGGED:-}" = 1 ]; then
+  VER="0.0-dev+$(git -C "$APP_DIR" rev-parse --short=12 HEAD)"
+  ID_RE='^[A-Za-z0-9][A-Za-z0-9._+-]{0,127}$'   # local installs only; receive-app/Fetch refuse "+"
+  echo "WARNING: ALLOW_UNTAGGED=1, dev bundle $VER (not a release)" >&2
+else
+  [[ "$REF" =~ ^[0-9]+\.[0-9]+(-[A-Za-z0-9._]+)?$ ]] \
+    || die "--ref '$REF' is not a release tag <major>.<minor>[-<upstream>]; SHA and date refs are refused (dev override: ALLOW_UNTAGGED=1)"
+  tc=$(git -C "$APP_DIR" rev-parse -q --verify "refs/tags/$REF^{commit}" 2>/dev/null) || die "--ref '$REF' is not a git tag in $APP_DIR"
+  [ "$tc" = "$(git -C "$APP_DIR" rev-parse HEAD)" ] || die "tag $REF is not the checked-out HEAD; check out the tag first"
+  VER="$REF"
+fi
 NAME=$(awk '/^x-app:/{x=1;next} x&&/^[^ #]/{x=0} x&&/^  name:/{print $2; exit}' "$APP_DIR/compose.yaml")
 [ -n "$NAME" ] || die "x-app.name missing in compose.yaml"
 APP_ID="$NAME-$VER"
-[[ "$APP_ID" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$ ]] || die "appId '$APP_ID' would be refused by receive-app"
+[[ "$APP_ID" =~ $ID_RE ]] || die "appId '$APP_ID' would be refused by receive-app"
 BUNDLE="apps/$APP_ID"
 [ ! -e "$ROOT/$BUNDLE" ] || die "$ROOT/$BUNDLE already exists; a bundle is written once"
 
@@ -67,7 +85,9 @@ if ls -A "$TMP" | grep -q '^\.idea-'; then die "App repo has a .idea-* file at t
 # idea#139: the bundled compose's x-app.version is the folder version, so the App folder,
 # its compose and any instance made from it agree (check-app-disk-tree.sh rule 4).
 awk -v v="$VER" '/^x-app:/{x=1;print;next} x&&/^[^ #]/{x=0} x&&/^  version:/{print "  version: \"" v "\""; next} {print}' "$TMP/compose.yaml" > "$TMP/.compose.$$" && cat "$TMP/.compose.$$" > "$TMP/compose.yaml" && rm "$TMP/.compose.$$"
-grep -q "^  version: \"$VER\"" "$TMP/compose.yaml" || die "compose.yaml x-app has no version line to set"
+grep -qF "  version: \"$VER\"" "$TMP/compose.yaml" || die "compose.yaml x-app has no version line to set"
+sed -i -E "s/^( +)x-app-version:.*$/\\1x-app-version: \"$VER\"/" "$TMP/compose.yaml"   # map-form labels
+node "$HERE/check-compose.mjs" --tag "$VER" "$TMP/compose.yaml" >/dev/null || die "check-compose failed on the bundled compose (every service needs an x-app-version label)"
 
 TARS=()
 for img in "${IMAGES[@]}"; do
