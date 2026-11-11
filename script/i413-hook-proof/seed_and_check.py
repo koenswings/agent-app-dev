@@ -409,6 +409,13 @@ def kolibri_login(base: str, username: str, *, as_learner: bool = False) -> Sess
     for c in s.jar:
         if c.name in ("csrftoken", "kolibri_csrftoken"):
             s.csrf = c.value
+    # 0.19 writes logger_usersessionlog only from get_session_response when
+    # request.data.active is true (the Learn UI heartbeats this after sign-in).
+    active_st, _ = s.json("PUT", "/api/auth/session/current/", json_body={"active": True})
+    if active_st not in (200, 201):
+        active_st, _ = s.json("PATCH", "/api/auth/session/current/", json_body={"active": True})
+    if active_st not in (200, 201):
+        die(f"Kolibri session heartbeat (active=true) failed (HTTP {active_st})")
     log(f"Kolibri signed in as {username} (password not shown)")
     return s, data
 
@@ -689,25 +696,64 @@ def nextcloud_open_office(base: str, username: str = "teacher1") -> None:
         die("could not read Nextcloud fileId for the uploaded document")
 
     # Ask richdocuments (Nextcloud Office / Collabora) for a WOPI token.
-    st, body, _ = s.request(
-        "POST",
-        f"/ocs/v2.php/apps/richdocuments/api/v1/document?format=json",
-        data=urllib.parse.urlencode({"fileId": file_id}).encode("utf-8"),
-        headers={
-            "Authorization": f"Basic {basic}",
-            "OCS-APIRequest": "true",
-        },
-        content_type="application/x-www-form-urlencoded",
-    )
-    if st not in (200, 201):
-        # Alternate endpoint used by some richdocuments versions.
-        st, body, _ = s.request(
-            "GET",
-            f"/index.php/apps/richdocuments/index?fileId={urllib.parse.quote(file_id)}",
-            headers={"Authorization": f"Basic {basic}"},
-        )
-        if st not in (200, 201, 302, 303):
-            die(f"richdocuments did not issue a token (HTTP {st}); is Collabora up?")
+    def _token_from_ocs(raw: bytes) -> bool:
+        try:
+            parsed = json.loads(raw.decode("utf-8", errors="replace"))
+        except json.JSONDecodeError:
+            return False
+        ocs = parsed.get("ocs") if isinstance(parsed, dict) else None
+        if not isinstance(ocs, dict):
+            return False
+        meta = ocs.get("meta") if isinstance(ocs.get("meta"), dict) else {}
+        data = ocs.get("data") if isinstance(ocs.get("data"), dict) else {}
+        code = meta.get("statuscode")
+        if code not in (100, 200, None) and not data.get("token"):
+            return False
+        return bool(data.get("token"))
+
+    # richdocuments accepts the numeric fileId or fileId_mtime.
+    mtime = ""
+    for tag in ("d:getlastmodified", "getlastmodified"):
+        open_tag = f"<{tag}>"
+        if open_tag in text:
+            raw_date = text.split(open_tag, 1)[1].split("<", 1)[0].strip()
+            try:
+                parsed_date = email.utils.parsedate_tz(raw_date)
+                if parsed_date:
+                    mtime = str(int(email.utils.mktime_tz(parsed_date)))
+            except (TypeError, ValueError, OverflowError):
+                mtime = ""
+            break
+    file_ids = [file_id]
+    if mtime:
+        file_ids.append(f"{file_id}_{mtime}")
+
+    got_token = False
+    last_st = 0
+    for candidate in file_ids:
+        for payload, ctype in (
+            (json.dumps({"fileId": candidate}).encode("utf-8"), "application/json"),
+            (urllib.parse.urlencode({"fileId": candidate}).encode("utf-8"), "application/x-www-form-urlencoded"),
+        ):
+            st, body, _ = s.request(
+                "POST",
+                "/ocs/v2.php/apps/richdocuments/api/v1/document?format=json",
+                data=payload,
+                headers={
+                    "Authorization": f"Basic {basic}",
+                    "OCS-APIRequest": "true",
+                    "Accept": "application/json",
+                },
+                content_type=ctype,
+            )
+            last_st = st
+            if st in (200, 201) and _token_from_ocs(body):
+                got_token = True
+                break
+        if got_token:
+            break
+    if not got_token:
+        die(f"richdocuments did not issue a WOPI token (HTTP {last_st}); is Collabora up?")
     log("requested Nextcloud Office / Collabora WOPI token (word processor)")
 
 
