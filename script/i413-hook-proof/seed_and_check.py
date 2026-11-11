@@ -9,8 +9,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import ssl
+import subprocess
 import sys
+import tempfile
 import time
 import urllib.error
 import urllib.parse
@@ -135,8 +138,129 @@ def _kolibri_session(base: str) -> Session:
     return s
 
 
-def kolibri_provision(base: str) -> None:
+def kolibri_facilities(base: str) -> list:
+    status, data = Session(base, timeout=10).json("GET", "/api/public/v1/facility/")
+    if status == 200 and isinstance(data, list):
+        return data
+    return []
+
+
+def _write_secret_file(dest: Path, payload: dict) -> None:
+    data = json.dumps(payload).encode("utf-8")
+    try:
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        fd = os.open(dest, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+        with os.fdopen(fd, "wb") as f:
+            f.write(data)
+        return
+    except PermissionError:
+        pass
+    tmp = Path(tempfile.mkstemp(prefix="i413-provision-", suffix=".json")[1])
+    try:
+        os.chmod(tmp, 0o600)
+        tmp.write_bytes(data)
+        rc = subprocess.run(["sudo", "cp", "-a", str(tmp), str(dest)], capture_output=True)
+        if rc.returncode != 0:
+            die("could not write the Kolibri provision spec (permission denied)")
+        subprocess.run(["sudo", "chmod", "600", str(dest)], check=False)
+    finally:
+        try:
+            tmp.unlink()
+        except OSError:
+            pass
+
+
+def _unlink_quiet(path: Path) -> None:
+    try:
+        path.unlink()
+    except OSError:
+        subprocess.run(["sudo", "rm", "-f", str(path)], capture_output=True)
+
+
+def kolibri_provision_via_manage(data_dir: str) -> None:
+    """Kolibri 0.19 removed POST /api/device/deviceprovision/; use provisiondevice."""
+    inst = Path(data_dir)
+    compose = inst / "compose.yaml"
+    if not compose.exists():
+        compose = inst / "compose.yml"
+    if not compose.exists():
+        die(f"no compose.yaml under {data_dir}")
+    home = inst / "data" / "kolibri"
+    spec_path = home / ".i413-provision.json"
+    settings_path = home / ".i413-facility-settings.json"
+    _write_secret_file(
+        spec_path,
+        {
+            "facility": "i413 Proof School",
+            "superusername": "admin",
+            "superuserpassword": password_for("admin"),
+            "preset": "formal",
+            "language_id": "en",
+        },
+    )
+    _write_secret_file(settings_path, {"learner_can_login_with_no_password": True})
+    runner = """
+import json, os
+from django.core.management import call_command
+spec_path = "/root/.kolibri/.i413-provision.json"
+settings_path = "/root/.kolibri/.i413-facility-settings.json"
+spec = json.load(open(spec_path))
+os.remove(spec_path)
+try:
+    call_command(
+        "provisiondevice",
+        facility=spec["facility"],
+        superusername=spec["superusername"],
+        superuserpassword=spec["superuserpassword"],
+        preset=spec["preset"],
+        language_id=spec["language_id"],
+        facility_settings=settings_path,
+        interactive=False,
+    )
+    print("PROVISION_OK")
+finally:
+    try:
+        os.remove(settings_path)
+    except OSError:
+        pass
+"""
+    try:
+        proc = subprocess.run(
+            ["docker", "compose", "exec", "-T", "kolibri", "kolibri", "manage", "shell"],
+            cwd=str(inst),
+            input=runner.encode("utf-8"),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=180,
+        )
+    finally:
+        _unlink_quiet(spec_path)
+        _unlink_quiet(settings_path)
+    out = (proc.stdout or b"").decode("utf-8", errors="replace")
+    err = (proc.stderr or b"").decode("utf-8", errors="replace")
+    combined = out + "\n" + err
+    if "PROVISION_OK" not in combined or proc.returncode != 0:
+        # Never echo command output: it could include django traces with request bodies.
+        die(f"Kolibri provisiondevice failed (exit {proc.returncode})")
+    log("Kolibri provisioned facility 'i413 Proof School' via provisiondevice (password not shown)")
+
+
+def kolibri_provision(base: str, data_dir: str | None = None) -> None:
     kolibri_wait(base)
+    existing = kolibri_facilities(base)
+    if existing:
+        log("Kolibri already provisioned; skipping setup wizard")
+        return
+    if data_dir:
+        kolibri_provision_via_manage(data_dir)
+        start = time.time()
+        while time.time() - start < 120:
+            if kolibri_facilities(base):
+                log("Kolibri provisioned facility 'i413 Proof School' as admin (password not shown)")
+                return
+            time.sleep(2)
+        die("Kolibri provisiondevice finished but /api/public/v1/facility/ is still empty")
+    # Pre-0.19 HTTP path (removed in 0.19; kept as a fallback).
     s = _kolibri_session(base)
     status, info = s.json("GET", "/api/device/deviceprovision/")
     if status == 200 and info:
@@ -156,7 +280,7 @@ def kolibri_provision(base: str) -> None:
     }
     status, body = s.json("POST", "/api/device/deviceprovision/", json_body=payload)
     if status not in (200, 201):
-        die(f"Kolibri provision failed (HTTP {status})")
+        die(f"Kolibri provision failed (HTTP {status}); pass --data-dir to use provisiondevice")
     log("Kolibri provisioned facility 'i413 Proof School' as admin (password not shown)")
 
 
@@ -287,7 +411,7 @@ def kolibri_list_leaves(base: str) -> list[dict[str, str]]:
 
 
 def cmd_kolibri_provision(args: argparse.Namespace) -> None:
-    kolibri_provision(args.base)
+    kolibri_provision(args.base, data_dir=(getattr(args, "data_dir", None) or None))
     kolibri_ensure_users(args.base)
     # Sign-ins used for the day file (teacher + learner). Admin already signed in.
     kolibri_login(args.base, "teacher1")
@@ -705,6 +829,7 @@ def main() -> None:
 
     sp = sub.add_parser("kolibri-provision")
     sp.add_argument("--base", required=True)
+    sp.add_argument("--data-dir", default="", help="instance dir; use provisiondevice on Kolibri 0.19+")
     sp.set_defaults(func=cmd_kolibri_provision)
 
     sp = sub.add_parser("kolibri-view")

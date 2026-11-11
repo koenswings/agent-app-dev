@@ -1140,7 +1140,15 @@ PY2
   done
   KIWIX_DIR=$(instance_dir "$KIWIX_ID")
   place_kiwix_zim "$KIWIX_DIR"
-  line=$(wait_for_instance "i413-Kiwix" 420)
+  # First start is Error until the ZIM exists; compose restart leaves the
+  # store in Error even after the containers are healthy. Nudge startInstance.
+  line=$(wait_for_instance "i413-Kiwix" 90) || true
+  kiwix_st=${line##*$'	'}
+  if [ -z "$line" ] || [ "$kiwix_st" != "Running" ]; then
+    log "Kiwix store is not Running yet; sending startInstance to re-evaluate"
+    send_engine "startInstance $KIWIX_ID $SYSTEM_DISK_ID"
+    line=$(wait_for_instance "i413-Kiwix" 180)
+  fi
   KIWIX_ID=${line%%$'	'*}
   KIWIX_PORT=${line#*$'	'}; KIWIX_PORT=${KIWIX_PORT%%$'	'*}
   KIWIX_DIR=$(instance_dir "$KIWIX_ID")
@@ -1148,7 +1156,7 @@ PY2
 
   pause_if_hot "before seeding"
   import_kolibri_slice "$KOLIBRI_DIR"
-  python3 "$SEED" kolibri-provision --base "http://127.0.0.1:${KOLIBRI_PORT}"
+  python3 "$SEED" kolibri-provision --base "http://127.0.0.1:${KOLIBRI_PORT}" --data-dir "$KOLIBRI_DIR"
   python3 "$SEED" kolibri-view --base "http://127.0.0.1:${KOLIBRI_PORT}"
   disable_nc_firstrun "$NEXTCLOUD_DIR"
   python3 "$SEED" nextcloud-seed --base "http://127.0.0.1:${NEXTCLOUD_PORT}"
