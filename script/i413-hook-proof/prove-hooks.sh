@@ -622,11 +622,17 @@ install_one() {
 
 place_kiwix_zim() {
   local dir="$1"
-  assert_no_forbidden_target "$dir"
-  mkdir -p "$dir/data" "$dir/logs"
   local dest="$dir/data/${ZIM_BOOK}.zim"
+  assert_no_forbidden_target "$dir"
+  if [ ! -d "$dir/data" ]; then
+    mkdir -p "$dir/data" "$dir/logs" 2>/dev/null || sudo mkdir -p "$dir/data" "$dir/logs"
+  fi
+  mkdir -p "$dir/logs" 2>/dev/null || sudo mkdir -p "$dir/logs"
   if [ ! -f "$dest" ]; then
-    cp -a "$ZIM" "$dest"
+    if ! cp -a "$ZIM" "$dest" 2>/dev/null; then
+      sudo cp -a "$ZIM" "$dest"
+      sudo chmod 644 "$dest" || true
+    fi
     log "copied stub ZIM to $dest"
   else
     log "stub ZIM already present at $dest"
