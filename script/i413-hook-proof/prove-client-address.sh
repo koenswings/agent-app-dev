@@ -465,11 +465,14 @@ TS_IP=$(python3 -c 'import json; print((json.load(open("'"$RUN_DIR"'/host-info.j
 [ -n "$LAN_IP" ] || die "could not determine idea03 LAN IP"
 log "LAN IP $LAN_IP  Tailscale IP $TS_IP  NC :$NEXTCLOUD_PORT  Kiwix :$KIWIX_PORT"
 
+# Nextcloud .htaccess front-controller rewrites every *.php except
+# paths matching /(cron|public|remote|status).php, so the probe lives
+# at /i413/status.php (a scratch file, not the real /status.php).
 # Wait until Nextcloud probe PHP answers on the LAN published port.
 nc_ready=0
 for _i in $(seq 1 60); do
   code=$(curl -sS -m 8 -o /dev/null -w '%{http_code}' -A 'i413-addr-warmup' \
-    "http://${LAN_IP}:${NEXTCLOUD_PORT}/i413-addr-probe.php" || echo 000)
+    "http://${LAN_IP}:${NEXTCLOUD_PORT}/i413/status.php" || echo 000)
   if [ "$code" = "200" ]; then
     nc_ready=1
     break
@@ -494,7 +497,7 @@ declare -a REQ_IDS=()
 record_nc() {
   local id="$1" via="$2" host="$3" src="$4" xff="$5"
   local ua="i413-addr-${id}"
-  local url="http://${host}:${NEXTCLOUD_PORT}/i413-addr-probe.php"
+  local url="http://${host}:${NEXTCLOUD_PORT}/i413/status.php"
   local stem="$REQS/$id"
   local code
   echo "$src" > "$stem.source"
@@ -568,6 +571,25 @@ for _i in $(seq 1 36); do
   fi
   sleep 5
 done
+
+# Collect logs for any box-* probes that arrived (local probes already collected).
+if [ -d "$REQS" ]; then
+  for uafile in "$REQS"/box-*.ua; do
+    [ -f "$uafile" ] || continue
+    ident=$(basename "$uafile" .ua)
+    stem="$REQS/$ident"
+    ua=$(cat "$stem.ua")
+    case "$ident" in
+      box-nc*)
+        python3 "$PROBE" collect-nextcloud --dir "$NEXTCLOUD_DIR" --ua "$ua" --out "$stem.nclog.json"
+        ;;
+      box-kx*)
+        marker=$(cat "$stem.marker")
+        python3 "$PROBE" collect-kiwix --dir "$KIWIX_DIR" --marker "$marker" --day "$DAY" --out "$stem.kxlog.json"
+        ;;
+    esac
+  done
+fi
 
 # Build requests.json from whatever probe files we have (local + optional box).
 python3 - "$RUN_DIR" "$NEXTCLOUD_DIR" "$KIWIX_DIR" <<'PY'

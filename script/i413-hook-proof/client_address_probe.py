@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any
 
 XFF_PROBE = "203.0.113.50"
-PROBE_PHP_NAME = "i413-addr-probe.php"
+PROBE_PHP_NAME = "i413/status.php"
 PROBE_PHP = """<?php
 header('Content-Type: application/json');
 header('Cache-Control: no-store');
@@ -213,7 +213,7 @@ def cmd_prepare_nextcloud(args: argparse.Namespace) -> None:
         die(f"no compose file in {inst}")
     proc = compose_exec(
         inst, "nextcloud-app",
-        ["sh", "-c", f"cat > /var/www/html/{PROBE_PHP_NAME}"],
+        ["sh", "-c", "mkdir -p /var/www/html/i413 && cat > /var/www/html/i413/status.php"],
         input_text=PROBE_PHP, timeout=30,
     )
     if proc.returncode != 0:
