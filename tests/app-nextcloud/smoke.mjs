@@ -5,6 +5,13 @@
  * Asserts compose filesMount metadata, wrapper/hook presence, and (when ready)
  * external storage via occ. Nextcloud first-start is slow — raise INSTANCE_TIMEOUT_MS.
  *
+ * The Files Disk hook assertion is layout-aware: a bind of 10-idea-files.sh or
+ * a directory mount of ./docker-entrypoint-hooks.d counts when that hook file
+ * is present in the bundle (1.4+ compose). HTTP GET is polled with a bound
+ * (HTTP_TIMEOUT_MS, default 120s) on the Engine-assigned host port that maps
+ * to compose `${port}:80`, accepting the same 200-499 window as the original
+ * single-shot check (including 200 and 302).
+ *
  * DEVICE is a throwaway fixture name. idea03's permanent stick is refused by
  * USB/disk serial / UUID from hw-roundtrip-disks.json (fail closed if missing).
  */
@@ -14,15 +21,22 @@ import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { readFileSync, existsSync } from 'fs';
 import { execSync } from 'child_process';
+import {
+  composeMountsIdeaFilesHook,
+  resolveNextcloudAppRel,
+  waitForHttp,
+} from '../../lib/nextcloud-smoke-checks.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const FIXTURE_PATH  = resolve(__dirname, 'fixture');
+const FIXTURE_PATH  = process.env.SMOKE_FIXTURE || resolve(__dirname, 'fixture');
 const DEVICE        = process.env.SMOKE_DEVICE || 'sdz1'; // throwaway — never idea03 stick
 const INSTANCE_NAME = 'nextcloud';
 const APP_NAME      = 'app-nextcloud';
 const APP_PORT      = 18080;
 const INSTANCE_ID   = 'nextcloud-smoke-001';
+const APP_REL       = resolveNextcloudAppRel(FIXTURE_PATH, process.env.SMOKE_APP_REL);
+const HTTP_TIMEOUT_MS = parseInt(process.env.HTTP_TIMEOUT_MS || '120000', 10);
 
 let passed = 0;
 let failed = 0;
@@ -43,8 +57,7 @@ function readComposeFilesMount(composePath) {
   const hasSvc = /services:\s*\[nextcloud-app\]/.test(text);
   const hasRestartNo = /restart:\s*no/.test(text);
   const hasEntrypoint = /idea-files-entrypoint\.sh/.test(text);
-  const hasHook = /10-idea-files\.sh/.test(text);
-  return { hasPath, hasSvc, hasRestartNo, hasEntrypoint, hasHook, text };
+  return { hasPath, hasSvc, hasRestartNo, hasEntrypoint, text };
 }
 
 async function testSuite(port) {
@@ -53,7 +66,7 @@ async function testSuite(port) {
   // 1. Compose opt-in metadata (apps + instance copies)
   console.log('Test 1: filesMount opt-in in compose');
   for (const rel of [
-    'apps/nextcloud-1.0/compose.yaml',
+    `${APP_REL}/compose.yaml`,
     `instances/${INSTANCE_ID}/compose.yaml`,
   ]) {
     const p = resolve(FIXTURE_PATH, rel);
@@ -63,7 +76,8 @@ async function testSuite(port) {
     assert(m.hasSvc, `${rel} lists nextcloud-app in filesMount.services`);
     assert(m.hasRestartNo, `${rel} keeps restart: no`);
     assert(m.hasEntrypoint, `${rel} mounts idea-files-entrypoint.sh`);
-    assert(m.hasHook, `${rel} mounts 10-idea-files.sh`);
+    const hook = composeMountsIdeaFilesHook(m.text, resolve(FIXTURE_PATH, rel, '..'));
+    assert(hook.ok, `${rel} mounts 10-idea-files.sh (file bind or docker-entrypoint-hooks.d directory with hook present)`);
   }
 
   // 2. Combined disk markers
@@ -149,13 +163,15 @@ async function testSuite(port) {
     assert(false, 'nextcloud-app container not found after Running');
   }
 
-  // 5. HTTP reachability (install may redirect to setup)
+  // 5. HTTP reachability on the Engine-assigned host port (compose `${port}:80`).
+  // Poll: occ can succeed during before-starting hooks before Apache listens.
   console.log('\nTest 5: HTTP responds');
+  const httpUrl = `http://127.0.0.1:${port}/`;
   try {
-    const res = await fetch(`http://127.0.0.1:${port}/`, { redirect: 'manual' });
+    const res = await waitForHttp(httpUrl, { timeoutMs: HTTP_TIMEOUT_MS });
     assert(res.status >= 200 && res.status < 500, `GET / → HTTP ${res.status}`);
   } catch (e) {
-    console.log(`  ⚠ HTTP not ready: ${e.message}`);
+    assert(false, e.message);
   }
 
   return { passed, failed };
