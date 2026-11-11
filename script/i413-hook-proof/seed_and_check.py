@@ -177,8 +177,72 @@ def _unlink_quiet(path: Path) -> None:
         subprocess.run(["sudo", "rm", "-f", str(path)], capture_output=True)
 
 
+def _write_bytes(dest: Path, data: bytes) -> None:
+    try:
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        fd = os.open(dest, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+        with os.fdopen(fd, "wb") as f:
+            f.write(data)
+        return
+    except PermissionError:
+        pass
+    fd, tmpname = tempfile.mkstemp(prefix="i413-provision-", suffix=".bin")
+    tmp = Path(tmpname)
+    try:
+        os.chmod(tmp, 0o600)
+        os.write(fd, data)
+        os.close(fd)
+        fd = None
+        rc = subprocess.run(["sudo", "cp", "-a", str(tmp), str(dest)], capture_output=True)
+        if rc.returncode != 0:
+            die("could not write a Kolibri provision file (permission denied)")
+        subprocess.run(["sudo", "chmod", "600", str(dest)], check=False)
+    finally:
+        if fd is not None:
+            try:
+                os.close(fd)
+            except OSError:
+                pass
+        try:
+            tmp.unlink()
+        except OSError:
+            pass
+
+
+def _sanitize_provision_output(text: str) -> str:
+    # Strip anything that looks like a secret before it can reach a log.
+    lowered = text
+    for bad in FORBIDDEN_LOG_SUBSTR:
+        if not bad:
+            continue
+        idx = 0
+        while True:
+            i = lowered.lower().find(bad.lower(), idx)
+            if i < 0:
+                break
+            lowered = lowered[:i] + "[redacted]" + lowered[i + len(bad):]
+            idx = i + len("[redacted]")
+    lines = [ln for ln in lowered.splitlines() if ln.strip()]
+    return chr(10).join(lines[-30:])
+
+
+def _kolibri_image(inst: Path) -> str:
+    proc = subprocess.run(
+        ["docker", "compose", "config", "--images"],
+        cwd=str(inst),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    images = [ln.strip() for ln in (proc.stdout or "").splitlines() if ln.strip()]
+    if images:
+        return images[0]
+    die("could not determine the Kolibri image from compose config")
+    return ""
+
+
 def kolibri_provision_via_manage(data_dir: str) -> None:
-    """Kolibri 0.19 removed POST /api/device/deviceprovision/; use provisiondevice."""
+    """Provision with a oneshot container, as app-kolibri demo does (never exec into the running server)."""
     inst = Path(data_dir)
     compose = inst / "compose.yaml"
     if not compose.exists():
@@ -186,63 +250,84 @@ def kolibri_provision_via_manage(data_dir: str) -> None:
     if not compose.exists():
         die(f"no compose.yaml under {data_dir}")
     home = inst / "data" / "kolibri"
-    spec_path = home / ".i413-provision.json"
     settings_path = home / ".i413-facility-settings.json"
-    _write_secret_file(
-        spec_path,
-        {
-            "facility": "i413 Proof School",
-            "superusername": "admin",
-            "superuserpassword": password_for("admin"),
-            "preset": "formal",
-            "language_id": "en",
-        },
-    )
+    pass_path = home / ".i413-provision.pass"
+    run_path = home / ".i413-provision.sh"
     _write_secret_file(settings_path, {"learner_can_login_with_no_password": True})
-    runner = """
-import json, os
-from django.core.management import call_command
-spec_path = "/root/.kolibri/.i413-provision.json"
-settings_path = "/root/.kolibri/.i413-facility-settings.json"
-spec = json.load(open(spec_path))
-os.remove(spec_path)
-try:
-    call_command(
-        "provisiondevice",
-        facility=spec["facility"],
-        superusername=spec["superusername"],
-        superuserpassword=spec["superuserpassword"],
-        preset=spec["preset"],
-        language_id=spec["language_id"],
-        facility_settings=settings_path,
-        interactive=False,
-    )
-    print("PROVISION_OK")
-finally:
-    try:
-        os.remove(settings_path)
-    except OSError:
-        pass
+    _write_bytes(pass_path, password_for("admin").encode("utf-8"))
+    runner = """#!/bin/sh
+set -eu
+PASS=$(cat /root/.kolibri/.i413-provision.pass)
+rm -f /root/.kolibri/.i413-provision.pass
+B=${KOLIBRI_BIN:-}
+if [ -z "$B" ]; then
+  if command -v kolibri >/dev/null 2>&1; then B=kolibri
+  else
+    for f in ./kolibri-*; do
+      [ -x "$f" ] && B=$f
+    done
+  fi
+fi
+[ -n "$B" ] || { echo "no Kolibri binary" >&2; exit 78; }
+"$B" manage provisiondevice --facility "i413 Proof School" --superusername admin --superuserpassword "$PASS" --preset formal --language_id en --facility_settings /root/.kolibri/.i413-facility-settings.json --noinput
+echo PROVISION_OK
 """
+    _write_bytes(run_path, runner.encode("utf-8"))
+    subprocess.run(["sudo", "chmod", "700", str(run_path)], check=False)
+    image = _kolibri_image(inst)
+    log("stopping Kolibri briefly so provisiondevice can open the database")
+    stop = subprocess.run(
+        ["docker", "compose", "stop", "kolibri"],
+        cwd=str(inst),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        timeout=120,
+    )
+    if stop.returncode != 0:
+        die("docker compose stop kolibri failed")
+    started = False
     try:
         proc = subprocess.run(
-            ["docker", "compose", "exec", "-T", "kolibri", "kolibri", "manage", "shell"],
-            cwd=str(inst),
-            input=runner.encode("utf-8"),
+            [
+                "docker", "run", "--rm", "--network", "none",
+                "-e", "KOLIBRI_RUN_MODE=docker",
+                "-e", "KOLIBRI_HOME=/root/.kolibri",
+                "-v", f"{home.resolve()}:/root/.kolibri",
+                "--entrypoint", "sh",
+                image,
+                "/root/.kolibri/.i413-provision.sh",
+            ],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             timeout=180,
         )
+        out = (proc.stdout or b"").decode("utf-8", errors="replace")
+        err = (proc.stderr or b"").decode("utf-8", errors="replace")
+        combined = out + chr(10) + err
+        if "PROVISION_OK" not in combined or proc.returncode != 0:
+            tail = _sanitize_provision_output(combined)
+            if tail:
+                log("provisiondevice output (secrets redacted): " + tail.replace(chr(10), " | "))
+            die(f"Kolibri provisiondevice failed (exit {proc.returncode})")
+        log("Kolibri provisioned facility 'i413 Proof School' via provisiondevice (password not shown)")
     finally:
-        _unlink_quiet(spec_path)
+        _unlink_quiet(pass_path)
         _unlink_quiet(settings_path)
-    out = (proc.stdout or b"").decode("utf-8", errors="replace")
-    err = (proc.stderr or b"").decode("utf-8", errors="replace")
-    combined = out + "\n" + err
-    if "PROVISION_OK" not in combined or proc.returncode != 0:
-        # Never echo command output: it could include django traces with request bodies.
-        die(f"Kolibri provisiondevice failed (exit {proc.returncode})")
-    log("Kolibri provisioned facility 'i413 Proof School' via provisiondevice (password not shown)")
+        _unlink_quiet(run_path)
+        log("starting Kolibri again after provisiondevice")
+        start = subprocess.run(
+            ["docker", "compose", "start", "kolibri"],
+            cwd=str(inst),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=120,
+        )
+        if start.returncode == 0:
+            started = True
+        else:
+            die("docker compose start kolibri failed after provisiondevice")
+    if not started:
+        die("Kolibri was not restarted after provisiondevice")
 
 
 def kolibri_provision(base: str, data_dir: str | None = None) -> None:
