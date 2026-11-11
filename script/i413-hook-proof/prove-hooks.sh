@@ -255,8 +255,11 @@ inspect_store() {
 
 send_engine() {
   local cmd="$1"
+  local out="${RUN_DIR:-/tmp}/engine-send-latest.json"
   log "Engine command: $cmd"
-  engine_cmd send "$cmd"
+  mkdir -p "$(dirname "$out")"
+  # Never print the inspect/send JSON on stdout: callers capture a single id line.
+  engine_cmd send "$cmd" > "$out"
 }
 
 pick_system_disk() {
@@ -502,6 +505,10 @@ PY
 
 instance_dir() {
   local id="$1"
+  case "$id" in
+    [a-zA-Z0-9]*[a-zA-Z0-9-]) ;;
+    *) die "refusing instance id that is not a simple token: ${id:0:80}" ;;
+  esac
   if [ -d "/instances/$id" ]; then
     echo "/instances/$id"
     return
@@ -631,6 +638,35 @@ place_kiwix_zim() {
     docker compose restart || docker compose up -d
   )
   log "restarted Kiwix compose project so the stub ZIM is served"
+}
+
+
+# Kolibri 0.19 zeroconf walks every host interface. On a pool Pi with many
+# leftover Docker bridges this fails with ENOBUFS and the process exits,
+# leaving the Engine store at Error even after a later healthy restart.
+# Write the option into instance data only (not the Engine tree, not /apps).
+disable_kolibri_zeroconf() {
+  local dir="$1"
+  local home="$dir/data/kolibri"
+  local opt="$home/options.ini"
+  assert_no_forbidden_target "$dir"
+  if [ ! -d "$home" ]; then
+    log "Kolibri data dir $home not present yet; will retry"
+    return 1
+  fi
+  if [ -f "$opt" ] && grep -q "ZEROCONF_ENABLED" "$opt"; then
+    log "Kolibri options.ini already sets ZEROCONF_ENABLED"
+    return 0
+  fi
+  # data/kolibri is typically root-owned; use sudo when needed, never print secrets.
+  if [ -w "$home" ]; then
+    printf "%s\n" "[Deployment]" "ZEROCONF_ENABLED = False" >> "$opt"
+  else
+    printf "%s\n" "[Deployment]" "ZEROCONF_ENABLED = False" | sudo tee -a "$opt" >/dev/null
+    sudo chmod 644 "$opt" || true
+  fi
+  log "set Deployment.ZEROCONF_ENABLED=False in instance options.ini (zeroconf ENOBUFS workaround)"
+  return 0
 }
 
 import_kolibri_slice() {
@@ -967,10 +1003,60 @@ run_proof() {
 
   DID_INSTALL=1
   local line
-  line=$(install_one "kolibri@main" "i413-Kolibri" 720)
-  KOLIBRI_ID=${line%%$'\t'*}
-  KOLIBRI_PORT=${line#*$'\t'}; KOLIBRI_PORT=${KOLIBRI_PORT%%$'\t'*}
+  pause_if_hot "before installApp i413-Kolibri"
+  send_engine "installApp kolibri@main $SYSTEM_DISK_ID --fresh --name i413-Kolibri"
+  # Wait for the instance directory, disable zeroconf (ENOBUFS on many docker
+  # bridges), then wait until the Engine reports Running with a port.
+  kolibri_wait_start=$(date +%s)
+  while true; do
+    inspect_store > "$RUN_DIR/store-inspect-latest.json"
+    line=$(python3 - "$RUN_DIR/store-inspect-latest.json" "i413-Kolibri" <<'PYK'
+import json, sys, re
+data = json.load(open(sys.argv[1]))
+name = sys.argv[2]
+found = [i for i in (data.get("localInstances") or []) if i.get("name") == name]
+if not found:
+    sys.exit(2)
+pick = found[-1]
+iid = str(pick.get("id") or "")
+if not re.match(r"^[a-zA-Z0-9][a-zA-Z0-9-]{0,63}$", iid):
+    sys.exit(2)
+print("%s\t%s\t%s" % (iid, pick.get("port") or 0, pick.get("status") or ""))
+PYK
+) && break
+    if [ $(( $(date +%s) - kolibri_wait_start )) -ge 420 ]; then
+      die "timed out waiting for Engine to register instance i413-Kolibri"
+    fi
+    log "waiting for Engine to register instance i413-Kolibri (dir + id)"
+    sleep 4
+  done
+  KOLIBRI_ID=${line%%$'	'*}
+  KOLIBRI_PORT=${line#*$'	'}; KOLIBRI_PORT=${KOLIBRI_PORT%%$'	'*}
+  for _i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do
+    if [ -d "/instances/$KOLIBRI_ID/data/kolibri" ]; then
+      break
+    fi
+    sleep 2
+  done
   KOLIBRI_DIR=$(instance_dir "$KOLIBRI_ID")
+  disable_kolibri_zeroconf "$KOLIBRI_DIR" || true
+  if docker inspect "$KOLIBRI_ID-kolibri-1" >/dev/null 2>&1 || docker inspect "${KOLIBRI_ID}-kolibri-1" >/dev/null 2>&1; then
+    sudo docker restart "${KOLIBRI_ID}-kolibri-1" >/dev/null 2>&1 || docker restart "${KOLIBRI_ID}-kolibri-1" >/dev/null 2>&1 || true
+  fi
+  # If the store is still Error after the container is healthy, nudge startInstance.
+  # A 90s soft wait (die in a subshell does not abort the parent) avoids sitting
+  # on Error for the full 12-minute timeout.
+  line=$(wait_for_instance "i413-Kolibri" 90) || true
+  if ! printf "%s" "$line" | grep -q $'	'"Running"; then
+    log "Engine status is not Running yet; sending startInstance to re-evaluate"
+    send_engine "startInstance $KOLIBRI_ID $SYSTEM_DISK_ID"
+    line=$(wait_for_instance "i413-Kolibri" 180)
+  fi
+  KOLIBRI_ID=${line%%$'	'*}
+  KOLIBRI_PORT=${line#*$'	'}; KOLIBRI_PORT=${KOLIBRI_PORT%%$'	'*}
+  KOLIBRI_DIR=$(instance_dir "$KOLIBRI_ID")
+  log "installed i413-Kolibri id=$KOLIBRI_ID port=$KOLIBRI_PORT"
+
 
   line=$(install_one "nextcloud@main" "i413-Nextcloud" 1200)
   NEXTCLOUD_ID=${line%%$'\t'*}
