@@ -106,6 +106,39 @@ def compose_ps_id(inst: Path, service: str) -> str:
     return cid[0] if cid else ""
 
 
+
+def write_text_maybe_via_compose(
+    path: Path,
+    content: str,
+    inst: Path,
+    service: str,
+    container_path: str,
+) -> None:
+    """Write a small text file to an instance mount.
+
+    Kiwix ``./logs`` is owned by the container user (avahi:_ssh on idea03),
+    so a host-side write as pi can raise PermissionError. Fall back to
+    ``docker compose exec`` into the mounted path (``/logs/...``).
+    """
+    try:
+        path.write_text(content, encoding="utf-8")
+        return
+    except PermissionError:
+        pass
+    proc = compose_exec(
+        inst,
+        service,
+        ["sh", "-c", 'cat > "$1"', "sh", container_path],
+        input_text=content,
+        timeout=30,
+    )
+    if proc.returncode != 0 or not path.is_file():
+        die(
+            f"could not write {path.name} via {service}:{container_path} "
+            f"({sanitize_proc(proc)})"
+        )
+
+
 def sanitize_proc(proc: subprocess.CompletedProcess[str]) -> str:
     text = (proc.stderr or "") + "\n" + (proc.stdout or "")
     for bad in FORBIDDEN_LOG_SUBSTR:
@@ -351,7 +384,9 @@ def cmd_stamp_past_day(args: Any) -> None:
             '"uri":"/content/duration_wikipedia_en_grade5a_stub_2026-10/PastDayCatchUp","status":200}\n'
         ) % day
         dest = logs / f"access-{day}.json"
-        dest.write_text(line, encoding="utf-8")
+        write_text_maybe_via_compose(
+            dest, line, inst, "proxy", f"/logs/access-{day}.json"
+        )
         print(f"PASS wrote past-day Kiwix access log {dest.name} (address stays in the log, not hook stdout)")
         return
     die(f"unknown app {args.app}")
@@ -534,8 +569,21 @@ try {
             $opened_ts = $exp - $ttl;
             $opened[] = gmdate("Y-m-d H:i:s", $opened_ts > 10**12 ? intdiv($opened_ts, 1000) : $opened_ts) . "Z ttl=" . $ttl;
         }
+    } elseif ($has_exp) {
+        // Live Nextcloud 31 richdocuments stores expiry only; the hook
+        // falls back to ts_day(expiry) when token_ttl is not a column.
+        foreach ($pdo->query("SELECT expiry FROM {$table}") as $row) {
+            $count++;
+            $exp = intval($row["expiry"]);
+            $exp_s = $exp > 10**12 ? intdiv($exp, 1000) : $exp;
+            $remain = $exp_s - time();
+            $opened[] = "expiry=" . gmdate("Y-m-d H:i:s", $exp_s) . "Z raw=" . $exp . " remaining_s=" . $remain;
+        }
+        echo "token_ttl=column_absent\n";
+        echo "hook_fallback=ts_day(expiry) when token_ttl is not a column\n";
     } else {
         $count = intval($pdo->query("SELECT COUNT(*) FROM {$table}")->fetchColumn());
+        echo "token_ttl=column_absent\n";
     }
     echo "rows=" . $count . "\n";
     if ($ttls) {
@@ -567,8 +615,10 @@ def cmd_nextcloud_wopi_info(args: Any) -> None:
     print(out.rstrip())
     if "token_ttl=" not in out and "rows=0" in out:
         print("NOTE no WOPI rows were present")
+    elif "token_ttl=column_absent" in out:
+        print("PASS recorded WOPI expiry from the Pi (token_ttl column absent; hook falls back to ts_day(expiry))")
     elif "token_ttl=" not in out:
-        die("could not read token_ttl from oc_richdocuments_wopi")
+        die("could not read token_ttl or expiry from oc_richdocuments_wopi")
     else:
         print("PASS recorded WOPI token_ttl / expiry from the Pi")
 
@@ -651,9 +701,17 @@ def cmd_kiwix_logs(args: Any) -> None:
     old = logs / "access-2010-01-01.json"
     keep_day = days_ago_iso(3)
     keep = logs / f"access-{keep_day}.json"
-    old.write_text('{"i413":"old-scratch-marker"}\n', encoding="utf-8")
+    write_text_maybe_via_compose(
+        old, '{"i413":"old-scratch-marker"}\n', inst, "proxy", "/logs/access-2010-01-01.json"
+    )
     if not keep.exists():
-        keep.write_text('{"i413":"keep-scratch-marker"}\n', encoding="utf-8")
+        write_text_maybe_via_compose(
+            keep,
+            '{"i413":"keep-scratch-marker"}\n',
+            inst,
+            "proxy",
+            f"/logs/access-{keep_day}.json",
+        )
         created_keep = True
     else:
         created_keep = False
@@ -858,4 +916,10 @@ def self_test() -> None:
         die("self-test: a recent day should not prune")
     if yesterday_iso() >= today_iso():
         die("self-test: yesterday should be before today")
+    import tempfile
+    with tempfile.TemporaryDirectory() as tmp:
+        fake = Path(tmp) / "access-2010-01-01.json"
+        write_text_maybe_via_compose(fake, "ok\n", Path(tmp), "proxy", "/logs/nope.json")
+        if fake.read_text(encoding="utf-8") != "ok\n":
+            die("self-test: host-side write helper failed")
     print("PASS acceptance_checks self-test")
