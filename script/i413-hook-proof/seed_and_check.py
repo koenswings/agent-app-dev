@@ -472,28 +472,35 @@ def kolibri_ensure_users(base: str) -> None:
     create("learner1", "learner")
 
 
-def kolibri_view_content(base: str, content_id: str, channel_id: str, kind: str = "document") -> None:
+def kolibri_view_content(
+    base: str,
+    content_id: str,
+    channel_id: str,
+    kind: str = "document",
+    node_id: str | None = None,
+) -> None:
     s, session = kolibri_login(base, "learner1", as_learner=True)
-    now = time.strftime("%Y-%m-%dT%H:%M:%S+01:00", time.localtime())
-    later = time.strftime("%Y-%m-%dT%H:%M:%S+01:00", time.localtime(time.time() + 45))
-    # Kolibri 0.19 content session logger
-    payload = {
+    # Kolibri 0.19 dropped the writable contentsessionlog viewset. The client
+    # starts a session with POST /api/logger/trackprogress/ (node_id required)
+    # and then PUT /api/logger/trackprogress/<session_id>/ with progress/time.
+    start_body = {
+        "node_id": node_id or content_id,
         "content_id": content_id,
         "channel_id": channel_id,
         "kind": kind,
-        "start_timestamp": now,
-        "end_timestamp": later,
-        "time_spent": 45,
-        "progress": 0.8,
-        "visitor_id": None,
     }
-    # Try the current logger endpoint, then the older one.
-    for path in ("/api/logger/contentsessionlog/", "/api/logger/content_session_log/"):
-        st, body = s.json("POST", path, json_body=payload)
-        if st in (200, 201):
-            log(f"learner1 recorded a content session ({kind}) via {path}")
-            return
-    die("could not record a Kolibri content session (logger API rejected the post)")
+    st, body = s.json("POST", "/api/logger/trackprogress/", json_body=start_body)
+    if st not in (200, 201) or not isinstance(body, dict) or not body.get("session_id"):
+        die(f"Kolibri trackprogress start failed (HTTP {st})")
+    sid = str(body["session_id"])
+    st2, _ = s.json(
+        "PUT",
+        f"/api/logger/trackprogress/{sid}/",
+        json_body={"progress": 0.8, "time_spent_delta": 45},
+    )
+    if st2 not in (200, 201):
+        die(f"Kolibri trackprogress update failed (HTTP {st2})")
+    log(f"learner1 recorded a content session ({kind}) via /api/logger/trackprogress/")
 
 
 def kolibri_list_leaves(base: str) -> list[dict[str, str]]:
@@ -510,11 +517,18 @@ def kolibri_list_leaves(base: str) -> list[dict[str, str]]:
         elif isinstance(data, dict):
             rows = data.get("results") or data.get("results") or []
         for n in rows:
-            cid = str(n.get("content_id") or n.get("id") or "")
+            nid = str(n.get("id") or "")
+            cid = str(n.get("content_id") or "")
             ch = str(n.get("channel_id") or "")
             kind = str(n.get("kind") or "document")
             if cid and ch:
-                leaves.append({"content_id": cid, "channel_id": ch, "kind": kind, "title": str(n.get("title") or "")})
+                leaves.append({
+                    "node_id": nid or cid,
+                    "content_id": cid,
+                    "channel_id": ch,
+                    "kind": kind,
+                    "title": str(n.get("title") or ""),
+                })
         if leaves:
             break
     return leaves
@@ -541,13 +555,19 @@ def cmd_kolibri_view(args: argparse.Namespace) -> None:
     leaves = kolibri_list_leaves(args.base)
     if not leaves:
         die("no Kolibri content leaves found; import a slice before viewing")
-    item = leaves[0]
+    # Prefer a non-exercise leaf so trackprogress does not require mastery_model.
+    preferred = [x for x in leaves if x.get("kind") != "exercise"] or list(leaves)
+    item = preferred[0]
     log(f"learner will view content title={item.get('title') or '(none)'} kind={item['kind']}")
-    kolibri_view_content(args.base, item["content_id"], item["channel_id"], item["kind"])
+    kolibri_view_content(
+        args.base, item["content_id"], item["channel_id"], item["kind"], node_id=item.get("node_id")
+    )
     # A second article/item if present, so distinct content is visible.
-    if len(leaves) > 1:
-        item2 = leaves[1]
-        kolibri_view_content(args.base, item2["content_id"], item2["channel_id"], item2["kind"])
+    if len(preferred) > 1:
+        item2 = preferred[1]
+        kolibri_view_content(
+            args.base, item2["content_id"], item2["channel_id"], item2["kind"], node_id=item2.get("node_id")
+        )
 
 
 # ----- Nextcloud -----
