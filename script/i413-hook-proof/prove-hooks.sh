@@ -1156,16 +1156,20 @@ PY2
 
   pause_if_hot "before seeding"
   import_kolibri_slice "$KOLIBRI_DIR"
-  python3 "$SEED" kolibri-provision --base "http://127.0.0.1:${KOLIBRI_PORT}" --data-dir "$KOLIBRI_DIR"
-  # provisiondevice stops the Kolibri container briefly; re-evaluate store status.
+  python3 "$SEED" kolibri-provision --base "http://127.0.0.1:${KOLIBRI_PORT}" --data-dir "$KOLIBRI_DIR" --provision-only
+  # provisiondevice stops the Kolibri container briefly; re-evaluate store status
+  # (and refresh the published port) before any further HTTP calls.
   line=$(wait_for_instance "i413-Kolibri" 60) || true
   st=${line##*$'	'}
   if [ -z "$line" ] || [ "$st" != "Running" ]; then
     log "Kolibri store is not Running after provisiondevice; sending startInstance"
     send_engine "startInstance $KOLIBRI_ID $SYSTEM_DISK_ID"
     line=$(wait_for_instance "i413-Kolibri" 180)
+  fi
+  if [ -n "$line" ]; then
     KOLIBRI_PORT=${line#*$'	'}; KOLIBRI_PORT=${KOLIBRI_PORT%%$'	'*}
   fi
+  python3 "$SEED" kolibri-provision --base "http://127.0.0.1:${KOLIBRI_PORT}"
   python3 "$SEED" kolibri-view --base "http://127.0.0.1:${KOLIBRI_PORT}"
   disable_nc_firstrun "$NEXTCLOUD_DIR"
   python3 "$SEED" nextcloud-seed --base "http://127.0.0.1:${NEXTCLOUD_PORT}"

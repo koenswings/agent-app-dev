@@ -74,6 +74,7 @@ class Session:
         headers: dict[str, str] | None = None,
         content_type: str | None = None,
         raw_url: bool = False,
+        fatal: bool = True,
     ) -> tuple[int, bytes, dict[str, str]]:
         url = path if raw_url else (self.base + (path if path.startswith("/") else "/" + path))
         hdrs = dict(headers or {})
@@ -98,8 +99,9 @@ class Session:
             resp_headers = {k.lower(): v for k, v in (e.headers.items() if e.headers else [])}
             return e.code, raw, resp_headers
         except urllib.error.URLError as e:
-            die(f"request to {url} failed: {e.reason}")
-            return 0, b"", {}
+            if fatal:
+                die(f"request to {url} failed: {e.reason}")
+            raise
 
     def json(self, method: str, path: str, **kw: Any) -> tuple[int, Any]:
         status, raw, _ = self.request(method, path, **kw)
@@ -117,7 +119,9 @@ def kolibri_wait(base: str, timeout: int = 300) -> None:
     start = time.time()
     while time.time() - start < timeout:
         try:
-            status, raw, _ = Session(base, timeout=5).request("GET", "/api/public/info/")
+            status, raw, _ = Session(base, timeout=5).request(
+                "GET", "/api/public/info/", fatal=False
+            )
             if status == 200:
                 log(f"Kolibri is up at {base}")
                 return
@@ -139,7 +143,12 @@ def _kolibri_session(base: str) -> Session:
 
 
 def kolibri_facilities(base: str) -> list:
-    status, data = Session(base, timeout=10).json("GET", "/api/public/v1/facility/")
+    try:
+        status, data = Session(base, timeout=10).json(
+            "GET", "/api/public/v1/facility/", fatal=False
+        )
+    except (urllib.error.URLError, TimeoutError, OSError):
+        return []
     if status == 200 and isinstance(data, list):
         return data
     return []
@@ -330,7 +339,9 @@ echo PROVISION_OK
         die("Kolibri was not restarted after provisiondevice")
 
 
-def kolibri_provision(base: str, data_dir: str | None = None) -> None:
+def kolibri_provision(
+    base: str, data_dir: str | None = None, *, skip_verify: bool = False
+) -> None:
     kolibri_wait(base)
     existing = kolibri_facilities(base)
     if existing:
@@ -338,6 +349,11 @@ def kolibri_provision(base: str, data_dir: str | None = None) -> None:
         return
     if data_dir:
         kolibri_provision_via_manage(data_dir)
+        if skip_verify:
+            log("provisiondevice finished; HTTP verify left to the caller after Engine startInstance")
+            return
+        log("waiting for Kolibri to come back after provisiondevice")
+        kolibri_wait(base, timeout=180)
         start = time.time()
         while time.time() - start < 120:
             if kolibri_facilities(base):
@@ -496,7 +512,15 @@ def kolibri_list_leaves(base: str) -> list[dict[str, str]]:
 
 
 def cmd_kolibri_provision(args: argparse.Namespace) -> None:
-    kolibri_provision(args.base, data_dir=(getattr(args, "data_dir", None) or None))
+    skip = bool(getattr(args, "provision_only", False))
+    kolibri_provision(
+        args.base,
+        data_dir=(getattr(args, "data_dir", None) or None),
+        skip_verify=skip,
+    )
+    if skip:
+        log("Kolibri provisiondevice done (--provision-only)")
+        return
     kolibri_ensure_users(args.base)
     # Sign-ins used for the day file (teacher + learner). Admin already signed in.
     kolibri_login(args.base, "teacher1")
@@ -915,6 +939,11 @@ def main() -> None:
     sp = sub.add_parser("kolibri-provision")
     sp.add_argument("--base", required=True)
     sp.add_argument("--data-dir", default="", help="instance dir; use provisiondevice on Kolibri 0.19+")
+    sp.add_argument(
+        "--provision-only",
+        action="store_true",
+        help="run provisiondevice and return before HTTP verify / user seeding",
+    )
     sp.set_defaults(func=cmd_kolibri_provision)
 
     sp = sub.add_parser("kolibri-view")
