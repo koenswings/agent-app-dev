@@ -22,6 +22,11 @@ from http.cookiejar import CookieJar
 from pathlib import Path
 from typing import Any
 
+_HERE = Path(__file__).resolve().parent
+if str(_HERE) not in sys.path:
+    sys.path.insert(0, str(_HERE))
+import acceptance_checks
+
 PASSWORD_SUFFIX = "911!"
 FORBIDDEN_LOG_SUBSTR = ("911!", "password=", "OC_PASS", "Authorization:")
 
@@ -1069,7 +1074,7 @@ def cmd_check_day_file(args: argparse.Namespace) -> None:
     if args.day and body.get("day") != args.day:
         die(f"day mismatch: file has {body.get('day')!r}, expected {args.day}")
     status = body.get("hookStatus")
-    if status != "ok":
+    if not args.raw_hook and status != "ok":
         die(f"hookStatus is {status!r}, expected ok")
     app = args.app or body.get("app")
     expect = not args.structure_only
@@ -1169,6 +1174,7 @@ def cmd_self_test(_args: argparse.Namespace) -> None:
     bad["content"] = []
     if not check_kolibri(bad, True):
         die("expected the empty-content fixture to fail")
+    acceptance_checks.self_test()
     print("PASS seed_and_check self-test")
 
 
@@ -1205,7 +1211,70 @@ def main() -> None:
     sp.add_argument("--app", choices=("kolibri", "nextcloud", "kiwix"))
     sp.add_argument("--day", default="")
     sp.add_argument("--structure-only", action="store_true")
+    sp.add_argument("--raw-hook", action="store_true", help="allow hook stdout without Engine hookStatus")
     sp.set_defaults(func=cmd_check_day_file)
+
+    sp = sub.add_parser("check-pii")
+    sp.add_argument("files", nargs="+")
+    sp.set_defaults(func=acceptance_checks.cmd_check_pii)
+
+    sp = sub.add_parser("check-backup-none")
+    sp.add_argument("--compose", required=True)
+    sp.set_defaults(func=acceptance_checks.cmd_check_backup_none)
+
+    sp = sub.add_parser("check-flags")
+    sp.add_argument("--file", required=True)
+    sp.add_argument("--expect-shared", action="store_true")
+    sp.add_argument("--expect-demo", choices=("true", "false"))
+    sp.set_defaults(func=acceptance_checks.cmd_check_flags)
+
+    sp = sub.add_parser("stamp-past-day")
+    sp.add_argument("--app", required=True, choices=("kolibri", "nextcloud", "kiwix"))
+    sp.add_argument("--dir", required=True)
+    sp.add_argument("--day", required=True)
+    sp.set_defaults(func=acceptance_checks.cmd_stamp_past_day)
+
+    sp = sub.add_parser("check-past-day")
+    sp.add_argument("--app", required=True, choices=("kolibri", "nextcloud", "kiwix"))
+    sp.add_argument("--file", required=True)
+    sp.add_argument("--day", required=True)
+    sp.set_defaults(func=acceptance_checks.cmd_check_past_day)
+
+    sp = sub.add_parser("db-lock")
+    sp.add_argument("--app", required=True, choices=("kolibri", "nextcloud"))
+    sp.add_argument("--dir", required=True)
+    sp.add_argument("--day", default="")
+    sp.add_argument("--loops", type=int, default=6)
+    sp.set_defaults(func=acceptance_checks.cmd_db_lock)
+
+    sp = sub.add_parser("nextcloud-wopi-info")
+    sp.add_argument("--dir", required=True)
+    sp.add_argument("--base", default="")
+    sp.set_defaults(func=acceptance_checks.cmd_nextcloud_wopi_info)
+
+    sp = sub.add_parser("kiwix-logs")
+    sp.add_argument("--dir", required=True)
+    sp.add_argument("--day", default="")
+    sp.set_defaults(func=acceptance_checks.cmd_kiwix_logs)
+
+    sp = sub.add_parser("stdin-pipe")
+    sp.add_argument("--dir", required=True)
+    sp.add_argument("--service", required=True)
+    sp.add_argument("--day", required=True)
+    sp.add_argument("--hook", default="")
+    sp.add_argument("--listed", default="unknown")
+    sp.add_argument("--out", default="")
+    sp.set_defaults(func=acceptance_checks.cmd_stdin_pipe)
+
+    sp = sub.add_parser("kolibri-0155-fixture")
+    sp.add_argument("--dir", required=True)
+    sp.add_argument("--day", required=True)
+    sp.set_defaults(func=acceptance_checks.cmd_kolibri_0155_fixture)
+
+    sp = sub.add_parser("check-kolibri-0155")
+    sp.add_argument("--file", required=True)
+    sp.add_argument("--day", required=True)
+    sp.set_defaults(func=acceptance_checks.cmd_check_kolibri_0155)
 
     sp = sub.add_parser("self-test")
     sp.set_defaults(func=cmd_self_test)

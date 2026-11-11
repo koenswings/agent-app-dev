@@ -6,12 +6,18 @@
 #
 # Dry-run (any host; no SSH, no Engine, no hostname/claim check):
 #   bash script/i413-hook-proof/prove-hooks.sh --dry-run
+#   bash script/i413-hook-proof/prove-hooks.sh --dry-run --acceptance
+#
+# Remaining idea#413 Acceptance tests (on a claimed pool Pi, after the
+# same install/seed as the main proof):
+#   bash script/i413-hook-proof/prove-hooks.sh --acceptance
 #
 # Refuses to run unless hostname is idea03 or idea04 and fleet-state claim is Kid
 # (skipped in --dry-run only).
 #
 # Hard limits: no rm -rf, no pkill -f or pgrep -f, no dd, mkfs or wipe,
-# no archive-and-clear. The deployed Engine tree is read-only. Never print
+# no archive-and-clear (not even with --acceptance; Kiwix 14-day clear uses
+# scratch instance ./logs only). The deployed Engine tree is read-only. Never print
 # credentials. Never touch /disks/sdb1, /disks, or the protected disks
 # (serials AA202000000000004820, AA000000000000005638, 3813430-532011020,
 # 20070Q450002; UUID 3E50-902A).
@@ -32,6 +38,7 @@ ZIM_BOOK="duration_wikipedia_en_grade5a_stub_2026-10"
 
 DRY_RUN=0
 KEEP=0
+ACCEPTANCE=0
 DEST=""
 ENGINE_ROOT="${ENGINE_ROOT:-/home/pi/idea/agents/agent-engine-dev}"
 ENGINE_API="${ENGINE_API:-http://127.0.0.1:8080}"
@@ -64,6 +71,8 @@ RESTORED_PM2=0
 KOLIBRI_ID="" KOLIBRI_PORT="" KOLIBRI_DIR=""
 NEXTCLOUD_ID="" NEXTCLOUD_PORT="" NEXTCLOUD_DIR=""
 KIWIX_ID="" KIWIX_PORT="" KIWIX_DIR=""
+KOLIBRI015_DIR=""
+ACCEPTANCE_OK=""
 LEFTOVER_AFTER_REMOVE=""
 OFF_PROOF_OK=""
 ON_RESTORE_OK=""
@@ -73,7 +82,7 @@ die() { echo "ERROR: $*" >&2; exit 1; }
 log() { echo "==> $*" >&2; }
 
 usage() {
-  sed -n '2,28p' "$0" | sed 's/^# \{0,1\}//'
+  sed -n '2,29p' "$0" | sed 's/^# \{0,1\}//'
 }
 
 # --- args -----------------------------------------------------------------
@@ -81,6 +90,7 @@ usage() {
 while [ $# -gt 0 ]; do
   case "$1" in
     --dry-run) DRY_RUN=1; shift ;;
+    --acceptance) ACCEPTANCE=1; shift ;;
     --keep) KEEP=1; shift ;;
     --dest) DEST="${2:-}"; [ -n "$DEST" ] || die "--dest needs a value"; shift 2 ;;
     --engine-root) ENGINE_ROOT="${2:-}"; shift 2 ;;
@@ -870,6 +880,7 @@ teardown() {
   fi
   DID_TEARDOWN=1
   pause_if_hot "before teardown"
+  teardown_kolibri_0155 || true
   local id
   for id in "$KOLIBRI_ID" "$NEXTCLOUD_ID" "$KIWIX_ID"; do
     [ -n "$id" ] || continue
@@ -912,6 +923,277 @@ on_exit() {
   restore_pm2_from_config || true
   exit "$rc"
 }
+
+# --- acceptance extras (idea#413 remaining Acceptance tests) --------------
+
+teardown_kolibri_0155() {
+  local dir="${KOLIBRI015_DIR:-}"
+  if [ -z "$dir" ]; then
+    dir="${RUN_DIR:-}/kolibri-0155"
+  fi
+  [ -n "$dir" ] || return 0
+  [ -f "$dir/compose.yaml" ] || [ -f "$dir/compose.yml" ] || return 0
+  assert_no_forbidden_target "$dir"
+  log "tearing down Kolibri 0.15.5 scratch compose at $dir"
+  (
+    cd "$dir"
+    docker compose down || true
+  )
+  local line cid name
+  while IFS= read -r line; do
+    [ -n "$line" ] || continue
+    cid=${line%% *}
+    name=${line#* }
+    case "$name" in
+      *kolibri-0155*)
+        log "docker rm (no -v) leftover $name ($cid)"
+        docker rm "$cid" || true
+        ;;
+    esac
+  done < <(docker ps -a --filter status=exited --format '{{.ID}} {{.Names}}' 2>/dev/null || true)
+}
+
+run_acceptance() {
+  local acc="$RUN_DIR/acceptance"
+  mkdir -p "$acc/past-day/engine"
+  local yesterday fails=0
+  yesterday=$(date +%F -d yesterday 2>/dev/null || python3 -c 'import datetime; print((datetime.date.today()-datetime.timedelta(days=1)).isoformat())')
+  : > "$acc/summary.txt"
+  log "acceptance extras: remaining idea#413 Acceptance tests (yesterday=$yesterday)"
+  echo "yesterday=$yesterday" > "$acc/meta.txt"
+
+  acc_record() {
+    local st="$1" id="$2"
+    shift 2
+    echo "$st $id $*" | tee -a "$acc/summary.txt"
+    if [ "$st" = FAIL ]; then
+      fails=$((fails + 1))
+    fi
+  }
+
+  local pii_files=(
+    "$RUN_DIR/day-files-on/${KOLIBRI_ID}.json"
+    "$RUN_DIR/day-files-on/${NEXTCLOUD_ID}.json"
+    "$RUN_DIR/day-files-on/${KIWIX_ID}.json"
+  )
+  if [ -f "$RUN_DIR/day-files-on/${NEXTCLOUD_ID}.samples.ndjson" ]; then
+    pii_files+=("$RUN_DIR/day-files-on/${NEXTCLOUD_ID}.samples.ndjson")
+  fi
+  if python3 "$SEED" check-pii "${pii_files[@]}" > "$acc/pii.txt" 2>&1; then
+    acc_record PASS pii "schema-checked day/sample files have no usernames or client addresses"
+  else
+    acc_record FAIL pii "see acceptance/pii.txt"
+  fi
+
+  if python3 "$SEED" check-flags --file "$RUN_DIR/day-files-on/${KOLIBRI_ID}.json" --expect-shared --expect-demo false \
+      > "$acc/flags-0195.txt" 2>&1; then
+    acc_record PASS flags-0195 "0.19.5 day file has sharedLearnerAccount; demo=false"
+  else
+    acc_record FAIL flags-0195 "see acceptance/flags-0195.txt"
+  fi
+
+  local compose_ok=1 c
+  : > "$acc/backup-none.txt"
+  for c in "$KOLIBRI_DIR/compose.yaml" "$NEXTCLOUD_DIR/compose.yaml" "$KIWIX_DIR/compose.yaml"; do
+    if [ -f "$c" ]; then
+      python3 "$SEED" check-backup-none --compose "$c" >> "$acc/backup-none.txt" 2>&1 || compose_ok=0
+    else
+      echo "missing $c" >> "$acc/backup-none.txt"
+      compose_ok=0
+    fi
+  done
+  if [ "$compose_ok" = 1 ]; then
+    acc_record PASS backup-none "no x-app.backup hook on Kolibri, Nextcloud or Kiwix"
+  else
+    acc_record FAIL backup-none "see acceptance/backup-none.txt"
+  fi
+
+  if python3 "$SEED" db-lock --app kolibri --dir "$KOLIBRI_DIR" --day "$DAY" --loops 6 \
+      > "$acc/db-lock-kolibri.txt" 2>&1; then
+    acc_record PASS db-lock-kolibri "concurrent writes during the hook stayed under 2 s"
+  else
+    acc_record FAIL db-lock-kolibri "see acceptance/db-lock-kolibri.txt"
+  fi
+  if python3 "$SEED" db-lock --app nextcloud --dir "$NEXTCLOUD_DIR" --day "$DAY" --loops 6 \
+      > "$acc/db-lock-nextcloud.txt" 2>&1; then
+    acc_record PASS db-lock-nextcloud "concurrent writes during the hook stayed under 2 s"
+  else
+    acc_record FAIL db-lock-nextcloud "see acceptance/db-lock-nextcloud.txt"
+  fi
+
+  if python3 "$SEED" nextcloud-wopi-info --dir "$NEXTCLOUD_DIR" --base "http://127.0.0.1:${NEXTCLOUD_PORT}" \
+      > "$acc/wopi-info.txt" 2>&1; then
+    acc_record PASS wopi "token_ttl/expiry and published-port client address recorded"
+  else
+    acc_record FAIL wopi "see acceptance/wopi-info.txt"
+  fi
+
+  if python3 "$SEED" kiwix-logs --dir "$KIWIX_DIR" --day "$DAY" > "$acc/kiwix-logs.txt" 2>&1; then
+    acc_record PASS kiwix-logs "log not under ./data; daily roll; 14-day clear on scratch ./logs only"
+  else
+    acc_record FAIL kiwix-logs "see acceptance/kiwix-logs.txt"
+  fi
+
+  local listed_ok=1
+  : > "$acc/stdin-listed.txt"
+  python3 "$SEED" stdin-pipe --dir "$KOLIBRI_DIR" --service kolibri --day "$DAY" --listed yes \
+      --out "$acc/stdin-kolibri.json" >> "$acc/stdin-listed.txt" 2>&1 || listed_ok=0
+  python3 "$SEED" stdin-pipe --dir "$NEXTCLOUD_DIR" --service nextcloud-app --day "$DAY" --listed yes \
+      --out "$acc/stdin-nextcloud.json" >> "$acc/stdin-listed.txt" 2>&1 || listed_ok=0
+  python3 "$SEED" stdin-pipe --dir "$KIWIX_DIR" --service proxy --day "$DAY" --listed yes \
+      --out "$acc/stdin-kiwix.json" >> "$acc/stdin-listed.txt" 2>&1 || listed_ok=0
+  if [ "$listed_ok" = 1 ]; then
+    acc_record PASS stdin-listed "docker exec -i sh -s works for all three listed hook services"
+  else
+    acc_record FAIL stdin-listed "see acceptance/stdin-listed.txt"
+  fi
+
+  local past_ok=1
+  : > "$acc/past-day-stamp.txt"
+  python3 "$SEED" stamp-past-day --app kolibri --dir "$KOLIBRI_DIR" --day "$yesterday" >> "$acc/past-day-stamp.txt" 2>&1 || past_ok=0
+  python3 "$SEED" stamp-past-day --app nextcloud --dir "$NEXTCLOUD_DIR" --day "$yesterday" >> "$acc/past-day-stamp.txt" 2>&1 || past_ok=0
+  python3 "$SEED" stamp-past-day --app kiwix --dir "$KIWIX_DIR" --day "$yesterday" >> "$acc/past-day-stamp.txt" 2>&1 || past_ok=0
+  ( cd "$KOLIBRI_DIR" && docker compose exec -T kolibri /hooks/usage.sh day "$yesterday" ) \
+      > "$acc/past-day/kolibri-raw.json" 2>"$acc/past-day/kolibri-raw.err" || past_ok=0
+  ( cd "$NEXTCLOUD_DIR" && docker compose exec -T nextcloud-app /hooks/usage.sh day "$yesterday" ) \
+      > "$acc/past-day/nextcloud-raw.json" 2>"$acc/past-day/nextcloud-raw.err" || past_ok=0
+  ( cd "$KIWIX_DIR" && docker compose exec -T proxy /hooks/usage.sh day "$yesterday" ) \
+      > "$acc/past-day/kiwix-raw.json" 2>"$acc/past-day/kiwix-raw.err" || past_ok=0
+  : > "$acc/past-day-check.txt"
+  python3 "$SEED" check-past-day --app kolibri --file "$acc/past-day/kolibri-raw.json" --day "$yesterday" >> "$acc/past-day-check.txt" 2>&1 || past_ok=0
+  python3 "$SEED" check-past-day --app nextcloud --file "$acc/past-day/nextcloud-raw.json" --day "$yesterday" >> "$acc/past-day-check.txt" 2>&1 || past_ok=0
+  python3 "$SEED" check-past-day --app kiwix --file "$acc/past-day/kiwix-raw.json" --day "$yesterday" >> "$acc/past-day-check.txt" 2>&1 || past_ok=0
+  python3 "$SEED" check-pii \
+      "$acc/past-day/kolibri-raw.json" \
+      "$acc/past-day/nextcloud-raw.json" \
+      "$acc/past-day/kiwix-raw.json" \
+      > "$acc/past-day-pii.txt" 2>&1 || past_ok=0
+  ENGINE_ROOT="$ENGINE_ROOT" node "$TRIGGER" --day "$yesterday" \
+      --out "$acc/past-day/timings.json" \
+      --instance-id "$KOLIBRI_ID" \
+      --instance-id "$NEXTCLOUD_ID" \
+      --instance-id "$KIWIX_ID" \
+      > "$acc/past-day/trigger.txt" 2>&1 || past_ok=0
+  local inst
+  for inst in "$KOLIBRI_ID" "$NEXTCLOUD_ID" "$KIWIX_ID"; do
+    if [ -f "/var/lib/idea/usage/$yesterday/${inst}.json" ]; then
+      cp -a "/var/lib/idea/usage/$yesterday/${inst}.json" "$acc/past-day/engine/${inst}.json"
+    else
+      echo "missing engine day file for $inst on $yesterday" >> "$acc/past-day/trigger.txt"
+      past_ok=0
+    fi
+  done
+  if [ "$past_ok" = 1 ]; then
+    acc_record PASS past-day "day $yesterday catch-up from durable logs (raw hook + Engine runDayHook)"
+  else
+    acc_record FAIL past-day "see acceptance/past-day*"
+  fi
+
+  if run_kolibri_0155 "$acc" "$DAY"; then
+    acc_record PASS kolibri-0155 "unlisted 0.15.5 scratch: table names, demo-seed exclusion, sharedLearnerAccount, stdin pipe"
+  else
+    acc_record FAIL kolibri-0155 "see acceptance/kolibri-0155.txt and kolibri-0155-*"
+  fi
+  teardown_kolibri_0155 || true
+
+  if [ "$fails" -eq 0 ]; then
+    ACCEPTANCE_OK=pass
+    log "acceptance extras: all checks passed"
+    return 0
+  fi
+  ACCEPTANCE_OK=fail
+  log "acceptance extras: $fails check(s) failed"
+  return 1
+}
+
+run_kolibri_0155() {
+  local acc="$1" day="$2"
+  KOLIBRI015_DIR="$RUN_DIR/kolibri-0155"
+  assert_no_forbidden_target "$KOLIBRI015_DIR"
+  mkdir -p "$KOLIBRI015_DIR/hooks" "$KOLIBRI015_DIR/data/kolibri"
+  if [ ! -f "$KOLIBRI_DIR/compose.yaml" ] || [ ! -f "$KOLIBRI_DIR/hooks/usage.sh" ]; then
+    echo "0.19.5 instance is missing compose.yaml or hooks/usage.sh" > "$acc/kolibri-0155.txt"
+    return 1
+  fi
+  cp -a "$KOLIBRI_DIR/compose.yaml" "$KOLIBRI015_DIR/compose.yaml"
+  cp -a "$KOLIBRI_DIR/hooks/usage.sh" "$KOLIBRI015_DIR/hooks/usage.sh"
+  if [ -f "$KOLIBRI_DIR/kolibri-start.sh" ]; then
+    cp -a "$KOLIBRI_DIR/kolibri-start.sh" "$KOLIBRI015_DIR/kolibri-start.sh"
+  fi
+  python3 - "$KOLIBRI015_DIR/compose.yaml" > "$acc/kolibri-0155.txt" 2>&1 <<'REWRITE'
+from pathlib import Path
+import re, sys
+p = Path(sys.argv[1])
+text = p.read_text(encoding="utf-8")
+text2, n = re.subn(r"^(\s*image:\s*)\S+", r"\1koenswings/kolibri:1.0-0.15.5-dev", text, count=1, flags=re.M)
+if n != 1:
+    raise SystemExit("could not rewrite the Kolibri image line for 0.15.5")
+p.write_text(text2, encoding="utf-8")
+print("image overridden to koenswings/kolibri:1.0-0.15.5-dev")
+REWRITE
+  local port zip
+  port=$(python3 -c 'import socket; s=socket.socket(); s.bind(("127.0.0.1",0)); print(s.getsockname()[1]); s.close()')
+  zip=$(python3 -c 'import socket; s=socket.socket(); s.bind(("127.0.0.1",0)); print(s.getsockname()[1]); s.close()')
+  printf 'port=%s\nport_zip=%s\n' "$port" "$zip" > "$KOLIBRI015_DIR/.env"
+  echo "ports $port $zip" >> "$acc/kolibri-0155.txt"
+  if docker image inspect koenswings/kolibri:1.0-0.15.5-dev >/dev/null 2>&1; then
+    echo "image already present locally" >> "$acc/kolibri-0155.txt"
+  else
+    echo "pulling koenswings/kolibri:1.0-0.15.5-dev --platform linux/arm64" >> "$acc/kolibri-0155.txt"
+    docker pull --platform linux/arm64 koenswings/kolibri:1.0-0.15.5-dev >> "$acc/kolibri-0155.txt" 2>&1 || return 1
+  fi
+  (
+    cd "$KOLIBRI015_DIR"
+    docker compose up -d
+  ) >> "$acc/kolibri-0155.txt" 2>&1 || return 1
+  local start now
+  start=$(date +%s)
+  while true; do
+    if [ -f "$KOLIBRI015_DIR/data/kolibri/db.sqlite3" ]; then
+      if python3 - "$KOLIBRI015_DIR/data/kolibri/db.sqlite3" <<'CHK'
+import sqlite3, sys
+conn = sqlite3.connect(sys.argv[1])
+names = [r[0] for r in conn.execute("select name from sqlite_master where type='table'")]
+sys.exit(0 if "kolibriauth_collection" in names else 2)
+CHK
+      then
+        break
+      fi
+    fi
+    now=$(date +%s)
+    if [ $((now - start)) -ge 240 ]; then
+      echo "kolibriauth_collection did not appear within 240s" >> "$acc/kolibri-0155.txt"
+      return 1
+    fi
+    sleep 3
+  done
+  disable_kolibri_zeroconf "$KOLIBRI015_DIR" || true
+  inspect_store > "$acc/store-during-0155.json"
+  python3 - "$acc/store-during-0155.json" "$KOLIBRI015_DIR" >> "$acc/kolibri-0155.txt" 2>&1 <<'STORECHK'
+import json, sys
+data = json.load(open(sys.argv[1]))
+needle = sys.argv[2].rstrip("/")
+for inst in (data.get("localInstances") or []):
+    for key in ("dir", "instanceDir", "path", "cwd"):
+        val = str(inst.get(key) or "")
+        if needle and needle in val:
+            raise SystemExit("0.15.5 scratch dir is listed in the Engine store")
+print("unlisted-ok")
+STORECHK
+  python3 "$SEED" kolibri-0155-fixture --dir "$KOLIBRI015_DIR" --day "$day" \
+      > "$acc/kolibri-0155-fixture.txt" 2>&1 || return 1
+  ( cd "$KOLIBRI015_DIR" && docker compose exec -T kolibri /hooks/usage.sh day "$day" ) \
+      > "$acc/kolibri-0155-exec.json" 2>"$acc/kolibri-0155-exec.err" || return 1
+  python3 "$SEED" stdin-pipe --dir "$KOLIBRI015_DIR" --service kolibri --day "$day" --listed no \
+      --out "$acc/kolibri-0155-stdin.json" > "$acc/stdin-0155.txt" 2>&1 || return 1
+  python3 "$SEED" check-kolibri-0155 --file "$acc/kolibri-0155-stdin.json" --day "$day" \
+      > "$acc/kolibri-0155-check.txt" 2>&1 || return 1
+  python3 "$SEED" check-pii "$acc/kolibri-0155-exec.json" "$acc/kolibri-0155-stdin.json" \
+      > "$acc/kolibri-0155-pii.txt" 2>&1 || return 1
+  echo "0.15.5 acceptance steps passed" >> "$acc/kolibri-0155.txt"
+  return 0
+}
+
 
 # --- evidence -------------------------------------------------------------
 
@@ -996,6 +1278,17 @@ lines.append("- Kolibri roles in the day file are `learner` / `coach` / `admin` 
 lines.append("- Nextcloud `appsOpened` is omitted until Phase 3; the word processor is `office.*` (Nextcloud Office / Collabora CODE), not Text.")
 lines.append("- Kiwix articles were fetched as `/content/<book>/<title>` on the 62 KB CC0 Grade 5A stub ZIM (verified `/content/` paths).")
 lines.append("")
+acc = read(run / "acceptance" / "summary.txt")
+if acc != "(missing)":
+    lines.append("## Remaining acceptance tests (--acceptance)")
+    lines.append("")
+    lines.append("```")
+    lines.append(acc.strip() or "(empty)")
+    lines.append("```")
+    lines.append("")
+    lines.append("14-day clear was exercised on the scratch Kiwix `./logs` directory only.")
+    lines.append("`archive-and-clear` was not run against `/var/lib/idea/usage`.")
+    lines.append("")
 lines.append("## OFF proof")
 lines.append("")
 lines.append("```")
@@ -1038,6 +1331,19 @@ dry_run() {
   log "protected: $PROTECTED_SERIALS $PROTECTED_UUIDS $PROTECTED_PATHS"
   log "ZIM: $ZIM ($ZIM_BOOK)"
   log "Kolibri content: Khan channel $KHAN_CHANNEL leaves-only (~9 MB + 115 MB channel DB)"
+  if [ "$ACCEPTANCE" = 1 ]; then
+    log "acceptance extras enabled:"
+    log "  - concurrent write probe during Kolibri and Nextcloud hooks (no disruptive lock)"
+    log "  - grep schema-checked stdout/day files for usernames and client addresses"
+    log "  - stamp durable logs and run day <yesterday> (raw hook + Engine runDayHook)"
+    log "  - second scratch Kolibri 0.15.5 (image koenswings/kolibri:1.0-0.15.5-dev, linux/arm64)"
+    log "  - Demo-seed exclusion + sharedLearnerAccount on that 0.15.5 fixture"
+    log "  - Nextcloud WOPI token_ttl/expiry and published-port client address"
+    log "  - Kiwix ./logs location, daily roll, 14-day prune on scratch logs only"
+    log "  - backup none (compose has no x-app.backup hook)"
+    log "  - docker exec -i sh -s stdin pipe, including an unlisted 0.15.5 container"
+    log "  - will NOT run archive-and-clear on /var/lib/idea/usage"
+  fi
   echo "----- seed_and_check self-test -----"
   python3 "$SEED" self-test
   echo "----- node syntax of helpers -----"
@@ -1245,6 +1551,11 @@ PY2
     python3 "$SEED" check-day-file --app kiwix --day "$DAY" --file "$RUN_DIR/day-files-on/${KIWIX_ID}.json" || true
   } 2>&1 | tee "$RUN_DIR/field-checks.txt"
 
+  if [ "$ACCEPTANCE" = 1 ]; then
+    pause_if_hot "before acceptance extras"
+    run_acceptance || log "WARN: one or more acceptance checks failed (continuing to the OFF proof and teardown)"
+  fi
+
   # Record mtimes / checksums before the OFF run.
   python3 - "$DAY" "$KOLIBRI_ID" "$NEXTCLOUD_ID" "$KIWIX_ID" "$RUN_DIR/day-files-before-off.json" <<'PY'
 import json, os, sys
@@ -1395,6 +1706,11 @@ PY
   if ! grep -q "PASS kiwix" "$RUN_DIR/field-checks.txt" 2>/dev/null; then verdict="FAIL"; fi
   if [ "$OFF_PROOF_OK" != pass ]; then verdict="FAIL"; fi
   if [ "$ON_RESTORE_OK" != pass ]; then verdict="FAIL"; fi
+  if [ "$ACCEPTANCE" = 1 ]; then
+    if [ "$ACCEPTANCE_OK" != pass ]; then verdict="FAIL"; fi
+    if [ ! -s "$RUN_DIR/acceptance/summary.txt" ]; then verdict="FAIL"; fi
+    if grep -q '^FAIL ' "$RUN_DIR/acceptance/summary.txt" 2>/dev/null; then verdict="FAIL"; fi
+  fi
 
   export I413_HOST="$HOST" I413_DAY="$DAY" I413_ENGINE_SHA="${ENGINE_SHA:-}" I413_VERDICT="$verdict"
   export I413_OFF="$OFF_PROOF_OK" I413_ON="$ON_RESTORE_OK" I413_CONFIG_NOTE="$CONFIG_NOTE"

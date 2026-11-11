@@ -21,10 +21,21 @@ the Pi; do that around it, one Pi at a time (idea03 first, then idea04).
 bash /home/pi/kid-i413-hook-proof/prove-hooks.sh
 ```
 
+Remaining Acceptance tests from idea#413 (DB lock, PII grep, past-day
+`day <date>`, Kolibri 0.15.5 + demo-seed + shared-account, WOPI TTL and
+client address, Kiwix log path/roll/14-day clear, backup none, stdin pipe
+for an unlisted container). Same guards: no `archive-and-clear` on
+`/var/lib/idea/usage`; Kiwix 14-day clear uses scratch instance `./logs` only.
+
+```bash
+bash /home/pi/kid-i413-hook-proof/prove-hooks.sh --acceptance
+```
+
 Dry-run (any host, including this box):
 
 ```bash
 bash script/i413-hook-proof/prove-hooks.sh --dry-run
+bash script/i413-hook-proof/prove-hooks.sh --dry-run --acceptance
 ```
 
 `--keep` leaves instances running (no teardown, no pm2 restore). Do not use that on a Pi you are about to release.
@@ -44,6 +55,7 @@ bash script/i413-hook-proof/prove-hooks.sh --dry-run
 - Switch OFF: backup `settings.json`, write off, SIGHUP the live `idea-usage` process, wait one 60 s poll, prove no hook ran and no day file changed, restore the exact backup bytes, verify ON as `{"usageMonitoring":"on"}` plus a newline, `pi:pi`, mode `0640`.
 - Teardown: `stopInstance <id> <diskId>`, `removeInstance`, `docker rm` without `-v` for any Exited leftovers (#311). New images not in the before snapshot are removed. Data is moved to `/home/pi/kid-quarantine/i413-<ts>/`, never deleted. After snapshots are diffed.
 - Thermal: pause above 75 °C, resume below 65 °C. No `rm -rf`, `pkill -f`, `pgrep -f`, `dd`, `mkfs`, wipe, or `archive-and-clear`.
+- `--acceptance` adds the remaining idea#413 Acceptance tests while the scratch instances are up, then continues with the OFF proof and teardown. Kolibri 0.15.5 is a second unlisted compose scratch (`koenswings/kolibri:1.0-0.15.5-dev`) under the run directory, not `installApp`, torn down before the OFF proof.
 
 ## After the run
 
