@@ -387,13 +387,22 @@ def kolibri_provision(
 
 def kolibri_login(base: str, username: str, *, as_learner: bool = False) -> Session:
     s = _kolibri_session(base)
-    body: dict[str, Any] = {"username": username, "facility": None}
-    if not as_learner:
-        body["password"] = password_for(username)
-    # Learners may sign in username-only when the facility setting is on;
-    # still send the stored default if the setting is off.
-    if as_learner:
-        body["password"] = password_for(username)
+    # Kolibri 0.19 rejects facility:null with HTTP 400 once a facility exists
+    # (app-kolibri demo/seed_classwork.py posts the public facility id).
+    facilities = kolibri_facilities(base)
+    facility_id = ""
+    for row in facilities:
+        if str(row.get("name") or "") == "i413 Proof School":
+            facility_id = str(row.get("id") or row.get("uid") or "")
+            break
+    if not facility_id and facilities:
+        facility_id = str(facilities[0].get("id") or facilities[0].get("uid") or "")
+    body: dict[str, Any] = {
+        "username": username,
+        "password": password_for(username),
+    }
+    if facility_id:
+        body["facility"] = facility_id
     status, data = s.json("POST", "/api/auth/session/", json_body=body)
     if status not in (200, 201):
         die(f"Kolibri login as {username} failed (HTTP {status})")
