@@ -645,27 +645,63 @@ place_kiwix_zim() {
 # leftover Docker bridges this fails with ENOBUFS and the process exits,
 # leaving the Engine store at Error even after a later healthy restart.
 # Write the option into instance data only (not the Engine tree, not /apps).
+# The generated options.ini already comments "# ZEROCONF_ENABLED = True"
+# under [Deployment]; do not append a second [Deployment] section (configobj
+# DuplicateError) and do not treat the comment as already set.
 disable_kolibri_zeroconf() {
   local dir="$1"
   local home="$dir/data/kolibri"
   local opt="$home/options.ini"
+  local rc=0 note=""
   assert_no_forbidden_target "$dir"
   if [ ! -d "$home" ]; then
     log "Kolibri data dir $home not present yet; will retry"
     return 1
   fi
-  if [ -f "$opt" ] && grep -q "ZEROCONF_ENABLED" "$opt"; then
-    log "Kolibri options.ini already sets ZEROCONF_ENABLED"
-    return 0
-  fi
-  # data/kolibri is typically root-owned; use sudo when needed, never print secrets.
-  if [ -w "$home" ]; then
-    printf "%s\n" "[Deployment]" "ZEROCONF_ENABLED = False" >> "$opt"
-  else
-    printf "%s\n" "[Deployment]" "ZEROCONF_ENABLED = False" | sudo tee -a "$opt" >/dev/null
+  note=$(python3 - "$opt" <<'PYZ'
+from pathlib import Path
+import sys
+p = Path(sys.argv[1])
+text = p.read_text(encoding="utf-8") if p.is_file() else ""
+active = any(
+    (not line.lstrip().startswith("#")) and "ZEROCONF_ENABLED" in line
+    and "False" in line.split("#", 1)[0]
+    for line in text.splitlines()
+)
+if active:
+    print("already-false")
+    sys.exit(0)
+old = "# ZEROCONF_ENABLED = True"
+new = "ZEROCONF_ENABLED = False"
+if old in text:
+    text = text.replace(old, new, 1)
+elif "[Deployment]" in text:
+    text = text.replace("[Deployment]", "[Deployment]\nZEROCONF_ENABLED = False", 1)
+else:
+    if text and not text.endswith("\n"):
+        text += "\n"
+    text += "\n[Deployment]\nZEROCONF_ENABLED = False\n"
+out = Path("/tmp/i413-kolibri-options.ini")
+out.write_text(text, encoding="utf-8")
+try:
+    p.write_text(text, encoding="utf-8")
+    print("updated")
+except PermissionError:
+    print("need-sudo")
+    sys.exit(10)
+PYZ
+) || rc=$?
+  if [ "$rc" = 10 ]; then
+    sudo cp /tmp/i413-kolibri-options.ini "$opt"
     sudo chmod 644 "$opt" || true
+    note="updated-via-sudo"
+    rc=0
   fi
-  log "set Deployment.ZEROCONF_ENABLED=False in instance options.ini (zeroconf ENOBUFS workaround)"
+  if [ "$rc" != 0 ]; then
+    log "WARN: could not update Kolibri options.ini (rc=$rc)"
+    return "$rc"
+  fi
+  log "Kolibri ZEROCONF_ENABLED=False ($note)"
   return 0
 }
 
