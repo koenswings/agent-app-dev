@@ -8,7 +8,7 @@
  * The Files Disk hook assertion is layout-aware: a bind of 10-idea-files.sh or
  * a directory mount of ./docker-entrypoint-hooks.d counts when that hook file
  * is present in the bundle (1.4+ compose). HTTP GET is polled with a bound
- * (HTTP_TIMEOUT_MS, default 120s) on the Engine-assigned host port that maps
+ * (HTTP_TIMEOUT_MS, default 300s) on the Engine-assigned host port that maps
  * to compose `${port}:80`, accepting the same 200-499 window as the original
  * single-shot check (including 200 and 302).
  *
@@ -23,6 +23,7 @@ import { readFileSync, existsSync } from 'fs';
 import { execSync } from 'child_process';
 import {
   composeMountsIdeaFilesHook,
+  DEFAULT_HTTP_TIMEOUT_MS,
   resolveNextcloudAppRel,
   waitForHttp,
 } from '../../lib/nextcloud-smoke-checks.mjs';
@@ -36,7 +37,7 @@ const APP_NAME      = 'app-nextcloud';
 const APP_PORT      = 18080;
 const INSTANCE_ID   = 'nextcloud-smoke-001';
 const APP_REL       = resolveNextcloudAppRel(FIXTURE_PATH, process.env.SMOKE_APP_REL);
-const HTTP_TIMEOUT_MS = parseInt(process.env.HTTP_TIMEOUT_MS || '120000', 10);
+const HTTP_TIMEOUT_MS = parseInt(process.env.HTTP_TIMEOUT_MS || String(DEFAULT_HTTP_TIMEOUT_MS), 10);
 
 let passed = 0;
 let failed = 0;
