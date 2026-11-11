@@ -400,6 +400,10 @@ def kolibri_login(base: str, username: str, *, as_learner: bool = False) -> Sess
     body: dict[str, Any] = {
         "username": username,
         "password": password_for(username),
+        # 0.19 SessionViewSet.get_session_response writes logger_usersessionlog
+        # only when request.data.active is true (default is false). The Learn UI
+        # sends this on login and as a later heartbeat.
+        "active": True,
     }
     if facility_id:
         body["facility"] = facility_id
@@ -579,6 +583,127 @@ def cmd_kolibri_view(args: argparse.Namespace) -> None:
 
 # ----- Nextcloud -----
 
+
+def _nextcloud_extract_requesttoken(raw: bytes, headers: dict[str, str] | None = None) -> str:
+    if headers:
+        for key in ("requesttoken", "x-nextcloud-request-token"):
+            val = headers.get(key)
+            if val:
+                return val
+    text = raw.decode("utf-8", errors="replace")
+    for marker in ('data-requesttoken="', 'name="requesttoken" value="'):
+        i = text.find(marker)
+        if i >= 0:
+            return text[i + len(marker) :].split('"', 1)[0]
+    try:
+        parsed = json.loads(text)
+    except json.JSONDecodeError:
+        return ""
+    if isinstance(parsed, dict):
+        tok = parsed.get("token") or parsed.get("requesttoken")
+        if isinstance(tok, str) and tok:
+            return tok
+    return ""
+
+
+def nextcloud_refresh_requesttoken(s: Session) -> str:
+    """Load a fresh CSRF requesttoken for cookie-authenticated POSTs."""
+    for path in ("/csrftoken", "/index.php/csrftoken", "/index.php/apps/files/", "/apps/files"):
+        st, raw, hdrs = s.request("GET", path)
+        tok = _nextcloud_extract_requesttoken(raw, hdrs)
+        if tok:
+            s.requesttoken = tok  # type: ignore[attr-defined]
+            return tok
+    return str(getattr(s, "requesttoken", "") or "")
+
+
+def _wopi_token_in_payload(raw: bytes) -> bool:
+    """True when the response contains a Collabora WOPI token, not a CSRF token."""
+    if not raw:
+        return False
+    text = raw.decode("utf-8", errors="replace")
+    try:
+        parsed = json.loads(text)
+    except json.JSONDecodeError:
+        parsed = None
+    if isinstance(parsed, dict):
+        if parsed.get("token") or parsed.get("access_token"):
+            return True
+        ocs = parsed.get("ocs") if isinstance(parsed.get("ocs"), dict) else None
+        if ocs:
+            data = ocs.get("data") if isinstance(ocs.get("data"), dict) else {}
+            return bool(data.get("token") or data.get("access_token"))
+        return False
+    if "Failed to open the requested file" in text:
+        return False
+    return "WOPISrc" in text or "urlsrc" in text or "access_token" in text or "token_ttl" in text
+
+
+def _direct_edit_url(raw: bytes) -> str:
+    """URL from OCS createDirect (oc_richdocuments_direct). Not itself a WOPI token."""
+    try:
+        parsed = json.loads(raw.decode("utf-8", errors="replace"))
+    except json.JSONDecodeError:
+        return ""
+    if not isinstance(parsed, dict):
+        return ""
+    candidates: list[Any] = []
+    ocs = parsed.get("ocs")
+    if isinstance(ocs, dict) and isinstance(ocs.get("data"), dict):
+        candidates.append(ocs["data"].get("url"))
+    candidates.append(parsed.get("url"))
+    for url in candidates:
+        if isinstance(url, str) and "/richdocuments/" in url:
+            return url
+    return ""
+
+
+def _path_from_absolute(url: str) -> str:
+    parsed = urllib.parse.urlparse(url)
+    path = parsed.path or "/"
+    if parsed.query:
+        path += "?" + parsed.query
+    return path
+
+
+def _safe_office_hint(st: int, raw: bytes) -> str:
+    """Short failure hint with no token, URL, or password."""
+    hint = f"HTTP {st}"
+    try:
+        parsed = json.loads(raw.decode("utf-8", errors="replace"))
+    except json.JSONDecodeError:
+        text = raw.decode("utf-8", errors="replace")
+        if "Failed to open the requested file" in text:
+            return hint + " editor error page"
+        if text.lstrip().startswith("<"):
+            return hint + " HTML response"
+        return hint + " non-JSON response"
+    if not isinstance(parsed, dict):
+        return hint
+    ocs = parsed.get("ocs") if isinstance(parsed.get("ocs"), dict) else None
+    if ocs:
+        meta = ocs.get("meta") if isinstance(ocs.get("meta"), dict) else {}
+        data = ocs.get("data") if isinstance(ocs.get("data"), dict) else {}
+        code = meta.get("statuscode")
+        msg = meta.get("message")
+        keys = ",".join(sorted(str(k) for k in data.keys()))
+        if code is not None:
+            hint += f" ocs.statuscode={code}"
+        if isinstance(msg, str) and msg:
+            clean = msg.replace("\n", " ").replace("\r", " ")[:80]
+            lower = clean.lower()
+            if not any(bad.lower() in lower for bad in FORBIDDEN_LOG_SUBSTR):
+                hint += f" ocs.message={clean!r}"
+        if keys:
+            hint += f" ocs.data.keys={keys}"
+        return hint
+    keys = ",".join(sorted(str(k) for k in parsed.keys()))
+    if keys:
+        hint += f" json.keys={keys}"
+    return hint
+
+
+
 def nextcloud_wait(base: str, timeout: int = 900) -> None:
     start = time.time()
     while time.time() - start < timeout:
@@ -632,6 +757,11 @@ def nextcloud_login(base: str, username: str) -> Session:
     )
     if st2 not in (200, 201) and st not in (200, 303, 302):
         die(f"Nextcloud login as {username} failed (HTTP login={st} ocs={st2})")
+    # The login-page requesttoken is single-use. Refresh from the session for
+    # later cookie-authenticated POSTs (richdocuments /token requires CSRF).
+    if token:
+        s.requesttoken = token  # type: ignore[attr-defined]
+    nextcloud_refresh_requesttoken(s)
     log(f"Nextcloud signed in as {username} (password not shown)")
     s._basic = basic  # type: ignore[attr-defined]
     s._username = username  # type: ignore[attr-defined]
@@ -695,66 +825,85 @@ def nextcloud_open_office(base: str, username: str = "teacher1") -> None:
     if not file_id:
         die("could not read Nextcloud fileId for the uploaded document")
 
-    # Ask richdocuments (Nextcloud Office / Collabora) for a WOPI token.
-    def _token_from_ocs(raw: bytes) -> bool:
-        try:
-            parsed = json.loads(raw.decode("utf-8", errors="replace"))
-        except json.JSONDecodeError:
-            return False
-        ocs = parsed.get("ocs") if isinstance(parsed, dict) else None
-        if not isinstance(ocs, dict):
-            return False
-        meta = ocs.get("meta") if isinstance(ocs.get("meta"), dict) else {}
-        data = ocs.get("data") if isinstance(ocs.get("data"), dict) else {}
-        code = meta.get("statuscode")
-        if code not in (100, 200, None) and not data.get("token"):
-            return False
-        return bool(data.get("token"))
-
-    # richdocuments accepts the numeric fileId or fileId_mtime.
-    mtime = ""
-    for tag in ("d:getlastmodified", "getlastmodified"):
-        open_tag = f"<{tag}>"
-        if open_tag in text:
-            raw_date = text.split(open_tag, 1)[1].split("<", 1)[0].strip()
-            try:
-                parsed_date = email.utils.parsedate_tz(raw_date)
-                if parsed_date:
-                    mtime = str(int(email.utils.mktime_tz(parsed_date)))
-            except (TypeError, ValueError, OverflowError):
-                mtime = ""
-            break
-    file_ids = [file_id]
-    if mtime:
-        file_ids.append(f"{file_id}_{mtime}")
-
+    # The hook counts rows in oc_richdocuments_wopi (issued when the editor
+    # actually opens). POST /ocs/v2.php/apps/richdocuments/api/v1/document is
+    # OCS#createDirect: HTTP 200 with data.url (oc_richdocuments_direct) and
+    # no WOPI token. A real token comes from POST /apps/richdocuments/token
+    # (CSRF + session), GET /apps/richdocuments/index?fileId=, or GET of that
+    # one-time direct URL (DirectView, PublicPage).
     got_token = False
-    last_st = 0
-    for candidate in file_ids:
+    last_hint = "no attempt"
+    deadline = time.time() + 180
+    quoted = urllib.parse.quote(str(file_id))
+    while time.time() < deadline and not got_token:
+        reqtok = getattr(s, "requesttoken", "") or nextcloud_refresh_requesttoken(s)
+        token_headers = {"Accept": "application/json"}
+        if reqtok:
+            token_headers["requesttoken"] = reqtok
         for payload, ctype in (
-            (json.dumps({"fileId": candidate}).encode("utf-8"), "application/json"),
-            (urllib.parse.urlencode({"fileId": candidate}).encode("utf-8"), "application/x-www-form-urlencoded"),
+            (urllib.parse.urlencode({"fileId": file_id}).encode("utf-8"), "application/x-www-form-urlencoded"),
+            (json.dumps({"fileId": file_id}).encode("utf-8"), "application/json"),
         ):
             st, body, _ = s.request(
                 "POST",
-                "/ocs/v2.php/apps/richdocuments/api/v1/document?format=json",
+                "/index.php/apps/richdocuments/token",
                 data=payload,
-                headers={
-                    "Authorization": f"Basic {basic}",
-                    "OCS-APIRequest": "true",
-                    "Accept": "application/json",
-                },
+                headers=token_headers,
                 content_type=ctype,
             )
-            last_st = st
-            if st in (200, 201) and _token_from_ocs(body):
+            last_hint = _safe_office_hint(st, body)
+            if st in (200, 201) and _wopi_token_in_payload(body):
                 got_token = True
                 break
+        if not got_token:
+            st, body, _ = s.request("GET", f"/index.php/apps/richdocuments/index?fileId={quoted}")
+            last_hint = _safe_office_hint(st, body)
+            if st in (200, 201) and _wopi_token_in_payload(body):
+                got_token = True
+        if not got_token:
+            for payload, ctype in (
+                (json.dumps({"fileId": file_id}).encode("utf-8"), "application/json"),
+                (urllib.parse.urlencode({"fileId": file_id}).encode("utf-8"), "application/x-www-form-urlencoded"),
+            ):
+                st, body, _ = s.request(
+                    "POST",
+                    "/ocs/v2.php/apps/richdocuments/api/v1/document?format=json",
+                    data=payload,
+                    headers={
+                        "Authorization": f"Basic {basic}",
+                        "OCS-APIRequest": "true",
+                        "Accept": "application/json",
+                    },
+                    content_type=ctype,
+                )
+                last_hint = _safe_office_hint(st, body)
+                if st in (200, 201) and _wopi_token_in_payload(body):
+                    got_token = True
+                    break
+                direct = _direct_edit_url(body)
+                if st in (200, 201) and direct:
+                    # Host may be the LAN IP from overwrite/public URL; stay on
+                    # this Session origin so we do not log or replay the token.
+                    path = _path_from_absolute(direct)
+                    st2, body2, _ = s.request("GET", path)
+                    last_hint = _safe_office_hint(st2, body2) + " after opening direct-edit URL"
+                    if st2 in (200, 201) and _wopi_token_in_payload(body2):
+                        got_token = True
+                        break
         if got_token:
             break
+        remaining = int(deadline - time.time())
+        if remaining <= 0:
+            break
+        log("richdocuments has not issued a WOPI token yet; waiting for Collabora/Office")
+        time.sleep(min(8, remaining))
+        nextcloud_refresh_requesttoken(s)
     if not got_token:
-        die(f"richdocuments did not issue a WOPI token (HTTP {last_st}); is Collabora up?")
-    log("requested Nextcloud Office / Collabora WOPI token (word processor)")
+        die(
+            f"richdocuments did not issue a WOPI token ({last_hint}); "
+            "is Collabora reachable from nextcloud-app and is discovery cached?"
+        )
+    log("opened Nextcloud Office / Collabora and received a WOPI token (word processor)")
 
 
 def cmd_nextcloud_seed(args: argparse.Namespace) -> None:
@@ -999,6 +1148,22 @@ def cmd_self_test(_args: argparse.Namespace) -> None:
         for p in problems:
             print(p, file=sys.stderr)
         sys.exit(1)
+    # createDirect returns a URL, not a WOPI token (06:30/06:45 seeding miss).
+    create_direct = json.dumps({
+        "ocs": {
+            "meta": {"status": "ok", "statuscode": 200, "message": "OK"},
+            "data": {"url": "http://10.0.0.5:1234/index.php/apps/richdocuments/direct/xyz"},
+        }
+    }).encode("utf-8")
+    if _wopi_token_in_payload(create_direct):
+        die("createDirect payload must not count as a WOPI token")
+    if _path_from_absolute(_direct_edit_url(create_direct)) != "/index.php/apps/richdocuments/direct/xyz":
+        die("expected to rewrite the createDirect URL to a same-origin path")
+    if not _wopi_token_in_payload(json.dumps({"token": "abc", "urlSrc": "http://example.invalid"}).encode()):
+        die("expected a token+urlSrc JSON body to count as a WOPI token")
+    hint = _safe_office_hint(200, create_direct)
+    if "ocs.data.keys=url" not in hint or "direct/" in hint:
+        die(f"unsafe or incomplete office hint: {hint!r}")
     # Negative: missing content after seeding should fail.
     bad = dict(kolibri)
     bad["content"] = []

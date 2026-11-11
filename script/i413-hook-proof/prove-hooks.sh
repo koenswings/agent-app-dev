@@ -731,6 +731,41 @@ disable_nc_firstrun() {
   )
 }
 
+# CODE has no host port; Nextcloud reaches it on the compose network at
+# http://code:9980. First-start 30-idea-office.sh often runs activate-config
+# before CODE is listening, then fail-opens, so discovery stays empty until
+# we retry once CODE answers.
+wait_nc_office() {
+  local dir="$1"
+  local start now
+  [ -n "$dir" ] && [ -d "$dir" ] || die "Nextcloud instance dir missing for Office wait"
+  start=$(date +%s)
+  log "waiting for Collabora CODE at http://code:9980/hosting/discovery (from nextcloud-app)"
+  while true; do
+    if (
+      cd "$dir"
+      docker compose exec -T nextcloud-app curl -fsS -m 8 http://code:9980/hosting/discovery
+    ) 2>/dev/null | grep -qiE 'wopi-discovery|application/vnd.oasis.opendocument.text|urlsrc'; then
+      log "CODE discovery is reachable from nextcloud-app"
+      if (
+        cd "$dir"
+        docker compose exec -T nextcloud-app php occ richdocuments:activate-config >/dev/null
+      ); then
+        log "refreshed richdocuments discovery cache (richdocuments:activate-config)"
+      else
+        log "WARN: richdocuments:activate-config failed after CODE was reachable"
+      fi
+      return 0
+    fi
+    now=$(date +%s)
+    if [ $((now - start)) -ge 180 ]; then
+      die "Collabora CODE was not reachable from nextcloud-app at http://code:9980/hosting/discovery within 180s"
+    fi
+    log "CODE discovery not ready yet; retrying"
+    sleep 5
+  done
+}
+
 # --- teardown -------------------------------------------------------------
 
 docker_rm_exited() {
@@ -1172,6 +1207,7 @@ PY2
   python3 "$SEED" kolibri-provision --base "http://127.0.0.1:${KOLIBRI_PORT}"
   python3 "$SEED" kolibri-view --base "http://127.0.0.1:${KOLIBRI_PORT}"
   disable_nc_firstrun "$NEXTCLOUD_DIR"
+  wait_nc_office "$NEXTCLOUD_DIR"
   python3 "$SEED" nextcloud-seed --base "http://127.0.0.1:${NEXTCLOUD_PORT}"
   python3 "$SEED" kiwix-seed --base "http://127.0.0.1:${KIWIX_PORT}" --book "$ZIM_BOOK"
 

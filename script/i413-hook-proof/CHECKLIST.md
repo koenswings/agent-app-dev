@@ -37,7 +37,7 @@ bash script/i413-hook-proof/prove-hooks.sh --dry-run
 - If `installApp` has no System Disk (deployed `config.yaml` still has `systemDiskSkip: true`), an **outside** `IDEA_CONFIG_FILE` copy is used, with only that flag set false. The deployed tree is not edited. At the end, pm2 is restored from `pm2.config.cjs` with no `IDEA_CONFIG_FILE` and no `IDEA_USAGE_AS_MAIN`, then `pm2 save`.
 - Seeding (passwords follow `<account>911!` and are never printed):
   - Kolibri: facility “i413 Proof School”, `teacher1` (coach) and `learner1` sign in, learner views a Khan Academy G5A leaves-only slice.
-  - Nextcloud: `admin`, `teacher1`, `learner1` log in; teacher opens Nextcloud Office / Collabora (word processor). `appsOpened` is Phase 3 and is not required.
+  - Nextcloud: `admin`, `teacher1`, `learner1` log in; teacher opens Nextcloud Office so a WOPI token is issued (`oc_richdocuments_wopi`). The OCS document API alone only returns a direct-edit URL. `appsOpened` is Phase 3 and is not required.
   - Kiwix: several `/content/…` articles on the 62 KB CC0 stub ZIM.
 - With monitoring ON, today’s day hooks run through the Engine’s own `runDayHook` (there is no live CLI for today’s file; the night window is 02:00–03:30 for yesterday, plus catch-up of past days). Exit codes and durations are checked against `timeoutS` (Kolibri 60 s, Nextcloud 30 s, Kiwix 30 s; Engine clamp 120 s).
 - §2 / contract §5.3 fields present and non-zero where activity was seeded (see the evidence file).
