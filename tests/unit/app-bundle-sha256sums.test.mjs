@@ -137,3 +137,45 @@ it('idea#139: bundled compose x-app.version is the folder version', () => {
   assert.match(c, /^  version: "1.2"$/m);
   assert.match(c, /#image: upstream\/web/);
 });
+
+it('verifies a dev bundle whose appId contains +', () => {
+  const s = setup();
+  const r = build(s, 'HEAD', { ALLOW_UNTAGGED: '1' });
+  assert.equal(r.status, 0, r.stderr);
+  const sha = execFileSync('git', ['-C', s.app, 'rev-parse', '--short=12', 'HEAD'], { encoding: 'utf8' }).trim();
+  const id = `demo-0.0-dev+${sha}`;
+  const v = verify(s, id);
+  assert.equal(v.status, 0, v.stderr);
+  assert.equal(v.stdout.trim(), `ok: apps/${id}`);
+});
+
+it('verifies a release appId like usage-dashboard-1.1', () => {
+  const s = setup(COMPOSE.replace('name: demo', 'name: usage-dashboard'));
+  const r = build(s, '1.1');
+  assert.equal(r.status, 0, r.stderr);
+  const v = verify(s, 'usage-dashboard-1.1');
+  assert.equal(v.status, 0, v.stderr);
+});
+
+it('fails when the appId does not match the bundle folder', () => {
+  const s = setup();
+  assert.equal(build(s).status, 0);
+  const v = verify(s, 'usage-dashboard-1.1');
+  assert.notEqual(v.status, 0);
+  assert.match(v.stderr, /SHA256SUMS missing|path outside/);
+});
+
+it('does not treat . in the appId as a regex wildcard', () => {
+  const s = setup();
+  const disk = s.disk;
+  const real = join(disk, 'apps/demo-1X1');
+  const listed = join(disk, 'apps/demo-1.1');
+  mkdirSync(real, { recursive: true });
+  mkdirSync(listed, { recursive: true });
+  writeFileSync(join(real, 'compose.yaml'), 'x\n');
+  const sums = execFileSync('sha256sum', ['apps/demo-1X1/compose.yaml'], { cwd: disk, encoding: 'utf8' });
+  writeFileSync(join(listed, 'SHA256SUMS'), sums);
+  const v = verify(s, 'demo-1.1');
+  assert.notEqual(v.status, 0, 'apps/demo-1X1 must not match appId demo-1.1');
+  assert.match(v.stderr, /path outside/);
+});

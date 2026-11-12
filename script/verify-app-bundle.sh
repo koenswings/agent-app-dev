@@ -8,7 +8,10 @@ ROOT=${1:?disk root}; APP_ID=${2:?appId}
 cd "$ROOT"
 B="apps/$APP_ID"
 [ -f "$B/SHA256SUMS" ] || { echo "FAIL: $B/SHA256SUMS missing" >&2; exit 1; }
-if sed -E 's/^[0-9a-f]{64} [ *]//' "$B/SHA256SUMS" | grep -Ev "^($B/|services/[^/]+\.tar$)" | grep -q .; then
+# appIds can contain '+' or '.' (e.g. usage-dashboard-0.0-dev+7ba3d76c5211), which
+# are operators in grep -E, so the bundle prefix is matched as a fixed string.
+B_RE=$(printf '%s' "$B" | sed -E 's/[][^$*.+?(){}|\\]/\\&/g')
+if sed -E 's/^[0-9a-f]{64} [ *]//' "$B/SHA256SUMS" | grep -Ev "^($B_RE/|services/[^/]+\.tar$)" | grep -q .; then
   echo "FAIL: SHA256SUMS lists a path outside $B/ and services/*.tar" >&2; exit 1
 fi
 sha256sum --quiet --strict -c "$B/SHA256SUMS"
