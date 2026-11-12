@@ -53,8 +53,21 @@ esac
 # idea#139: refuse a staging tree with files/ placeholders or missing service tars.
 # Stage apps with build-app-bundle.sh so services/*.tar and SHA256SUMS are written.
 "$(dirname "$0")/check-app-disk-tree.sh" "$TREE" || die "staging tree failed check-app-disk-tree.sh"
+# META.yaml diskId may be unquoted, "double" or 'single' quoted (YAML scalars); strip the
+# surrounding whitespace and one pair of matching quotes, then compare the whole value.
+meta_disk_id() {
+  local v
+  v=$(sed -n 's/^diskId:[[:space:]]*//p' "$1" | head -n 1 | tr -d '\r')
+  v="${v#"${v%%[![:space:]]*}"}"; v="${v%"${v##*[![:space:]]}"}"
+  case "$v" in
+    \"*\") v="${v#\"}"; v="${v%\"}" ;;
+    \'*\') v="${v#\'}"; v="${v%\'}" ;;
+  esac
+  printf '%s' "$v"
+}
 if [ -n "$DISK_ID" ]; then
-  grep -q "diskId: ${DISK_ID}" "$TREE/META.yaml" || die "META.yaml diskId does not match --disk-id $DISK_ID"
+  META_DISK_ID=$(meta_disk_id "$TREE/META.yaml")
+  [ "$META_DISK_ID" = "$DISK_ID" ] || die "META.yaml diskId '${META_DISK_ID}' does not match --disk-id $DISK_ID"
 fi
 
 if [ -e /home/pi/idea/agents/agent-engine-dev ] || [ -n "${HW_ROUNDTRIP_DISKS_JSON:-}" ]; then
