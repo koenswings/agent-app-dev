@@ -48,13 +48,18 @@ const build = (s, ref = '1.2', env = {}) => {
 };
 const verify = (s, id = 'demo-1.2') => spawnSync('bash', [VERIFY, s.disk, id], { encoding: 'utf8' });
 
-it('writes bundle, image+tag tars and a disk-root-relative SHA256SUMS that verifies', () => {
+const listed = (file) => readFileSync(file, 'utf8').trim().split('\n').filter(Boolean).map((l) => l.slice(66));
+
+it('writes a bundle-relative SHA256SUMS and a disk-root SHA256SUMS that both verify', () => {
   const s = setup();
   const r = build(s); assert.equal(r.status, 0, r.stderr);
-  const sums = readFileSync(join(s.disk, 'apps/demo-1.2/SHA256SUMS'), 'utf8').trim().split('\n').map((l) => l.slice(66));
+  const sums = listed(join(s.disk, 'apps/demo-1.2/SHA256SUMS'));
   assert.deepEqual(sums, [
-    'apps/demo-1.2/Teacher  Notes/n.txt', 'apps/demo-1.2/compose.yaml', 'apps/demo-1.2/hooks/10-x.sh',
-    'services/koenswings_demo-web:1.2-3.4.tar', 'services/mariadb:11.7.tar']);
+    'Teacher  Notes/n.txt', 'compose.yaml', 'hooks/10-x.sh']);
+  const rootSums = listed(join(s.disk, 'SHA256SUMS'));
+  assert.deepEqual(rootSums, [
+    'apps/demo-1.2/SHA256SUMS', 'apps/demo-1.2/Teacher  Notes/n.txt', 'apps/demo-1.2/compose.yaml',
+    'apps/demo-1.2/hooks/10-x.sh', 'services/koenswings_demo-web:1.2-3.4.tar', 'services/mariadb:11.7.tar']);
   assert.ok(!existsSync(join(s.disk, 'apps/demo-1.2/untracked.txt')), 'untracked files stay out');
   assert.ok(!existsSync(join(s.disk, 'apps/demo-1.2/.git')));
   assert.equal(statSync(join(s.disk, 'apps/demo-1.2/hooks/10-x.sh')).mode & 0o777, 0o755, 'hook stays executable');
@@ -120,6 +125,13 @@ it('a second release lands beside the first without touching its tars or bundle'
   assert.ok(existsSync(join(s.disk, 'services/koenswings_demo-web:1.3-3.5.tar')));
   assert.equal(readFileSync(join(s.disk, 'services/koenswings_demo-web:1.2-3.4.tar'), 'utf8'), before);
   assert.equal(verify(s).status, 0); assert.equal(verify(s, 'demo-1.3').status, 0);
+  const rootSums = listed(join(s.disk, 'SHA256SUMS'));
+  for (const p of ['apps/demo-1.2/compose.yaml', 'apps/demo-1.3/compose.yaml',
+    'services/koenswings_demo-web:1.2-3.4.tar', 'services/koenswings_demo-web:1.3-3.5.tar', 'services/mariadb:11.7.tar']) {
+    assert.ok(rootSums.includes(p), p);
+  }
+  assert.doesNotMatch(readFileSync(join(s.disk, 'apps/demo-1.2/SHA256SUMS'), 'utf8'), /services\//);
+  assert.doesNotMatch(readFileSync(join(s.disk, 'apps/demo-1.3/SHA256SUMS'), 'utf8'), /services\//);
 });
 
 it('refuses :latest, untagged images, an existing bundle and an appId receive-app refuses', () => {
@@ -136,4 +148,48 @@ it('idea#139: bundled compose x-app.version is the folder version', () => {
   const c = readFileSync(join(s.disk, 'apps/demo-1.2/compose.yaml'), 'utf8');
   assert.match(c, /^  version: "1.2"$/m);
   assert.match(c, /#image: upstream\/web/);
+});
+
+// Engine contract (agent-engine-dev cc219476 src/data/UpdateApp.ts).
+// defaultVerifySums (lines 137–139):
+//   const defaultVerifySums = async (dir: string): Promise<boolean> => {
+//     if (!await fs.pathExists(path.join(dir, 'SHA256SUMS'))) return false
+//     try { await $({ cwd: dir })`sha256sum --check --strict --quiet SHA256SUMS`.quiet(); return true } catch { return false }
+//   }
+// sumsLookUsable (lines 536–537):
+//   export const sumsLookUsable = (sums: string | null): boolean =>
+//     !!sums && sums.split('\n').some(l => /^[0-9a-f]{64} [ *]\.?\/?compose\.yaml$/.test(l.trim()))
+const sumsLookUsable = (sums) =>
+  !!sums && sums.split('\n').some((l) => /^[0-9a-f]{64} [ *]\.?\/?compose\.yaml$/.test(l.trim()));
+
+it('Engine-exact defaultVerifySums and sumsLookUsable pass on the bundle SHA256SUMS; disk-root sums check from the root', () => {
+  const s = setup();
+  assert.equal(build(s).status, 0);
+  const bundle = join(s.disk, 'apps/demo-1.2');
+  const sums = readFileSync(join(bundle, 'SHA256SUMS'), 'utf8');
+  assert.equal(sumsLookUsable(sums), true, 'sumsLookUsable (UpdateApp.ts:536-537) must match a bare compose.yaml line');
+  // defaultVerifySums (UpdateApp.ts:137-139): cd into the bundle dir and run sha256sum --check --strict SHA256SUMS
+  const ev = spawnSync('sha256sum', ['--check', '--strict', 'SHA256SUMS'], { cwd: bundle, encoding: 'utf8' });
+  assert.equal(ev.status, 0, ev.stdout + ev.stderr);
+  const root = spawnSync('sha256sum', ['--check', '--strict', 'SHA256SUMS'], { cwd: s.disk, encoding: 'utf8' });
+  assert.equal(root.status, 0, root.stdout + root.stderr);
+  // The old disk-root-relative layout would not look usable to the Engine.
+  assert.equal(sumsLookUsable('deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef  apps/demo-1.2/compose.yaml\n'), false);
+});
+
+it('disk-root SHA256SUMS check does not flag unlisted top-level content (live App Disk)', () => {
+  // Disk B already holds META.yaml, BACKUP.yaml, backups/, and other apps. sha256sum --check
+  // only verifies listed paths; unlisted files must not fail the root or verify-app-bundle check.
+  const s = setup();
+  assert.equal(build(s).status, 0);
+  writeFileSync(join(s.disk, 'META.yaml'), 'diskId: other\n');
+  writeFileSync(join(s.disk, 'BACKUP.yaml'), 'role: backup\n');
+  mkdirSync(join(s.disk, 'backups', 'x'), { recursive: true });
+  writeFileSync(join(s.disk, 'backups/x/a'), 'old\n');
+  mkdirSync(join(s.disk, 'apps/other-app-1.0'), { recursive: true });
+  writeFileSync(join(s.disk, 'apps/other-app-1.0/compose.yaml'), 'x-app: {name: other}\n');
+  const root = spawnSync('sha256sum', ['--check', '--strict', 'SHA256SUMS'], { cwd: s.disk, encoding: 'utf8' });
+  assert.equal(root.status, 0, root.stdout + root.stderr);
+  const v = verify(s);
+  assert.equal(v.status, 0, v.stderr);
 });

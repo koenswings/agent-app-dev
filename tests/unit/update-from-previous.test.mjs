@@ -39,7 +39,8 @@ it('old and new release sit side by side, both verify, old tars untouched', () =
   }
   assert.equal(readFileSync(oldTar, 'utf8'), 'tar-of-koenswings/demo-web:1.0-3.4');
   assert.equal(statSync(oldTar).mtimeMs, before, 'old tar never rewritten');
-  assert.match(readFileSync(join(disk, 'apps/demo-1.1/SHA256SUMS'), 'utf8'), /services\/mariadb:11\.7\.tar/, 'shared tar still listed');
+  assert.match(readFileSync(join(disk, 'SHA256SUMS'), 'utf8'), /services\/mariadb:11\.7\.tar/, 'shared tar still listed in disk-root SHA256SUMS');
+  assert.doesNotMatch(readFileSync(join(disk, 'apps/demo-1.1/SHA256SUMS'), 'utf8'), /services\//, 'bundle SHA256SUMS stays bundle-relative');
   assert.deepEqual(updatePair('demo', 'demo-1.0', 'demo-1.1'), { ok: true, major: false });
 });
 

@@ -118,7 +118,7 @@ docker manifest inspect koenswings/<app>:<ver> | grep arm64  # verify every imag
 
 ## App bundles for an App Disk (idea#351, #23)
 
-Write a bundle with `script/build-app-bundle.sh --app-dir <App checkout> --disk-root <root> --ref <tag>`: it copies the tracked files (modes kept), saves each image to `services/<image>.tar` (image+tag name, never overwritten) and writes `apps/<appId>/SHA256SUMS` relative to the disk root. Check with `script/verify-app-bundle.sh`. Every image needs a release tag (never `latest`), and a tag is never re-pushed with other content. Every App compose needs the updateApp `x-app` fields, checked by `node script/check-xapp-update-fields.mjs`. See [docs/app-bundle-integrity.md](docs/app-bundle-integrity.md).
+Write a bundle with `script/build-app-bundle.sh --app-dir <App checkout> --disk-root <root> --ref <tag>`: it copies the tracked files (modes kept), saves each image to `services/<image>.tar` (image+tag name, never overwritten) and writes a bundle-relative `apps/<appId>/SHA256SUMS` (Engine `defaultVerifySums`) plus a disk-root `SHA256SUMS` listing `services/*.tar` and `apps/**`. Check with `script/verify-app-bundle.sh`. Every image needs a release tag (never `latest`), and a tag is never re-pushed with other content. Every App compose needs the updateApp `x-app` fields, checked by `node script/check-xapp-update-fields.mjs`. See [docs/app-bundle-integrity.md](docs/app-bundle-integrity.md).
 
 ### App versions and release tags (idea#76)
 

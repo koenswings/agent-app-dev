@@ -17,11 +17,17 @@
 #   apps/<appId>/...          every git-tracked file of the App checkout, file modes kept
 #   services/<image>.tar      one `docker save` per compose service image, named like the
 #                             Engine's serviceImageTarPath(): every '/' becomes '_', tag kept
-#   apps/<appId>/SHA256SUMS   sha256 of every bundle file and every image tar, paths
-#                             relative to the disk root (check with: cd <root> && sha256sum -c)
+#   apps/<appId>/SHA256SUMS   sha256 of the bundle's own files only, paths relative to the
+#                             bundle folder (bare compose.yaml, hooks/..., never services/*.tar).
+#                             The Engine's UpdateApp.ts defaultVerifySums / sumsLookUsable
+#                             check with: cd apps/<appId> && sha256sum --check --strict SHA256SUMS
+#   SHA256SUMS                disk-root list: services/*.tar plus every apps/** file, paths
+#                             relative to the disk root. Regenerated after each bundle so a
+#                             second release is included. Check: cd <root> && sha256sum --check --strict SHA256SUMS
 #
 # <appId> = <x-app.name>-<versionDirName(ref)>, the same folder name the Engine uses.
-# SHA256SUMS never lists itself or Engine markers (bundle-root names starting with ".idea-").
+# The bundle SHA256SUMS never lists itself or Engine markers (bundle-root names starting with ".idea-").
+# The disk-root SHA256SUMS never lists itself; it does list each apps/<appId>/SHA256SUMS.
 # An existing tar is reused, never overwritten: image+tag names are immutable releases, so
 # images must carry an explicit tag other than "latest".
 # Env: DOCKER (default docker), for tests.
@@ -34,7 +40,7 @@ while [ $# -gt 0 ]; do
     --app-dir) APP_DIR="$2"; shift 2 ;;
     --disk-root) ROOT="$2"; shift 2 ;;
     --ref) REF="$2"; shift 2 ;;
-    -h|--help) sed -n '2,21p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h|--help) sed -n '2,29p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) die "unknown arg: $1" ;;
   esac
 done
@@ -105,11 +111,26 @@ for img in "${IMAGES[@]}"; do
 done
 
 mv "$TMP" "$ROOT/$BUNDLE"
-trap - EXIT
+SUMS_TMP="$ROOT/apps/.sums-$APP_ID.$$"
+ROOT_SUMS_TMP="$ROOT/.SHA256SUMS.$$"
+trap 'rm -f "$SUMS_TMP" "$ROOT_SUMS_TMP"' EXIT
+# Bundle-relative SHA256SUMS: only this bundle's own files (Engine contract).
+(
+  cd "$ROOT/$BUNDLE"
+  find . \( -type f -o -type l \) ! -path ./SHA256SUMS ! -path './.idea-*'     | sed 's|^\./||' | LC_ALL=C sort -u | while IFS= read -r f; do sha256sum -- "$f"; done
+) > "$SUMS_TMP"
+mv "$SUMS_TMP" "$ROOT/$BUNDLE/SHA256SUMS"
+# Disk-root SHA256SUMS: services/*.tar + apps/** (regenerated so a second release is included).
+# sha256sum --check only verifies listed paths, so unlisted top-level content on a live App
+# Disk (META.yaml, BACKUP.yaml, backups/, other files) is not a failure. When copying this
+# tree onto a disk that already has a SHA256SUMS, merge these lines in; do not overwrite it.
 (
   cd "$ROOT"
-  { find "$BUNDLE" \( -type f -o -type l \) ! -path "$BUNDLE/SHA256SUMS" ! -path "$BUNDLE/.idea-*"; printf '%s\n' "${TARS[@]}"; } \
-    | LC_ALL=C sort -u | while IFS= read -r f; do sha256sum -- "$f"; done
-) > "$ROOT/apps/.sums-$APP_ID.$$"
-mv "$ROOT/apps/.sums-$APP_ID.$$" "$ROOT/$BUNDLE/SHA256SUMS"
+  {
+    find apps \( -type f -o -type l \) ! -path 'apps/*/.idea-*'
+    find services -maxdepth 1 \( -type f -o -type l \) -name '*.tar' 2>/dev/null || true
+  } | LC_ALL=C sort -u | while IFS= read -r f; do sha256sum -- "$f"; done
+) > "$ROOT_SUMS_TMP"
+mv "$ROOT_SUMS_TMP" "$ROOT/SHA256SUMS"
+trap - EXIT
 echo "ok: $ROOT/$BUNDLE ($(wc -l < "$ROOT/$BUNDLE/SHA256SUMS") files in SHA256SUMS)"

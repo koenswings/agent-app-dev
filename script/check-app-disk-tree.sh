@@ -10,7 +10,10 @@
 # 2. Every service image named in apps/*/compose.yaml and instances/*/compose.yaml
 #    has its tar at services/<image with '/' -> '_'>.tar, the Engine's
 #    serviceImageTarPath(). Offline Pis have no image cache.
-# 3. Every apps/<appId>/ has a build-time SHA256SUMS (agent-app-dev#23).
+# 3. Every apps/<appId>/ has a build-time SHA256SUMS (agent-app-dev#23). A real
+#    checksum file must be bundle-relative and list a bare compose.yaml (Engine
+#    sumsLookUsable). If a disk-root SHA256SUMS is present, `sha256sum --check
+#    --strict` must pass from the disk root (services/*.tar plus apps/**).
 # 4. Every apps/<name>-<version>/compose.yaml has x-app.name/x-app.version matching its
 #    folder, and every instances/*/compose.yaml x-app <name>-<version> is an existing
 #    apps/ folder. The Engine sets instanceOf from the instance compose, so a mismatch
@@ -58,8 +61,27 @@ for c in "$ROOT"/apps/*/compose.yaml "$ROOT"/instances/*/compose.yaml; do
   done < <(awk '/^services:/{s=1;next} s&&/^[^ #]/{s=0} s&&/^    image:/{print $2}' "$c" | tr -d "\"'" | sort -u)
 done
 for a in "$ROOT"/apps/*/; do
-  [ -s "$a/SHA256SUMS" ] || bad "${a#"$ROOT"/} has no SHA256SUMS (build it with build-app-bundle.sh)"
+  if [ ! -s "$a/SHA256SUMS" ]; then
+    bad "${a#"$ROOT"/} has no SHA256SUMS (build it with build-app-bundle.sh)"
+    continue
+  fi
+  # Stub fixtures (e.g. a lone 'x') are only required to be non-empty.
+  if grep -Eq '^[0-9a-f]{64} [ *]' "$a/SHA256SUMS"; then
+    if ! grep -Eq '^[0-9a-f]{64} [ *]\.?/?compose\.yaml$' "$a/SHA256SUMS"; then
+      bad "${a#"$ROOT"/}SHA256SUMS does not list a bare compose.yaml (Engine sumsLookUsable)"
+    fi
+    if sed -E 's/^[0-9a-f]{64} [ *]//' "$a/SHA256SUMS" | grep -E '^(apps/|services/|/)' | grep -q .; then
+      bad "${a#"$ROOT"/}SHA256SUMS must be bundle-relative (no apps/ or services/ paths)"
+    fi
+  fi
 done
+if [ -s "$ROOT/SHA256SUMS" ] && grep -Eq '^[0-9a-f]{64} [ *]' "$ROOT/SHA256SUMS"; then
+  if (cd "$ROOT" && sha256sum --quiet --strict --check SHA256SUMS >/dev/null); then
+    echo "PASS: disk-root SHA256SUMS"
+  else
+    bad "disk-root SHA256SUMS check failed"
+  fi
+fi
 
 xapp() { awk -v k="$2" '/^x-app:/{x=1;next} x&&/^[^ #]/{x=0} x&&$1==k":"{v=$2; gsub(/["\047]/,"",v); print v; exit}' "$1"; }
 for c in "$ROOT"/apps/*/compose.yaml; do
