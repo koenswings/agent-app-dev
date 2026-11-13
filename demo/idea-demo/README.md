@@ -36,7 +36,10 @@ builder turns each into a real Kolibri exercise (Perseus), so learners get
 
 ## Sources and licences
 - African Storybook (CC BY 4.0): 7 stories, incl. Grade 5-level (Read aloud)
-  Magozwe, The Honeyguide's revenge, Grandma's bananas.
+  Magozwe, The Honeyguide's revenge, Grandma's bananas. Those three come from
+  the static Storybooks UK (Global Storybooks) PDFs of the same ASB stories
+  (CC BY 4.0 / 3.0 as stated in each PDF); the other four stories and the
+  Tortoise worksheet only exist on africanstorybook.org (see below).
 - Siyavula Natural Sciences and Technology: Grade 4 and 5 EPUBs (CC BY 3.0);
   Grade 5A Learner's Book and Teacher's Guide (CC BY-ND 3.0, share unchanged only).
 - Khan Academy maths videos (CC BY-NC-SA, non-commercial only), downloaded from
@@ -48,3 +51,21 @@ in koenswings/idea (see the issue linked from the PR).
 
 `fetch.sh --record OUT` (maintainers only) rewrites the checksums after a
 deliberate source change.
+
+## African Storybook downloads (idea#490)
+`africanstorybook.org/read/downloadbook.php` renders each PDF on request
+(PrinceXML) and prefixes it with the 53-byte URL
+`https://www.africanstorybook.org/include/pdf_html.php`. Two consequences:
+
+- Every render gets a new random PDF `/ID`, so the raw sha256 never repeats.
+  Those items carry `"checksum": "asb-pdf"`: `source_sha256` is taken with the
+  `/ID` zeroed (same length), which is stable across renders.
+- Since November 2026 the renderer is broken: the endpoint answers 200,
+  `application/pdf`, but the body is only the 53-byte URL. `fetch.py` now
+  rejects any download that is text/HTML, below 1 KB (10 KB for a PDF), or a
+  `.pdf` without `%PDF` in its first 1 KB, and stops with the URL, instead of
+  writing a stub into the tree.
+
+While ASB is down, build with `--seed=PREVIOUS_TREE` (e.g. an earlier
+`fetch.sh` output or the files on an IDEA-DEMO disk): any file there whose
+checksum still matches MANIFEST.json is reused; everything else is downloaded.
