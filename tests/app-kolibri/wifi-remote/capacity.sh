@@ -35,6 +35,7 @@ HOLD_S="${HOLD_S:-120}"; RAMP_S="${RAMP_S:-15}"; SETTLE_S="${SETTLE_S:-30}"; CAP
 NS="${NS:-1 2 4 8 12 16 24 32 48 64 96 128}"; NS_EXT="${NS_EXT:-160 192 256}"
 MODE="${MODE:-step}"; STEPS="${STEPS:-48 50 52 56 60 64}"; THREAD_POOL="${THREAD_POOL:-default 128}"; NOFILE="${NOFILE:-65536}"
 REAL_CAP="${REAL_CAP:-2400}"
+DEFAULT_NOFILE="${DEFAULT_NOFILE:-}"   # run 3: pin the "default" pool container nofile (e.g. 1024 = run 2 condition on idea03) when the server dockerd hands out a higher limit
 case "$MODE" in step|ramp) ;; *) echo "MODE must be step or ramp"; exit 2;; esac
 for p in $THREAD_POOL; do [ "$p" = default ] || { [[ "$p" =~ ^[0-9]+$ ]] && [ "$p" -ge 1 ] && [ "$p" -le 1000 ]; } || { echo "THREAD_POOL entries: default or 1..1000 (got $p)"; exit 2; }; done
 [ "$KPORT" -ge 3000 ] || { echo "KPORT must be >= 3000"; exit 2; }
@@ -136,6 +137,8 @@ write_compose() {   # write_compose <pool>: "default" = image as shipped; N = ex
     if [ "$1" != default ]; then
       echo "      - KOLIBRI_CHERRYPY_THREAD_POOL=$1"
       echo "    ulimits:"; echo "      nofile:"; echo "        soft: $NOFILE"; echo "        hard: $NOFILE"
+    elif [ -n "$DEFAULT_NOFILE" ]; then
+      echo "    ulimits:"; echo "      nofile:"; echo "        soft: $DEFAULT_NOFILE"; echo "        hard: $DEFAULT_NOFILE"
     fi
     echo "    volumes:"; echo "      - ./home:$KHOME"
   } > "$OUT/compose-$1.yaml"
@@ -253,6 +256,8 @@ declare -A RAN POOL_NOTES; CAPPED=""; LOADLIM_LOGGED=0
 SYN=""; for q in $QUALITIES; do [ "$q" = real ] || SYN="$SYN $q"; done
 HAS_REAL=0; [ -n "${QMD5[real]:-}" ] && HAS_REAL=1
 NPOOLS=$(wc -w <<< "$THREAD_POOL")
+LOAD_NOT_BEFORE="${LOAD_NOT_BEFORE:-0}"   # run 3: hold the load phases until this epoch (another bot's transfer from the load host)
+while [ -z "$ABORT" ] && [ "$(date +%s)" -lt "$LOAD_NOT_BEFORE" ] && [ "$DRY_RUN" != 1 ]; do say "waiting for LOAD_NOT_BEFORE ($(date -d @$LOAD_NOT_BEFORE +%H:%M:%S))"; sleep 60; done
 if [ -z "$ABORT" ]; then
   say "phase 2: mode $MODE ($LIST), pools [$THREAD_POOL], hold ${HOLD_S}s, ramp-in ${RAMP_S}s, settle ${SETTLE_S}s, cap ${CAP_S}s + real ${REAL_CAP}s/pool"
   pi=0

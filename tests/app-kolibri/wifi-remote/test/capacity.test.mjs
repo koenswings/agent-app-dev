@@ -243,3 +243,28 @@ test('capacity.sh: global cap cannot skip the real phase; STEPS/THREAD_POOL conf
   assert.equal(spawnSync('bash', [here('capacity.sh')], { env: { ...base, CHECK_ONLY: '1', THREAD_POOL: 'big' }, encoding: 'utf8' }).status, 2);
   assert.equal(spawnSync('bash', [here('capacity.sh')], { env: { ...base, CHECK_ONLY: '1', MODE: 'x' }, encoding: 'utf8' }).status, 2);
 });
+
+test('capacity.sh: DEFAULT_NOFILE pins ulimits on the default-pool compose; 128 pool still uses NOFILE; LOAD_NOT_BEFORE is skipped in DRY_RUN', () => {
+  const d = tmp(); const fx = join(d, 'fx'); mkdirSync(fx);
+  writeFileSync(join(fx, 'manifest.json'), JSON.stringify([{ file: 'q_720p.mp4', md5: '99ad895daf5c1aeb216c5c2e7b8cfd3f', bitrate_bps: 902541 }]));
+  const base = { ...process.env, SERVER: 'idea03', LOADGEN: 'idea04', DRY_RUN: '1', FIXTURES: fx, QUALITIES: '720p' };
+  const t0 = Date.now();
+  const r = spawnSync('bash', [here('capacity.sh')], {
+    env: { ...base, OUT: join(d, 'out'), DEFAULT_NOFILE: '1024', LOAD_NOT_BEFORE: String(Math.floor(Date.now() / 1000) + 3600) },
+    encoding: 'utf8',
+  });
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  assert.ok(Date.now() - t0 < 30_000, 'DRY_RUN must not wait for LOAD_NOT_BEFORE');
+  const def = readFileSync(join(d, 'out', 'compose-default.yaml'), 'utf8');
+  const big = readFileSync(join(d, 'out', 'compose-128.yaml'), 'utf8');
+  assert.match(def, /ulimits:/);
+  assert.match(def, /soft: 1024/);
+  assert.match(def, /hard: 1024/);
+  assert.doesNotMatch(def, /CHERRYPY_THREAD_POOL/);
+  assert.match(big, /KOLIBRI_CHERRYPY_THREAD_POOL=128/);
+  assert.match(big, /soft: 65536/);
+  assert.doesNotMatch(big, /1024/);
+  const src = readFileSync(here('capacity.sh'), 'utf8');
+  assert.match(src, /DEFAULT_NOFILE=/);
+  assert.match(src, /LOAD_NOT_BEFORE=/);
+});
