@@ -21,6 +21,8 @@
 # 5. META.yaml has every field the Engine's DiskMeta requires: diskId, diskName,
 #    created and lastDocked, with created/lastDocked as epoch milliseconds. Without
 #    created the dock fails: "Cannot assign undefined value at /diskDB/<id>/created".
+# 6. No __pycache__/ directory or *.pyc/*.pyo file under apps/ or instances/.
+#    A test run against a built bundle can leave these; they must not ship.
 set -euo pipefail
 ROOT="${1:-}"
 [ -n "$ROOT" ] && [ -d "$ROOT" ] || { echo "usage: $0 <disk-root>" >&2; exit 2; }
@@ -94,6 +96,16 @@ for c in "$ROOT"/instances/*/compose.yaml; do
   if [ -d "$ROOT/apps/$id" ]; then echo "PASS: instances/$i instanceOf $id exists"
   else bad "instances/$i/compose.yaml x-app is $id but apps/$id does not exist"; fi
 done
+
+# CPython bytecode must not ship on an App Disk (copy filter + post-build test runs).
+scan=()
+[ -d "$ROOT/apps" ] && scan+=("$ROOT/apps")
+[ -d "$ROOT/instances" ] && scan+=("$ROOT/instances")
+if [ ${#scan[@]} -gt 0 ]; then
+  while IFS= read -r -d '' p; do
+    bad "bytecode ships in the tree: ${p#"$ROOT"/}"
+  done < <(find "${scan[@]}" \( -type d -name '__pycache__' -o -name '*.pyc' -o -name '*.pyo' \) -print0)
+fi
 
 [ "$fail" = 0 ] || { echo "check-app-disk-tree: FAILED for $ROOT" >&2; exit 1; }
 echo "check-app-disk-tree: PASS for $ROOT"

@@ -8,6 +8,8 @@
 #   cd apps/<appId> && sha256sum --check --strict SHA256SUMS
 # Every file in apps/<appId>/ must be listed (except SHA256SUMS itself and Engine markers
 # .idea-* at the bundle root).
+# The bundle must not contain __pycache__/ or *.pyc/*.pyo (bytecode left by a test run
+# against the tree, or a force-added path that escaped the copy filter).
 # The disk-root SHA256SUMS lists services/*.tar and apps/** (disk-root-relative). Check:
 #   cd <disk-root> && sha256sum --check --strict SHA256SUMS
 set -euo pipefail
@@ -24,6 +26,8 @@ fi
 # Engine-exact: cd into the bundle dir and check SHA256SUMS there.
 (cd "$ROOT/$B" && sha256sum --quiet --strict --check SHA256SUMS) \
   || { echo "FAIL: bundle SHA256SUMS check failed" >&2; exit 1; }
+bytecode=$(cd "$ROOT/$B" && find . \( -type d -name '__pycache__' -o -name '*.pyc' -o -name '*.pyo' \) -print | sed 's|^\./||')
+[ -z "$bytecode" ] || { echo "FAIL: bytecode (__pycache__/*.pyc/*.pyo) must not be in the bundle:" >&2; echo "$bytecode" >&2; exit 1; }
 extra=$(LC_ALL=C comm -23 \
   <(cd "$ROOT/$B" && find . \( -type f -o -type l \) ! -path ./SHA256SUMS ! -path './.idea-*' | sed 's|^\./||' | LC_ALL=C sort) \
   <(sed -E 's/^[0-9a-f]{64} [ *]//' "$ROOT/$B/SHA256SUMS" | LC_ALL=C sort))
