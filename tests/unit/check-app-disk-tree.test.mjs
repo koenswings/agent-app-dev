@@ -47,6 +47,23 @@ it('fails when a service tar is missing', () => {
   const p = run(tree({ tars: false })); assert.equal(p.status, 1);
   assert.match(p.stderr, /image koenswings\/nextcloud:1.0-31 has no tar at services\/koenswings_nextcloud:1.0-31.tar/);
 });
+it('fails when __pycache__ or a .pyc file is present under apps/', () => {
+  const r = tree();
+  mkdirSync(join(r, 'apps/nextcloud-1.0/__pycache__'), { recursive: true });
+  writeFileSync(join(r, 'apps/nextcloud-1.0/__pycache__/x.pyc'), '');
+  const p = run(r);
+  assert.equal(p.status, 1);
+  assert.match(p.stderr, /bytecode ships in the tree/);
+  assert.match(p.stderr, /__pycache__/);
+});
+it('fails when a loose .pyo file is present under instances/', () => {
+  const r = tree();
+  writeFileSync(join(r, 'instances/nc-001/stale.pyo'), '');
+  const p = run(r);
+  assert.equal(p.status, 1);
+  assert.match(p.stderr, /bytecode ships in the tree: instances\/nc-001\/stale\.pyo/);
+});
+
 it('fails when SHA256SUMS is missing', () => {
   assert.match(run(tree({ sums: false })).stderr, /no SHA256SUMS/);
 });

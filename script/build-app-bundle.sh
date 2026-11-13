@@ -15,6 +15,7 @@
 #
 # Writes, relative to --disk-root:
 #   apps/<appId>/...          every git-tracked file of the App checkout, file modes kept
+#                             (never __pycache__/ or *.pyc/*.pyo, even if force-added to the index)
 #   services/<image>.tar      one `docker save` per compose service image, named like the
 #                             Engine's serviceImageTarPath(): every '/' becomes '_', tag kept
 #   apps/<appId>/SHA256SUMS   sha256 of the bundle's own files only, paths relative to the
@@ -83,8 +84,11 @@ mkdir -p "$ROOT/apps" "$ROOT/services"
 TMP="$ROOT/apps/.build-$APP_ID.$$"
 trap 'rm -rf "$TMP"' EXIT
 mkdir "$TMP"
-# git-tracked files only (no .git), modes kept (Nextcloud hooks stay executable)
-(cd "$APP_DIR" && git ls-files -z | tar --null -T - -cf -) | tar -xpf - -C "$TMP"
+# git-tracked files only (no .git), modes kept (Nextcloud hooks stay executable).
+# Never ship CPython bytecode: drop __pycache__/ and *.pyc/*.pyo even if force-added.
+(cd "$APP_DIR" && git ls-files -z | grep -z -v -E '(^|/)__pycache__(/|$)|\.py[co]$' | tar --null -T - -cf -) | tar -xpf - -C "$TMP"
+bytecode=$(cd "$TMP" && find . \( -type d -name '__pycache__' -o -name '*.pyc' -o -name '*.pyo' \) -print | sed 's|^\./||')
+[ -z "$bytecode" ] || die "bytecode (__pycache__/*.pyc/*.pyo) must not be copied into the bundle:"$'\n'"$bytecode"
 [ ! -e "$TMP/SHA256SUMS" ] || die "App repo has its own SHA256SUMS at the root; that name is reserved"
 if ls -A "$TMP" | grep -q '^\.idea-'; then die "App repo has a .idea-* file at the root; reserved for Engine markers"; fi
 

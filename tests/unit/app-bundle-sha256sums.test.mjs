@@ -106,6 +106,39 @@ it('verification fails on a changed file, a changed tar, or an extra file', () =
   }
 });
 
+it('excludes __pycache__ and *.pyc/*.pyo from the bundle, and verify fails if one is planted', () => {
+  // Untracked bytecode in the source tree (the usual case: a local pytest run).
+  const s = setup();
+  mkdirSync(join(s.app, '__pycache__'), { recursive: true });
+  writeFileSync(join(s.app, '__pycache__/x.pyc'), 'bytecode');
+  writeFileSync(join(s.app, 'hooks/stale.pyo'), 'opt');
+  let r = build(s);
+  assert.equal(r.status, 0, r.stderr);
+  assert.ok(!existsSync(join(s.disk, 'apps/demo-1.2/__pycache__')), 'untracked pycache stays out');
+  assert.ok(!existsSync(join(s.disk, 'apps/demo-1.2/hooks/stale.pyo')), 'untracked .pyo stays out');
+  assert.equal(verify(s).status, 0, verify(s).stderr);
+
+  // Force-added to the index: the copy filter must still drop it.
+  const s2 = setup();
+  mkdirSync(join(s2.app, '__pycache__'), { recursive: true });
+  writeFileSync(join(s2.app, '__pycache__/x.pyc'), 'bytecode');
+  execFileSync('git', ['-C', s2.app, 'add', '-f', '__pycache__/x.pyc'], { stdio: 'pipe' });
+  execFileSync('git', ['-C', s2.app, '-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'pyc']);
+  r = build(s2);
+  assert.equal(r.status, 0, r.stderr);
+  assert.ok(!existsSync(join(s2.disk, 'apps/demo-1.2/__pycache__')), 'tracked pycache is filtered out');
+  assert.doesNotMatch(readFileSync(join(s2.disk, 'apps/demo-1.2/SHA256SUMS'), 'utf8'), /__pycache__|\.pyc|\.pyo/);
+  assert.equal(verify(s2).status, 0, verify(s2).stderr);
+
+  // Planted in the built bundle (e.g. unit tests run against the deliverable): verify must fail.
+  mkdirSync(join(s2.disk, 'apps/demo-1.2/__pycache__'), { recursive: true });
+  writeFileSync(join(s2.disk, 'apps/demo-1.2/__pycache__/x.pyc'), 'bytecode');
+  const v = verify(s2);
+  assert.notEqual(v.status, 0);
+  assert.match(v.stderr, /bytecode/);
+  assert.match(v.stderr, /__pycache__/);
+});
+
 it('reuses an existing tar of the same image+tag and never overwrites it', () => {
   const s = setup();
   mkdirSync(join(s.disk, 'services'));

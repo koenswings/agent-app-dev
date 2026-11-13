@@ -6,6 +6,7 @@ From the accepted proposal [idea#351](https://github.com/koenswings/idea/blob/ma
 
 ```
 apps/<appId>/              bundle: every git-tracked file of the App repo, file modes kept
+                           (never __pycache__/ or *.pyc/*.pyo, even if force-added to the index)
 apps/<appId>/SHA256SUMS    written at build time by script/build-app-bundle.sh (bundle-relative)
 SHA256SUMS                 disk-root list: services/*.tar plus apps/** (disk-root-relative)
 services/<image>.tar       one docker save per service image
@@ -13,7 +14,7 @@ services/<image>.tar       one docker save per service image
 
 - `<appId>` is `<x-app.name>-<tag>`, the folder name the Engine uses. `--ref` must be a release tag `<major>.<minor>[-<upstream>]` at HEAD (idea#76); `ALLOW_UNTAGGED=1` builds a dev bundle `<name>-0.0-dev+<sha12>` instead. The build stamps `x-app.version` and every service's `x-app-version` label with the version and runs `script/check-compose.mjs --tag`.
 - `apps/<appId>/SHA256SUMS` is self-contained and **bundle-relative**: it lists only the bundle's own files (a bare `compose.yaml` line, `hooks/…`, never `services/*.tar`). This is the Engine contract in `UpdateApp.ts` (`defaultVerifySums`, `sumsLookUsable`): `cd apps/<appId> && sha256sum --check --strict SHA256SUMS`. The file never lists itself. Bundle-root names starting with `.idea-` are reserved for Engine markers (for example the Fetch done marker) and are never listed. The build refuses an App repo that has either name at its root.
-- The disk-root `SHA256SUMS` lists `services/*.tar` plus every file under `apps/**` with paths relative to the disk root (including each bundle `SHA256SUMS`). It never lists itself. Check with `cd <disk root> && sha256sum --check --strict SHA256SUMS`. `script/verify-app-bundle.sh <root> <appId>` runs both checks, and also fails on a bundle file that the bundle list doesn't name.
+- The disk-root `SHA256SUMS` lists `services/*.tar` plus every file under `apps/**` with paths relative to the disk root (including each bundle `SHA256SUMS`). It never lists itself. Check with `cd <disk root> && sha256sum --check --strict SHA256SUMS`. `script/verify-app-bundle.sh <root> <appId>` runs both checks, and also fails on a bundle file that the bundle list doesn't name, or if `__pycache__/` or a `*.pyc`/`*.pyo` file is present in the bundle (bytecode left by a test run against the tree must not ship).
 - Symlinks are listed and hashed through their target.
 
 ## Image tar names
