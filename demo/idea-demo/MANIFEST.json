@@ -242,7 +242,8 @@
    "licence": "CC BY 4.0",
    "download_url": "https://www.africanstorybook.org/read/downloadbook.php?layout=landscape&id=37083",
    "prepare": "copy",
-   "source_sha256": "27bb238ba899f36e228c4cbe624accc1a2747ec24f6e996da027569245a75113",
+   "checksum": "asb-pdf",
+   "source_sha256": "b85a01aa1895ed82d131d8d0b4d3899a4c2fabdd53fd893362776e8d59fdecbf",
    "bytes": 558664
   },
   {
@@ -253,7 +254,8 @@
    "licence": "CC BY 4.0",
    "download_url": "https://www.africanstorybook.org/read/downloadbook.php?layout=landscape&id=40114",
    "prepare": "copy",
-   "source_sha256": "a55f507eddc0899b3de7ccd57b697f759bdd1162a0379978faa5d9a976516f42",
+   "checksum": "asb-pdf",
+   "source_sha256": "8d02d9c01798436d8db954b8cca57ff21abf70fb13e6b875355410cf3c3172c1",
    "bytes": 888534
   },
   {
@@ -264,7 +266,8 @@
    "licence": "CC BY 4.0",
    "download_url": "https://www.africanstorybook.org/read/downloadbook.php?layout=landscape&id=36966",
    "prepare": "copy",
-   "source_sha256": "02a5d7075a57de04fe4877949434eeb378b23a717ff8fc195c2c54c9ae43fa9c",
+   "checksum": "asb-pdf",
+   "source_sha256": "5dc680b3f2a611f1fb3331c48d1af9b1b62c69549fbdfb7691626742937bb2a1",
    "bytes": 362742
   },
   {
@@ -275,7 +278,8 @@
    "licence": "CC BY 4.0",
    "download_url": "https://www.africanstorybook.org/read/downloadbook.php?layout=landscape&id=49407",
    "prepare": "copy",
-   "source_sha256": "68cb573a3cec65dc72754e0b4595cbf06366769694645191534b10391d996642",
+   "checksum": "asb-pdf",
+   "source_sha256": "c6ace2b5fe0c8a5171cbe63c423c4ba441a0727a8ba60449d402d5e424df3c6f",
    "bytes": 8608992
   },
   {
@@ -286,41 +290,42 @@
    "licence": "CC BY 4.0",
    "download_url": "https://www.africanstorybook.org/read/downloadbook.php?layout=landscape&id=19763",
    "prepare": "copy",
-   "source_sha256": "3290b81ad15993e4a911487708098aeee8aedd651e941a061467c11a5613c60f",
+   "checksum": "asb-pdf",
+   "source_sha256": "02571702e63221c21c060d8b30d363322cf2d7469d6950e56b9eb0c30501157b",
    "bytes": 359943
   },
   {
    "path": "kolibri/Early Reading/Stories/Magozwe.pdf",
    "title": "Magozwe",
-   "author": "Lesley Koyi; ill. Wiehan de Jager; African Storybook",
-   "source_page": "https://www.africanstorybook.org/read/downloadbook.php?layout=landscape&id=13213",
+   "author": "Lesley Koyi; ill. Wiehan de Jager; African Storybook; via Storybooks UK (Global Storybooks)",
+   "source_page": "https://global-asp.github.io/storybooks-uk/stories/en/0262/",
    "licence": "CC BY 4.0",
-   "download_url": "https://www.africanstorybook.org/read/downloadbook.php?layout=landscape&id=13213",
+   "download_url": "https://globalstorybooks.net/media/sbuk/pdf/en/en-0262_magozwe.pdf",
    "prepare": "copy",
-   "source_sha256": "3c3d351a7b56196ad211e257bcfef1012d524970e7149d733246cb51cca6fce0",
-   "bytes": 918458
+   "source_sha256": "40b058472f2a6d3dc08a664ceba5ba30541ee1b08717f4f76fc07efe043c27d1",
+   "bytes": 946511
   },
   {
    "path": "kolibri/Early Reading/Stories/The Honeyguides revenge.pdf",
    "title": "The Honeyguide's revenge",
-   "author": "Zulu folktale, adapt. Ingrid Schechter; ill. Wiehan de Jager; African Storybook",
-   "source_page": "https://www.africanstorybook.org/read/downloadbook.php?layout=landscape&id=2099",
-   "licence": "CC BY 4.0",
-   "download_url": "https://www.africanstorybook.org/read/downloadbook.php?layout=landscape&id=2099",
+   "author": "Zulu folktale, adapt. Ingrid Schechter; ill. Wiehan de Jager; African Storybook; via Storybooks UK (Global Storybooks)",
+   "source_page": "https://global-asp.github.io/storybooks-uk/stories/en/0072/",
+   "licence": "CC BY 3.0",
+   "download_url": "https://globalstorybooks.net/media/sbuk/pdf/en/en-0072_honeyguide.pdf",
    "prepare": "copy",
-   "source_sha256": "e081f043afd441abfde45b79b0779402ac991855a2fad3813b0c8cd490e875e8",
-   "bytes": 4070345
+   "source_sha256": "4a98186137d19bf86f5c90de9da600ed72937173f75fdd8407017b8a7dac4327",
+   "bytes": 436872
   },
   {
    "path": "kolibri/Early Reading/Stories/Grandmas bananas.pdf",
    "title": "Grandma's bananas",
-   "author": "Ursula Nafula; ill. Catherine Groenewald; African Storybook",
-   "source_page": "https://www.africanstorybook.org/read/downloadbook.php?layout=landscape&id=2094",
-   "licence": "CC BY 4.0",
-   "download_url": "https://www.africanstorybook.org/read/downloadbook.php?layout=landscape&id=2094",
+   "author": "Ursula Nafula; ill. Catherine Groenewald; African Storybook; via Storybooks UK (Global Storybooks)",
+   "source_page": "https://global-asp.github.io/storybooks-uk/stories/en/0294/",
+   "licence": "CC BY 3.0",
+   "download_url": "https://globalstorybooks.net/media/sbuk/pdf/en/en-0294_grandma.pdf",
    "prepare": "copy",
-   "source_sha256": "91ed21ab12063f261d39f4274ef141515e96de8325431b48ed7f631dbde7c819",
-   "bytes": 4125371
+   "source_sha256": "0305624f7b8a11b8e577024e8e011a0b22a9080e13e2c6edc98517e667506494",
+   "bytes": 485667
   },
   {
    "path": "kolibri/Maths/Fractions/Visually adding fractions 5-6 plus 1-4.mp4",
