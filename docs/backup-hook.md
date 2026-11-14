@@ -28,9 +28,13 @@ x-app:
 |--------|-------------|
 | `stop` | Stop the instance, borg the instance folder minus `exclude`, start it again. |
 | `hook` | Running instance: preHook, borg minus `exclude` + `hookExclude`, postHook; no stop. |
-| `none` | Nothing: no borg, lock, hook, stop, cleanup or `lastBackup`. The op is Done with `args.hookResult: 'none'` and `lastResult {method: none, result: OK}`. For Apps with no school data (Kiwix: re-downloadable ZIMs). |
+| `none` | Nothing is copied: no borg run, no borg lock file on the Backup Disk, no hook, stop, cleanup or `lastBackup`. The instance and Backup Disk resource locks are still taken for the run, so it can be refused as busy (`backupMonitor.ts`). The op is Done with `args.hookResult: 'none'` and `lastResult {method: none, result: OK}`. For Apps with no school data (Kiwix: re-downloadable ZIMs). |
 
 `live` is reserved and fails closed. Any other value is refused.
+
+**Major updates (updateApp):** an App with method `none` never has a `lastBackup`, so it is exempt
+from the `NEEDS_BACKUP` check on a major update. `--allow-major` (and `updatesFrom`) are still
+required (`UpdateAppPolicy.ts`).
 
 check-compose also refuses `preHook`, `postHook` and `hookExclude` with method `stop` or `none`
 (the Engine ignores them silently), `method: hook` without a `preHook`, an empty list, unknown step
