@@ -32,9 +32,15 @@ x-app:
 
 `live` is reserved and fails closed. Any other value is refused.
 
-**Major updates (updateApp):** an App with method `none` never has a `lastBackup`, so it is exempt
-from the `NEEDS_BACKUP` check on a major update. `--allow-major` (and `updatesFrom`) are still
-required (`UpdateAppPolicy.ts`).
+**Major updates (updateApp):** when the *installed* instance's compose declares `method: none`,
+a major update never refuses `NEEDS_BACKUP` (`checkUpdate` fact `backupMethod`, Engine
+`UpdateAppPolicy.ts`). The method is read from the live compose, not the new bundle; a malformed
+live `x-app.backup` gives no exemption (and refuses `BAD_BACKUP_SPEC` later). `--allow-major` and
+the new version's `updatesFrom` are still required (`MAJOR_NOT_ALLOWED`). stop and hook Apps still
+need a backup younger than the limit or a linked Backup Disk docked (updateApp then backs up first).
+
+**Instance record:** the Engine mirrors the method onto `Instance.backupMethod` (`stop` when the
+block or its method is absent; unset when `x-app.backup` is invalid or on older records).
 
 check-compose also refuses `preHook`, `postHook` and `hookExclude` with method `stop` or `none`
 (the Engine ignores them silently), `method: hook` without a `preHook`, an empty list, unknown step
