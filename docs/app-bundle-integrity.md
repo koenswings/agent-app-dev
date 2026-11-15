@@ -48,6 +48,19 @@ Checked by `node script/check-xapp-update-fields.mjs <compose.yaml>`:
 - `command` is one absolute path (not a list, no shell)
 - `user`, if present, is a uid or username (same shape as `x-app.backup` hook steps)
 
+### Engine floor for bundles that declare stages
+
+**Kits on an Engine older than 41ba677 (engine#463) must never get Nextcloud 2.0+ bundles.** Those Engines ignore `x-app.update` stages and would run the hop without `prepare`, losing Office and idea_usage. Nextcloud 2.0+ needs an Engine with the full engine#456 stages (#456 L).
+
+Why: on a Nextcloud major hop, `prepare` is the only step that replaces the bundled apps in `custom_apps` (richdocuments, idea_usage) before the image entrypoint runs `occ upgrade`. Without it, the old NC31-only copies stay. `occ upgrade` auto-disables them as incompatible, and the fail-open start hooks cannot enable them again. Health still passes, so the update reports Done while Office and the usage counter are lost. Nothing re-enables them on a later hop. On an online kit, `occ upgrade` may instead pull an unpinned richdocuments from the app store.
+
+Which Engines do what:
+
+- Engines from 41ba677 refuse any bundle that declares a stage (`UPDATE_STAGES_UNSUPPORTED` at Check, never offered) until #456 L lands. A kit on such an Engine stops safely at the last stage-less release (Nextcloud 1.8-31.0.14).
+- Engines older than 41ba677 (for example 80ba4af) offer and run the hop without the stages. Do not put a 2.0+ Nextcloud bundle on an App Disk for such a kit.
+
+The same holds for any App whose release declares `x-app.update` stages that its correctness depends on. The Nextcloud hop PRs are app-nextcloud#37 (2.0), #38 (3.0), #39 (4.0), #42 (5.0, MariaDB 11.8 only, whose stages are no-ops) and #40 (6.0). The 5.0 hop is also refused on Engines from 41ba677, because it declares stages.
+
 ## Stateful images need an App major
 
 When a release moves a stateful service image to a new series, it must also bump the App major and list the old major in `updatesFrom`. **An App major caused only by such a database upgrade is allowed.** Its release notes must say plainly that the major comes from the database upgrade (for example "2.0: MariaDB 11.7 → 11.8; no change to Nextcloud or the App itself") and that the app itself is unchanged, and `updatesFrom` lists the previous major. The update is then offered with `--allow-major` and a Backup Disk backup first. The first start of a new database series rewrites the data files (mariadb-upgrade, the MySQL data dictionary, pg_upgrade, Mongo feature compatibility, the Redis RDB format), and they cannot go back. updateApp requires a Backup Disk backup (`NEEDS_BACKUP`) only for an App major update; a minor update gets only the local pre-update snapshot. This is a release rule and needs no Engine change.
