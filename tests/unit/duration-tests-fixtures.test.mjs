@@ -84,6 +84,19 @@ describe('duration-tests fixtures (idea#166)', () => {
     }
   });
 
+  it('third empty disk pack is META-only for the Backup Disk', () => {
+    const e = join(FIX, 'empty-003');
+    mustExist(join(e, 'META.yaml'), 'empty-003 META');
+    const entries = readdirSync(e);
+    assert.deepEqual(entries.sort(), ['META.yaml']);
+    const meta = readFileSync(join(e, 'META.yaml'), 'utf8');
+    assert.match(meta, /diskId:\s*duration-empty-003/);
+    assert.match(meta, /diskName:\s*"Duration Tests — Empty Disk 003"/);
+    for (const absent of ['apps', 'instances', 'FILES.yaml', 'BACKUP.yaml']) {
+      assert.equal(existsSync(join(e, absent)), false, `empty-003 must not have ${absent}`);
+    }
+  });
+
   it('kolibri App Disk tree has META + apps + instance + content catalogue', () => {
     const k = join(FIX, 'kolibri');
     mustExist(join(k, 'META.yaml'), 'kolibri META');
@@ -534,6 +547,7 @@ exit 0
     const ref = read('walker-ref.yaml');
     assert.match(ref, /duration-empty-001/);
     assert.match(ref, /duration-empty-002/);
+    assert.match(ref, /duration-empty-003/);
     assert.match(ref, /duration-kolibri-grade5a-001/);
     assert.match(ref, /duration-kolibri-form3-001/);
     assert.match(ref, /duration-nextcloud-grade5a-001/);
@@ -695,8 +709,11 @@ exit 0
     const md = read('README.md');
     assert.match(md, /duration-empty-001/);
     assert.match(md, /duration-empty-002/);
+    assert.match(md, /duration-empty-003/);
     assert.match(md, /idea-test-4/);
+    assert.match(md, /idea-test-6/);
     assert.match(md, /empty-002/);
+    assert.match(md, /empty-003/);
     assert.match(md, /duration-kolibri-grade5a-001/);
     assert.match(md, /duration-kolibri-form3-001/);
     assert.match(md, /duration-nextcloud-grade5a-001/);
@@ -722,6 +739,6 @@ exit 0
 
   it('fixture trees contain only expected top-level packs', () => {
     const packs = readdirSync(FIX).filter((n) => statSync(join(FIX, n)).isDirectory()).sort();
-    assert.deepEqual(packs, ['empty', 'empty-002', 'kiwix', 'kolibri', 'kolibri-form3', 'nextcloud']);
+    assert.deepEqual(packs, ['empty', 'empty-002', 'empty-003', 'kiwix', 'kolibri', 'kolibri-form3', 'nextcloud']);
   });
 });
