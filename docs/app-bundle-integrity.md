@@ -39,6 +39,15 @@ Checked by `node script/check-xapp-update-fields.mjs <compose.yaml>`:
 | `migrationNote` | shown to the teacher before a major update |
 | `snapshotExclude: [<path>...]` | paths under `data/` left out of the pre-update copy |
 
+`x-app.update` is optional. When it is present, `node script/check-compose.mjs` (and `check-xapp-update-fields.mjs`) also checks the **update stages** (gap 12, Axle addendum): `prepare`, `verify`, `work` and `settle`. Each stage is optional; a missing `x-app.update` is valid, and unknown `x-app` keys stay allowed. When a stage is declared:
+
+- `prepare`, `verify` and `work` take `{ service, command, timeout, user? }`
+- `settle` takes `{ service, command, interval, timeout, user? }`
+- `timeout` and `interval` are positive integer seconds (1..86400); settle `interval` must not be greater than `timeout`
+- `service` must name a service in the same compose
+- `command` is one absolute path (not a list, no shell)
+- `user`, if present, is a uid or username (same shape as `x-app.backup` hook steps)
+
 ## Stateful images need an App major
 
 When a release moves a stateful service image to a new series, it must also bump the App major and list the old major in `updatesFrom`. **An App major caused only by such a database upgrade is allowed.** Its release notes must say plainly that the major comes from the database upgrade (for example "2.0: MariaDB 11.7 → 11.8; no change to Nextcloud or the App itself") and that the app itself is unchanged, and `updatesFrom` lists the previous major. The update is then offered with `--allow-major` and a Backup Disk backup first. The first start of a new database series rewrites the data files (mariadb-upgrade, the MySQL data dictionary, pg_upgrade, Mongo feature compatibility, the Redis RDB format), and they cannot go back. updateApp requires a Backup Disk backup (`NEEDS_BACKUP`) only for an App major update; a minor update gets only the local pre-update snapshot. This is a release rule and needs no Engine change.
