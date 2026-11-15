@@ -1,0 +1,324 @@
+x-app:
+  name: nextcloud
+  title: Nextcloud
+  description: >
+    With over 400.000 deployments, Nextcloud is the most popular on-premises
+    content collaboration platform you can download. 
+
+    It scales from a Raspberry Pi with 2 users to globally distributed installations with tens of millions of users at major hosting providers.
+  url: https://nextcloud.com/
+  category: office
+  icon: nextcloud.png
+  author: Koen Swings
+  version: "5.0-34.0.6"
+  instanceName: nextcloud
+  # updateApp (idea#351, agent-app-dev#23). healthTimeout: integer seconds.
+  # 1.x used 300 s (~4x the measured 30.0.6 -> 31.0.1 first start of 66-69 s on idea04,
+  # 2026-10-28). 2.0, 3.0 and 4.0 are Nextcloud majors: desk estimate 600 s until a pool
+  # Pi times these hops (idea#548 §8.1). healthCheck is the
+  # updateApp Health-step probe (HTTP 2xx/3xx and this expect). It stays stricter
+  # than the Docker healthcheck, which also accepts maintenance during an IDEA
+  # backup only (app-nextcloud#29).
+  healthCheck:
+    path: /status.php
+    expect: '"maintenance":false,"needsDbUpgrade":false'
+  healthTimeout: 600
+  # Nextcloud cannot skip majors: an App release that moves to the next Nextcloud major
+  # lists only the previous App major (repo convention: a list of major numbers, so
+  # [4] covers the 4.x line including 4.0-34.0.6). 5.0 is a database-only App major
+  # (idea#548 Q9, agent-app-dev docs/app-bundle-integrity.md): MariaDB 11.7 -> 11.8 on the
+  # same Nextcloud 34.0.6, before the Nextcloud 35 hop. It lists only 4: a 3.x or older
+  # instance is still on Nextcloud 33 or older and must take 4.0 first.
+  updatesFrom: [4]
+  migrationNote: >
+    Database upgrade only: MariaDB 11.7.2 -> 11.8.9 (LTS). Nextcloud stays 34.0.6 and
+    the App is otherwise unchanged. On the first start of the new MariaDB image its
+    entrypoint runs mariadb-upgrade (MARIADB_AUTO_UPGRADE=1) before the database turns
+    healthy; Nextcloud then starts as before. The new data files cannot go back to 11.7;
+    the pre-update backup and snapshot are the way back. Files and accounts are kept.
+  # Engine update hooks (Axle addendum, 2026-11-15; idea#548 merged).
+  # Step order after Swap: prepare → Start → Health → verify → work → settle.
+  # prepare and verify failures roll back; work and settle failures never roll
+  # back (the path stops with migrationsPending). Fields: prepare/verify/work
+  # = { service, user?, command, timeout }; settle = { service, user?, command,
+  # interval, timeout }. timeout is required on prepare, verify and work.
+  # Optional user is passed verbatim as compose run --user / exec -u (gaps 10
+  # and 13 accepted). The Engine never defaults a step to 33; omitting user
+  # would be the service user (root on the official image), so every occ/cron
+  # step declares user: "33". service is nextcloud-app, used verbatim.
+  # prepare: after Swap, before Start, as a one-off with a generated override
+  # (entrypoint: [command], empty command, no leftover argv):
+  #   docker compose run --rm --no-deps --no-TTY --user 0 nextcloud-app
+  # Idempotent as a defensive App rule (an interrupted prepare always restores
+  # the snapshot; Resume starts from Swap on the old tree). Does not run occ
+  # or the image entrypoint. Stages bundled richdocuments + idea_usage
+  # (versions from the tarballs / hooks/update-targets) into custom_apps.
+  # verify: once after Health, docker compose exec -T -u 33. Exit 0 passes;
+  # anything else is VERIFY_FAILED and rolls back. Checks status.php
+  # (installed, maintenance false, needsDbUpgrade false) and that
+  # richdocuments is enabled at the bundled version and idea_usage is enabled.
+  # work: once after verify, exec -T -u 33, runs cron.php (Nextcloud: 2-3
+  # times after a major). Non-zero or timeout stops the path with
+  # migrationsPending, no rollback.
+  # settle: polled after work, exec -T -u 33; exit 0 settled, 3 not yet,
+  # other error. Read-only probe (status.php + pending upgrade jobs). Does
+  # not run cron.php. Hook versions are parameterised (tarball / IDEA_APP_VERSION).
+  update:
+    prepare:
+      service: nextcloud-app
+      user: "0"
+      command: /idea/hooks/prep-custom-apps-for-upgrade.sh
+      timeout: 600
+    verify:
+      service: nextcloud-app
+      user: "33"
+      command: /idea/hooks/verify-update.sh
+      timeout: 120
+    work:
+      service: nextcloud-app
+      user: "33"
+      command: /idea/hooks/work-update.sh
+      timeout: 3600
+    settle:
+      service: nextcloud-app
+      user: "33"
+      command: /idea/hooks/settle-update.sh
+      interval: 60
+      timeout: 3600
+  snapshotExclude: []    # user files and the database are both needed for a rollback
+  filesMount:
+    path: /mnt/idea-files
+    services: [nextcloud-app]
+  # idea#193: Engine binds host /run/idea-usb -> /mnt/idea-usb (ro, rslave) once;
+  # then runs `docker exec -u www-data <nextcloud-app> /idea/usb-sync.sh` at start
+  # and after every USB stick plug/unplug.
+  usbMount:
+    path: /mnt/idea-usb
+    services: [nextcloud-app]
+  # idea#413: Engine idea-usage runner (agent-engine-dev#308). Ignored when monitoring is off.
+  usage:
+    service: nextcloud-app
+    command: /hooks/usage.sh
+    timeoutS: 30
+  # idea#403: live backup (agent-engine-dev#404, contract agent-app-dev docs/backup-hook.md).
+  # preHook, in order, stops at the first failure: write data/.idea-backup-pending (user 33),
+  # maintenance mode on, then a MariaDB dump into data/backup/db (the db's initdb folder).
+  # The app healthcheck treats that maintenance window as alive only while the marker is
+  # fresh (app-nextcloud#29; age in [-300 s, 7200 s]). borg then reads the instance without
+  # data/db and without the marker (hookExclude). postHook always runs, every step: marker
+  # removed first (so a failed maintenance:off still goes unhealthy), then maintenance off,
+  # then the dump removed. Nextcloud is in maintenance mode for the whole run (Steve, Q2).
+  # A failed step: postHook, then a normal stop backup (fallback stop); updateApp's
+  # pre-update backup uses fail instead (idea#448).
+  # Restore of a hook archive: MariaDB imports the dump (empty datadir), compose waits for the db
+  # healthcheck, before-starting/00-idea-restore.sh removes a leftover marker, turns maintenance
+  # off and starts a detached files:scan --all that runs once Apache answers (outside the
+  # healthTimeout port-ready budget), once per dump. The same hook also removes a leftover
+  # marker on a normal start. A stopped instance gets a cold backup (hooks skipped, data/db kept).
+  backup:
+    method: hook
+    fallback: stop
+    hookTimeout: 600     # per step; a 163 MB database dumps in well under a minute on a Pi 4
+    preHook:
+      - service: nextcloud-app
+        user: "33"
+        command: [touch, /var/www/html/data/.idea-backup-pending]
+      - service: nextcloud-app
+        user: "33"
+        command: [php, /var/www/html/occ, maintenance:mode, --on]
+      - service: nextcloud-db
+        command: [/idea/backup/db-dump.sh]
+    postHook:
+      - service: nextcloud-app
+        user: "33"
+        command: [rm, -f, /var/www/html/data/.idea-backup-pending]
+      - service: nextcloud-app
+        user: "33"
+        command: [php, /var/www/html/occ, maintenance:mode, --off]
+      - service: nextcloud-db
+        command: [/idea/backup/db-clean.sh]
+    hookExclude:
+      - data/db          # live InnoDB files: the dump in data/backup/db replaces them
+      - data/nextcloud/data/.idea-backup-pending  # ephemeral healthcheck marker; also cleared on start
+    # Paths true of a hook archive and of a fallback (stop) or cold archive (engine#401 adds per-mode checks).
+    verify:
+      present:
+        - .env
+        - data/nextcloud/config/config.php
+        - data/nextcloud/version.php
+        - hooks/backup-db-dump.sh
+      absent: []
+networks:
+  backend: null
+services:
+  nextcloud-app:
+    #image: nextcloud
+    # Publish pending (Koen YES): retag this upstream index to
+    # koenswings/nextcloud:5.0-34.0.6 and swap the pin. Official
+    # library/nextcloud 34.0.6-apache multi-platform index (linux/arm64 is in it).
+    # check-compose and Engine saveName() require repo:tag@sha256:<64 hex>
+    # (no digest-only pin, no unpublished retag name), so the compose uses
+    # the published official tag+index digest until the retag exists.
+    image: nextcloud:34.0.6-apache@sha256:3031e7f87baaceb863a755921ebf463bc26ea71855c07ad7858e2ae25a5a0ad7
+    labels:
+      x-app-version: "5.0-34.0.6"
+    restart: no
+    pull_policy: never
+    # Root wrapper chowns /mnt/idea-files/* to uid 33 when wrong, then execs image entrypoint.
+    # Hook reconciles Local external storages with Files Disk folders (idea#137).
+    entrypoint: ["/idea-files-entrypoint.sh"]
+    # Image CMD is dropped when entrypoint is overridden — restore it.
+    command: ["apache2-foreground"]
+    # Docker health (app-nextcloud#29): /idea/app-healthcheck.sh. Alive on a ready status.php,
+    # or on HTTP 200/503 with "maintenance":true only while data/nextcloud/data/.idea-backup-pending
+    # exists with age in [-300 s, 7200 s] (IDEA_BACKUP_MARKER_MAX_FUTURE_S /
+    # IDEA_BACKUP_MARKER_MAX_AGE_S). A stuck or manual maintenance (no marker, a leftover
+    # older than 2 h, or a mtime more than 5 min in the future) still goes unhealthy.
+    # The image has curl and GNU stat. start_period equals healthTimeout 600 so the first
+    # start or a major upgrade never counts as unhealthy before the Engine gives up.
+    healthcheck:
+      test: ["CMD", "/idea/app-healthcheck.sh"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 600s
+    volumes:
+      - ./data/nextcloud:/var/www/html
+      - ./idea-files-entrypoint.sh:/idea-files-entrypoint.sh:ro
+      # All hook folders (pre-installation, post-installation, before-starting).
+      - ./docker-entrypoint-hooks.d:/docker-entrypoint-hooks.d:ro
+      # idea#464: idea-skeleton.config.php (empty skeleton/templates), copied into config/ by the
+      # pre-installation + before-starting 05-idea-skeleton-config.sh hook before maintenance:install.
+      - ./config:/idea-config:ro
+      # Apps shipped on the App Disk (richdocuments for offline Office), see docs/first-start.md.
+      - ./bundled-apps:/idea-bundled-apps:ro
+      # USB stick reconcile (idea#193), run by the Engine via docker exec.
+      - ./usb-sync.sh:/idea/usb-sync.sh:ro
+      # Sets trusted_domains for the Pi it runs on, on every start (agent-engine-dev#163)
+      - ./docker-entrypoint-hooks.d/before-starting/20-idea-trusted-domains.sh:/docker-entrypoint-hooks.d/before-starting/20-idea-trusted-domains.sh:ro
+      - ./hooks/usage.sh:/hooks/usage.sh:ro
+      # idea#403: the backup dump folder, read by before-starting/00-idea-restore.sh after a restore.
+      - ./data/backup/db:/idea-backup-db:ro
+      - ./hooks/app-healthcheck.sh:/idea/app-healthcheck.sh:ro
+      # x-app.update prepare / verify / work / settle (Axle addendum). Whole hooks
+      # dir so the one-off prepare run and the running exec steps all see the
+      # scripts at /idea/hooks/.
+      - ./hooks:/idea/hooks:ro
+    # idea#403: start after MariaDB answers on TCP, so a restored instance's dump import
+    # (MariaDB's temporary init server has no TCP) has finished before Nextcloud starts.
+    depends_on:
+      nextcloud-db:
+        condition: service_healthy
+    ports:
+      - ${port}:80
+    environment:
+      - MYSQL_PASSWORD=${pass}            # internal DB password: stays generated
+      # IDEA default: admin / admin911! (<account name>911!, change before real use).
+      # IDEA_NC_ADMIN_PASSWORD still overrides it; the fallback is admin911!, not
+      # ${pass}, so the admin login is never a random hard-to-type value.
+      # Only used by the first-start auto-install; an existing admin is never reset.
+      # (NEXTCLOUD_ADMIN_USER / NEXTCLOUD_ADMIN_PASSWORD are set once, below, with the self-install env.)
+      # Seed users (password <name>911!), see docs/accounts.md. "" = none.
+      - IDEA_NC_SEED_USERS=${IDEA_NC_SEED_USERS-teacher1:teachers learner1:learners}
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=nextcloud
+      - MYSQL_HOST=nextcloud-db
+      # First start installs itself (official image auto-install), then runs
+      # post-installation hooks (Office), then before-starting hooks (Files Disks, Office).
+      - NEXTCLOUD_ADMIN_USER=admin
+      # Separate admin secret from the Engine (agent-engine-dev issue, see docs/first-start.md).
+      # Fallback is the IDEA default admin911! (<account name>911! scheme), never the random ${pass}.
+      - NEXTCLOUD_ADMIN_PASSWORD=${IDEA_NC_ADMIN_PASSWORD:-admin911!}
+      - NEXTCLOUD_TRUSTED_DOMAINS=localhost ${hostname} ${hostname}.local ${ip}
+      # Office (CODE) has NO host port (no fixed 9980 shared between instances): Apache in this
+      # container proxies /browser, /hosting and /cool to this instance's own `code` service
+      # (IDEA_COLLABORA_PROXY). The browser reaches Office on this Nextcloud's own port, on the
+      # LAN IP the Engine passes as ${ip} (no Tailscale special case); Nextcloud reaches CODE
+      # server-side on the internal compose network.
+      # idea#212: IDEA_PUBLIC_HOST (optional, instance .env) is the address browsers use when it is
+      # not the LAN IP, e.g. a host reached only over Tailscale (wh: its Tailscale IPv4). It replaces
+      # ${ip} in the Office URLs and is added to trusted_domains. Unset -> LAN IP (school Pis).
+      - IDEA_COLLABORA_URL=http://${IDEA_PUBLIC_HOST:-${ip}}:${port}
+      - IDEA_COLLABORA_INTERNAL_URL=http://code:9980
+      - IDEA_COLLABORA_PROXY=http://code:9980
+      - PHP_UPLOAD_LIMIT=10G
+      - PHP_MEMORY_LIMIT=512M
+      # Written into the instance .env by the Engine on every start; empty with an older Engine (hook then does nothing)
+      # The Engine writes hostname= and ip= into the instance .env on every start; fall back to them so the
+      # trusted-domains hook always knows this Pi (kit 2026-10-17: both were empty, Atlas hand-added 10.42.0.*).
+      - IDEA_HOSTNAME=${IDEA_HOSTNAME:-${hostname:-}}
+      - IDEA_HOST_IPS=${IDEA_HOST_IPS:-${ip:-}}${IDEA_PUBLIC_HOST:+,${IDEA_PUBLIC_HOST}}
+      # Also trust the /24 of each private IPv4 (e.g. 10.42.0.*), so a school reaching this Pi by
+      # another address on its LAN is not refused. Set to 0 to trust exact addresses only.
+      - IDEA_TRUST_LAN_SUBNET=${IDEA_TRUST_LAN_SUBNET:-1}
+      # Files Disk and USB stick storages are visible to this group + admin only (created if missing).
+      - IDEA_TEACHERS_GROUP=${IDEA_TEACHERS_GROUP:-teachers}
+      # x-app.update hooks: must match x-app.version. Used to look up
+      # hooks/update-targets when a bundled tarball is not visible.
+      - IDEA_APP_VERSION=5.0-34.0.6
+    networks:
+      - backend
+  nextcloud-db:
+    #image: mariadb
+    # 5.0 (idea#548 Q9): official library/mariadb 11.8.9-noble (= ubu2404) multi-platform
+    # index, linux/arm64 v8 in it. Same shape as the Nextcloud pin until a
+    # koenswings/nextcloud-mariadb:1.0-11.8.9-MariaDB-ubu2404 retag is published (Koen YES).
+    image: mariadb:11.8.9-noble@sha256:d36f18d65a0459510b8b0f643b226a6d299e3206486e2b64ff20754a6d291707
+    labels:
+      x-app-version: "5.0-34.0.6"
+    restart: no
+    pull_policy: never
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
+      --innodb-file-per-table=1 --skip-innodb-read-only-compressed
+    # idea#403: the image's own healthcheck.sh --connect --innodb_initialized, logged in as the
+    # image's healthcheck user from data/db/.my-healthcheck.cnf (a file, so no password in compose
+    # or the process list, and no "Access denied" / "Aborted connection" log lines).
+    # MARIADB_AUTO_UPGRADE=1 makes the entrypoint create that user and file on an existing data dir
+    # that has none (installs initialised before it), and run mariadb-upgrade after an image update.
+    # --connect asks @@skip_networking: the temporary init server that imports a restored dump has
+    # skip-networking, so the db only turns healthy after the import. start_period 900 s covers a
+    # large import on a Pi.
+    healthcheck:
+      # A restore whose dump import broke leaves data/db/.idea-import-pending (backup-db-dump.sh
+      # markers): stay unhealthy so Nextcloud never starts on a half-imported database.
+      test: ["CMD-SHELL", "[ ! -e /var/lib/mysql/.idea-import-pending ] && healthcheck.sh --connect --innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 6
+      start_period: 900s
+    volumes:
+      - ./data/db:/var/lib/mysql
+      # idea#403: backup dump folder = MariaDB's initdb folder (imported only into an empty datadir).
+      - ./data/backup/db:/docker-entrypoint-initdb.d
+      - ./hooks/backup-db-dump.sh:/idea/backup/db-dump.sh:ro
+      - ./hooks/backup-db-clean.sh:/idea/backup/db-clean.sh:ro
+    environment:
+      - MYSQL_ROOT_PASSWORD=${pass}
+      - MYSQL_PASSWORD=${pass}
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=nextcloud
+      # idea#403: healthcheck user + .my-healthcheck.cnf on existing data dirs (see healthcheck above).
+      - MARIADB_AUTO_UPGRADE=1
+    networks:
+      - backend
+  code:
+    #image: collabora/code
+    image: koenswings/nextcloud-code:1.0-24.04.13.2@sha256:8ca1ed448f542feaf2aed81e475520724db5231a15f46e002275f5255d2a447d
+    labels:
+      x-app-version: "5.0-34.0.6"
+    restart: no
+    pull_policy: never
+    # No host port: reached only through the nextcloud-app proxy and the backend network.
+    environment:
+      # idea#212: home_mode hides the CODE welcome dialog but caps CODE at 20 connections / 10 open
+      # documents, so it is OFF by default (a classroom needs more). Set IDEA_COLLABORA_HOME_MODE=true
+      # in the instance .env for a small demo host (wh).
+      - extra_params=--o:ssl.enable=false --o:ssl.termination=false --o:home_mode.enable=${IDEA_COLLABORA_HOME_MODE:-false}
+      # The editor URL CODE advertises in its discovery (urlsrc) must be the address the browser
+      # uses: this Nextcloud's own port, which proxies CODE. Nextcloud fetches the discovery from
+      # http://code:9980, so without server_name the browser would be sent to code:9980.
+      - server_name=${IDEA_PUBLIC_HOST:-${ip}}:${port}
+    extra_hosts:
+      - ${hostname}.local:${ip}
+    networks:
+      - backend
