@@ -38,3 +38,22 @@ Checked by `node script/check-xapp-update-fields.mjs <compose.yaml>`:
 | `updatesFrom: [<major>...]` | earlier App majors this release may update from; minor updates need no entry |
 | `migrationNote` | shown to the teacher before a major update |
 | `snapshotExclude: [<path>...]` | paths under `data/` left out of the pre-update copy |
+
+## Stateful images need an App major
+
+When a release moves a stateful service image to a new series, it must also bump the App major and list the old major in `updatesFrom`. The first start of a new database series rewrites the data files (mariadb-upgrade, the MySQL data dictionary, pg_upgrade, Mongo feature compatibility, the Redis RDB format), and they cannot go back. updateApp requires a Backup Disk backup (`NEEDS_BACKUP`) only for an App major update; a minor update gets only the local pre-update snapshot. This is a release rule and needs no Engine change.
+
+| Image (by repo name) | Series |
+|---|---|
+| `mariadb`, `mongo` | `X.Y` (11.7 → 11.8 is a new series) |
+| `mysql`, `percona` | `X.Y` (8.4 LTS, 9.x innovation), but `8.0.Z` for 8.0: each 8.0 patch upgrades the data dictionary in place |
+| `postgres`, `postgis`, `timescaledb` | `X` from 10, `X.Y` before (9.5 → 9.6 is a major) |
+| `redis`, `valkey`, `keydb`, only when the service has a volume | `X.Y` (the RDB format changes at minors) |
+
+How the version is read:
+- IDEA retags (`koenswings/…` or `ghcr.io/koenswings/…`, tag `<idea>.<n>-<upstream>`, e.g. `koenswings/nextcloud-mariadb:1.0-11.7.2-…`) are read by their upstream part.
+- A retag whose upstream part is a date or unreadable (`koenswings/kolibri-postgres:1.0-2024.12.03`) is read from the `upstream_tag` of the App's `app.yaml` `services[]` entry, matched by service name, else by `image`. An entry whose `image` is a different repo (after normalising `docker.io/` and `ghcr.io/koenswings/` to `koenswings/`) is not used, and `current_version` is never used (for a date retag it is the date tag). Without a matching entry the series is unknown.
+- **A date retag's `app.yaml` `upstream_tag` must be updated with every rebuild** to the upstream version the image was built from (e.g. `"16"` → `"17"`). Nothing checks it against the image, so a stale value hides a series bump.
+- Services are compared by name. A stateful service removed from the base and one added of the same kind (MariaDB/MySQL, Postgres, Mongo, Redis) are paired as a rename; more than one of a kind on either side cannot be paired and needs an App major.
+
+Checked by `node script/check-compose.mjs --base-ref <previous release tag> compose.yaml` (the compose and `app.yaml` at that git ref) or `--base <previous compose.yaml>` (and an `app.yaml` beside it). An unknown or unfetched ref fails (`git fetch --tags` in a shallow clone); a ref without the compose (a new App) is skipped with a note. The check fails when a series goes up without an App major bump, always when a series goes down, and without an App major also when the engine changes (MySQL → MariaDB), the series is unknown (`lts`, `11`, a date tag with no `app.yaml` entry) or a rename cannot be paired. Patch bumps within a series and other images pass. Not matched by name (no check): images such as `pgvector/pgvector:pg16` or minio.
