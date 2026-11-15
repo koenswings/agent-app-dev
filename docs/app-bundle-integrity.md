@@ -43,7 +43,7 @@ Checked by `node script/check-xapp-update-fields.mjs <compose.yaml>`:
 
 - `prepare`, `verify` and `work` take `{ service, command, timeout, user? }`
 - `settle` takes `{ service, command, interval, timeout, user? }`
-- `timeout` and `interval` are positive integer seconds
+- `timeout` and `interval` are positive integer seconds (1..86400); settle `interval` must not be greater than `timeout`
 - `service` must name a service in the same compose
 - `command` is one absolute path (not a list, no shell)
 - `user`, if present, is a uid or username (same shape as `x-app.backup` hook steps)

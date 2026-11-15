@@ -97,7 +97,7 @@ it('prepare, verify and work each need a timeout (positive integer seconds)', ()
     assert.deepEqual(missing, [`x-app.update.${name}.timeout is required`], name);
     for (const t of ['0', '-5', '1.5', 'soon']) {
       const bad = chk(`  update:\n    ${name}:\n      service: nextcloud-app\n      command: /idea/hooks/${name}.sh\n      timeout: ${t}\n`);
-      assert.deepEqual(bad, [`x-app.update.${name}.timeout must be a positive integer number of seconds`], `${name} ${t}`);
+      assert.deepEqual(bad, [`x-app.update.${name}.timeout must be a positive integer number of seconds (max 86400)`], `${name} ${t}`);
     }
   }
 });
@@ -108,8 +108,8 @@ it('settle needs both interval and timeout (positive integer seconds)', () => {
   assert.deepEqual(chk(`${base}      timeout: 3600\n`), ['x-app.update.settle.interval is required']);
   assert.deepEqual(chk(`${base}      interval: 60\n`), ['x-app.update.settle.timeout is required']);
   assert.deepEqual(chk(`${base}      interval: 0\n      timeout: soon\n`), [
-    'x-app.update.settle.timeout must be a positive integer number of seconds',
-    'x-app.update.settle.interval must be a positive integer number of seconds',
+    'x-app.update.settle.timeout must be a positive integer number of seconds (max 86400)',
+    'x-app.update.settle.interval must be a positive integer number of seconds (max 86400)',
   ]);
   assert.deepEqual(chk(`${base}      interval: 60\n      timeout: 3600\n`), []);
 });
@@ -129,6 +129,9 @@ it('every command must be an absolute path (one string, not a list or a shell li
   assert.deepEqual(stage('""'), ['x-app.update.prepare.command must be an absolute path']);
   assert.deepEqual(stage('[/idea/hooks/prep.sh]'), ['x-app.update.prepare.command must be an absolute path']);
   assert.deepEqual(stage('"/idea/hooks/prep.sh --flag"'), ["x-app.update.prepare.command '/idea/hooks/prep.sh --flag' must be an absolute path"]);
+  assert.deepEqual(stage('"sh -c /idea/hooks/prep.sh"'), ["x-app.update.prepare.command 'sh -c /idea/hooks/prep.sh' must be an absolute path"]);
+  assert.deepEqual(stage('"/bin/sh -c /idea/hooks/prep.sh"'), ["x-app.update.prepare.command '/bin/sh -c /idea/hooks/prep.sh' must be an absolute path"]);
+  assert.deepEqual(stage('[sh, -c, /idea/hooks/prep.sh]'), ['x-app.update.prepare.command must be an absolute path']);
   assert.deepEqual(chk('  update:\n    prepare:\n      service: nextcloud-app\n      timeout: 600\n'), ['x-app.update.prepare.command must be an absolute path']);
 });
 
@@ -153,12 +156,34 @@ it('a stage must be a mapping; interval on prepare and other unknown stage keys 
   assert.deepEqual(chk('  update: []\n'), ['x-app.update must be a mapping']);
 });
 
+it('timeout and interval are capped at 86400 seconds', () => {
+  for (const name of ['prepare', 'verify', 'work']) {
+    assert.deepEqual(chk(`  update:\n    ${name}:\n      service: nextcloud-app\n      command: /idea/hooks/${name}.sh\n      timeout: 86400\n`), [], `${name} 86400`);
+    assert.deepEqual(chk(`  update:\n    ${name}:\n      service: nextcloud-app\n      command: /idea/hooks/${name}.sh\n      timeout: 86401\n`), [`x-app.update.${name}.timeout must be a positive integer number of seconds (max 86400)`], `${name} 86401`);
+  }
+  const base = '  update:\n    settle:\n      service: nextcloud-app\n      command: /idea/hooks/settle-update.sh\n';
+  assert.deepEqual(chk(`${base}      interval: 86400\n      timeout: 86400\n`), []);
+  assert.deepEqual(chk(`${base}      interval: 86401\n      timeout: 86400\n`), ['x-app.update.settle.interval must be a positive integer number of seconds (max 86400)']);
+  assert.deepEqual(chk(`${base}      interval: 60\n      timeout: 86401\n`), ['x-app.update.settle.timeout must be a positive integer number of seconds (max 86400)']);
+  assert.deepEqual(chk(`${base}      interval: 86401\n      timeout: 86402\n`), [
+    'x-app.update.settle.timeout must be a positive integer number of seconds (max 86400)',
+    'x-app.update.settle.interval must be a positive integer number of seconds (max 86400)',
+  ]);
+});
+
+it('settle interval must not be greater than timeout', () => {
+  const settle = (interval, timeout) => chk(`  update:\n    settle:\n      service: nextcloud-app\n      command: /idea/hooks/settle-update.sh\n      interval: ${interval}\n      timeout: ${timeout}\n`);
+  assert.deepEqual(settle(60, 60), []);
+  assert.deepEqual(settle(61, 60), ['x-app.update.settle.interval 61 is greater than timeout 60']);
+  assert.deepEqual(settle(3600, 600), ['x-app.update.settle.interval 3600 is greater than timeout 600']);
+});
+
 it('CLI applies the update checks with and without --release', () => {
   const bad = file(compose('  update:\n    prepare:\n      service: nextcloud\n      command: hooks/prep.sh\n      timeout: 0\n'));
   const want = [
     "x-app.update.prepare.service 'nextcloud' is not a service in this compose",
     "x-app.update.prepare.command 'hooks/prep.sh' must be an absolute path",
-    'x-app.update.prepare.timeout must be a positive integer number of seconds',
+    'x-app.update.prepare.timeout must be a positive integer number of seconds (max 86400)',
   ];
   for (const args of [[bad], ['--release', bad]]) {
     const r = cli(...args);
