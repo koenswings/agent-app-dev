@@ -122,6 +122,8 @@ Write a bundle with `script/build-app-bundle.sh --app-dir <App checkout> --disk-
 
 ### App versions and release tags (idea#76)
 
+- **compose `x-app.version` is the only App version** (Lead, 2026-11-15, after idea#543). The Engine names bundles `<x-app.name>-<x-app.version>`. Do not put `idea_app_version` in `app.yaml`; that field was dropped. `compatibility.engine_tested.version` is the Engine version the App was tested against, not the App version.
+
 - An App Disk bundle is built only from a git tag `<major>.<minor>[-<upstream>]` of the App repo (e.g. `1.1-0.19.5` or `1.1`; three-number tags such as `1.0.1` are refused), checked out at that tag. `build-app-bundle.sh` refuses commit SHAs, dates (`zimbabwe-2026-10-20`) and branches, because the Engine orders updates by the first numbers in the version.
 - **Bump rule:** a **minor** bump (`1.0` → `1.1`) whenever the upstream image changes, or any compose/bundle change ships. A **major** bump (`1.x` → `2.0`) only when the update needs a one-way data migration, and the new release then lists the old major in `x-app.updatesFrom`.
 - **Stateful images need an App major (idea#403):** moving a stateful service image (MariaDB, MySQL, Postgres, Mongo, or Redis/Valkey with a volume) to a new series (MariaDB/Mongo/Redis `X.Y`, MySQL `X.Y` but `8.0.Z`, Postgres `X`, `X.Y` before 10) is a one-way data migration, so it needs an App major bump: the Engine requires a Backup Disk backup only before an App major update. Checked by `node script/check-compose.mjs --base-ref <previous release tag> compose.yaml` (or `--base <compose.yaml>`); see [docs/app-bundle-integrity.md](docs/app-bundle-integrity.md#stateful-images-need-an-app-major).
