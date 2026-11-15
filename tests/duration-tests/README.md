@@ -13,7 +13,7 @@ Pixel; walker YAML / settle / invariants are Axle; claim/teardown is Atlas
 
 | Gate | How this pack answers |
 |------|------------------------|
-| Versioned App fixtures (not ad-hoc) | Trees under `fixtures/{empty,empty-002,kolibri,nextcloud,kolibri-form3,kiwix}/` with stable `diskId` (+ `instanceId` / CONTENT where applicable) |
+| Versioned App fixtures (not ad-hoc) | Trees under `fixtures/{empty,empty-002,empty-003,kolibri,nextcloud,kolibri-form3,kiwix}/` with stable `diskId` (+ `instanceId` / CONTENT where applicable) |
 | Don’t equate Playwright browser watchers with idea#159 HTTP stream Ns | Documented in Kolibri `content/seed-notes.md` and `walker-ref.yaml` — #159 Ns are HTTP Range planning figures only |
 | Class-instance selectors are Console/Pixel | Fixtures expose stable instance + content logical IDs only; no Console `data-testid` claims |
 
@@ -45,7 +45,7 @@ these **exact** action keys (do not invent aliases):
 | Action key | Fixture role |
 |------------|--------------|
 | `infra_undock_fixtures` | Undock these disks |
-| `infra_dock_fixture` | Dock `duration-empty-001` / `duration-empty-002` and/or Grade5A `duration-kolibri-grade5a-001` / `duration-nextcloud-grade5a-001` |
+| `infra_dock_fixture` | Dock `duration-empty-001` / `duration-empty-002` / `duration-empty-003` and/or Grade5A `duration-kolibri-grade5a-001` / `duration-nextcloud-grade5a-001` |
 | `infra_move_disk` | Move a docked fixture disk across pool Engines |
 | `infra_reboot_engine` | Reboot a **pool** Engine (never golden idea02) |
 
@@ -65,6 +65,7 @@ tests/duration-tests/
   fixtures/
     empty/                  ← META-only empty disk (EmptyDiskPanel), idea-test-3
     empty-002/              ← second META-only empty disk for erase-after-backup, idea-test-4
+    empty-003/              ← third META-only empty disk for the Backup Disk (make_backup_disk), idea-test-6
     kolibri/                ← App Disk tree + content catalogue
     nextcloud/              ← App+Files Disk tree + preload folders
     kolibri-form3/          ← Khan Form 3 pack
@@ -87,6 +88,7 @@ Each Duration Lesson assigns all 3 videos and all 3 exercises (not video 01 + ex
 |------|--------|------------|------------------|
 | **Empty** | `duration-empty-001` | — | META-only; Engine `empty` → Console `EmptyDiskPanel` for `install_app` / `make_files_disk` / `make_backup_disk`. **Separate** from Path A Grade5A — Atlas dock `idea-test-3` |
 | **Empty 002** | `duration-empty-002` | — | Second META-only empty disk for erase-after-backup; source `fixtures/empty-002/`; Atlas dock `idea-test-4`, alongside `idea-test-3` = `duration-empty-001` |
+| **Empty 003** | `duration-empty-003` | — | Third META-only empty disk for the Backup Disk (`make_backup_disk`); source `fixtures/empty-003/`; Atlas dock `idea-test-6` (leave `idea-test-5` free). Alongside `idea-test-3` = `duration-empty-001` and `idea-test-4` = `duration-empty-002` |
 | Kolibri Grade 5A | `duration-kolibri-grade5a-001` | `kolibri-grade5a-001` | Dockable tree for `infra_dock_fixture`; Phase 3 Intent bindings for `open_kolibri_as_*` / `open_video` / coaching. Synthetic smoke OK; Khan remap pins in `CONTENT.khan-remap.json` (HOLD live switch until import verified) |
 | Kolibri Form 3 | `duration-kolibri-form3-001` | `kolibri-form3-001` | Khan EN-US Variables & expressions 3V+3E (`fixtures/kolibri-form3/`). Import via `scripts/import-khan-topic-slice.sh form3`. NC Form 3 after Kolibri Form 3 only |
 | Nextcloud Grade 5A | `duration-nextcloud-grade5a-001` | `nextcloud-grade5a-001` | Dockable App+Files tree; Phase 3 bindings for `open_nextcloud_as_*` / share / File Drop / Text collab doc (`keep_editing`) |
@@ -127,7 +129,7 @@ fixtures:
   empty:
     path: tests/duration-tests/fixtures/empty
     diskId: duration-empty-001
-    # no instanceId — EmptyDiskPanel target (idea-test-3); empty-002 uses idea-test-4
+    # no instanceId — EmptyDiskPanel target (idea-test-3); empty-002 uses idea-test-4; empty-003 (Backup Disk) uses idea-test-6
   kolibri:
     path: tests/duration-tests/fixtures/kolibri
     diskId: duration-kolibri-grade5a-001
@@ -262,6 +264,8 @@ Stable **diskId:** `duration-empty-001`
 Source: [`fixtures/empty/`](fixtures/empty/) (META.yaml only — **no** `apps/`, `instances/`, `FILES.yaml`, `BACKUP.yaml`).
 
 Second empty fixture for erase-after-backup: **diskId** `duration-empty-002`; source [`fixtures/empty-002/`](fixtures/empty-002/) (META.yaml only — no `apps/`, `instances/`, `FILES.yaml`, or `BACKUP.yaml`). Atlas slot: `idea-test-4`, alongside `idea-test-3` = `duration-empty-001`.
+
+Third empty fixture for the Backup Disk (`make_backup_disk`): **diskId** `duration-empty-003`; source [`fixtures/empty-003/`](fixtures/empty-003/) (META.yaml only — no `apps/`, `instances/`, `FILES.yaml`, or `BACKUP.yaml`). Atlas slot: `idea-test-6` (leave `idea-test-5` free). Alongside `idea-test-3` = `duration-empty-001` and `idea-test-4` = `duration-empty-002`. The duration harness never re-docks this disk.
 
 Console `EmptyDiskPanel` needs Engine `diskTypes: ['empty']` (no roles). Path A
 Kolibri/Nextcloud Grade5A stay on their own slots; **do not remap** empty Intents
