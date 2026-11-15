@@ -38,3 +38,15 @@ Checked by `node script/check-xapp-update-fields.mjs <compose.yaml>`:
 | `updatesFrom: [<major>...]` | earlier App majors this release may update from; minor updates need no entry |
 | `migrationNote` | shown to the teacher before a major update |
 | `snapshotExclude: [<path>...]` | paths under `data/` left out of the pre-update copy |
+
+## Stateful images need an App major
+
+When a release moves a stateful service image to a new series, it must also bump the App major and list the old major in `updatesFrom`. The first start of a new database series rewrites the data files (mariadb-upgrade, pg_upgrade, Mongo feature compatibility, Redis RDB/AOF format), and they cannot go back. updateApp requires a Backup Disk backup (`NEEDS_BACKUP`) only for an App major update; a minor update gets only the local pre-update snapshot. This is a release rule and needs no Engine change.
+
+| Image (by repo name, IDEA retags such as `koenswings/nextcloud-mariadb:1.0-11.7.2-…` read as the upstream tag) | Series |
+|---|---|
+| `mariadb`, `mysql`, `percona`, `mongo` | `X.Y` (11.7 → 11.8 is a new series) |
+| `postgres`, `postgis`, `timescaledb` | `X` |
+| `redis`, `valkey`, `keydb`, only when the service has a volume | `X` |
+
+Checked by `node script/check-compose.mjs --base-ref <previous release tag> compose.yaml` (the compose at that git ref; a compose not there yet is skipped with a note) or `--base <previous compose.yaml>`. It fails when a series goes up without an App major bump, always when a series goes down, and without an App major also when the engine changes (MySQL → MariaDB) or the tag has no readable series (`lts`, `11`). Patch bumps and other images pass.
