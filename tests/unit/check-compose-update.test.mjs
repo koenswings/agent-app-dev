@@ -49,6 +49,8 @@ const ALIGNED = `  update:
 
 it('no update block, an empty update mapping, and a single optional stage are valid', () => {
   assert.deepEqual(chk(''), []);
+  assert.deepEqual(chk('  update: null\n'), []);
+  assert.deepEqual(chk('  update: ~\n'), []);
   assert.deepEqual(chk('  update: {}\n'), []);
   assert.deepEqual(chk('  update:\n    prepare:\n      service: nextcloud-app\n      command: /idea/hooks/prep-custom-apps-for-upgrade.sh\n      timeout: 600\n'), []);
   assert.deepEqual(chk('  update:\n    settle:\n      service: nextcloud-app\n      command: /idea/hooks/settle-update.sh\n      interval: 60\n      timeout: 3600\n'), []);
@@ -73,6 +75,8 @@ it('aligned app-nextcloud hop composes and current App mains (no update block) p
     'nextcloud-2.0-32.0.15.compose.yaml': '2.0-32.0.15',
     'nextcloud-3.0-33.0.11.compose.yaml': '3.0-33.0.11',
     'nextcloud-4.0-34.0.6.compose.yaml': '4.0-34.0.6',
+    'nextcloud-5.0-34.0.6.compose.yaml': '5.0-34.0.6',
+    'nextcloud-6.0-35.0.3.compose.yaml': '6.0-35.0.3',
     'nextcloud-main.compose.yaml': '1.7-31.0.1',
     'kolibri-main.compose.yaml': '1.3-0.19.5',
     'kiwix-main.compose.yaml': '1.3-3.8.2',
@@ -143,6 +147,8 @@ it('user, if present, must be a uid or username (string or integer, same shape a
   assert.deepEqual(withUser('"0"'), []);
   assert.deepEqual(withUser('"33"'), []);
   assert.deepEqual(withUser('www-data'), []);
+  // Empty user is treated as omitted (same as the backup-hook checker).
+  assert.deepEqual(withUser('""'), []);
 });
 
 it('a stage must be a mapping; interval on prepare and other unknown stage keys are refused', () => {
@@ -169,6 +175,25 @@ it('timeout and interval are capped at 86400 seconds', () => {
     'x-app.update.settle.timeout must be a positive integer number of seconds (max 86400)',
     'x-app.update.settle.interval must be a positive integer number of seconds (max 86400)',
   ]);
+});
+
+it('timeout and interval refuse non-integer types (booleans, lists, decimal strings)', () => {
+  const badTypes = ['true', '[600]', '"600.0"', 'false', '{}'];
+  for (const name of ['prepare', 'verify', 'work']) {
+    for (const t of badTypes) {
+      const bad = chk(`  update:\n    ${name}:\n      service: nextcloud-app\n      command: /idea/hooks/${name}.sh\n      timeout: ${t}\n`);
+      assert.deepEqual(bad, [`x-app.update.${name}.timeout must be a positive integer number of seconds (max 86400)`], `${name} timeout ${t}`);
+    }
+  }
+  const base = '  update:\n    settle:\n      service: nextcloud-app\n      command: /idea/hooks/settle-update.sh\n';
+  for (const t of badTypes) {
+    assert.deepEqual(chk(`${base}      interval: 60\n      timeout: ${t}\n`), ['x-app.update.settle.timeout must be a positive integer number of seconds (max 86400)'], `settle timeout ${t}`);
+    assert.deepEqual(chk(`${base}      interval: ${t}\n      timeout: 3600\n`), ['x-app.update.settle.interval must be a positive integer number of seconds (max 86400)'], `settle interval ${t}`);
+  }
+  // Quoted and unquoted integers still pass (what the hop composes use).
+  for (const t of ['600', '"600"']) {
+    assert.deepEqual(chk(`  update:\n    prepare:\n      service: nextcloud-app\n      command: /idea/hooks/prep.sh\n      timeout: ${t}\n`), [], `prepare timeout ${t}`);
+  }
 });
 
 it('settle interval must not be greater than timeout', () => {
