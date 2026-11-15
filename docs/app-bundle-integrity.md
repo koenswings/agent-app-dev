@@ -41,7 +41,7 @@ Checked by `node script/check-xapp-update-fields.mjs <compose.yaml>`:
 
 ## Stateful images need an App major
 
-When a release moves a stateful service image to a new series, it must also bump the App major and list the old major in `updatesFrom`. The first start of a new database series rewrites the data files (mariadb-upgrade, the MySQL data dictionary, pg_upgrade, Mongo feature compatibility, the Redis RDB format), and they cannot go back. updateApp requires a Backup Disk backup (`NEEDS_BACKUP`) only for an App major update; a minor update gets only the local pre-update snapshot. This is a release rule and needs no Engine change.
+When a release moves a stateful service image to a new series, it must also bump the App major and list the old major in `updatesFrom`. **An App major caused only by such a database upgrade is allowed.** Its release notes must say plainly that the major comes from the database upgrade (for example "2.0: MariaDB 11.7 → 11.8; no change to Nextcloud or the App itself") and that the app itself is unchanged, and `updatesFrom` lists the previous major. The first start of a new database series rewrites the data files (mariadb-upgrade, the MySQL data dictionary, pg_upgrade, Mongo feature compatibility, the Redis RDB format), and they cannot go back. updateApp requires a Backup Disk backup (`NEEDS_BACKUP`) only for an App major update; a minor update gets only the local pre-update snapshot. This is a release rule and needs no Engine change.
 
 | Image (by repo name) | Series |
 |---|---|
@@ -57,3 +57,5 @@ How the version is read:
 - Services are compared by name. A stateful service removed from the base and one added of the same kind (MariaDB/MySQL, Postgres, Mongo, Redis) are paired as a rename; more than one of a kind on either side cannot be paired and needs an App major.
 
 Checked by `node script/check-compose.mjs --base-ref <previous release tag> compose.yaml` (the compose and `app.yaml` at that git ref) or `--base <previous compose.yaml>` (and an `app.yaml` beside it). An unknown or unfetched ref fails (`git fetch --tags` in a shallow clone); a ref without the compose (a new App) is skipped with a note. The check fails when a series goes up without an App major bump, always when a series goes down, and without an App major also when the engine changes (MySQL → MariaDB), the series is unknown (`lts`, `11`, a date tag with no `app.yaml` entry) or a rename cannot be paired. Patch bumps within a series and other images pass. Not matched by name (no check): images such as `pgvector/pgvector:pg16` or minio.
+
+In an App's release test, the base is the **previous release tag**: the highest release tag (`<major>.<minor>[-<upstream>]`) that is an ancestor of HEAD and does not point at HEAD itself. With no such tag (a first release) the check is skipped with a note. Tags must be present: a shallow or tagless clone fails (CI: `fetch-depth: 0`, or `git fetch --tags --unshallow`).

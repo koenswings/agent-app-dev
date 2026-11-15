@@ -188,3 +188,13 @@ it('CLI --base-ref <ref>: compose and app.yaml at that ref; new compose skipped;
   r = cli('--base-ref', '1.0', f);
   assert.equal(r.status, 1); assert.match(r.stderr, /postgres 16 -> 17 without an App major bump/);
 });
+
+it('Axle nit (f346270): the image-only app.yaml lookup strips the tag and digest before normRepo', () => {
+  const P = (d) => `koenswings/kolibri-postgres:1.0-${d}`;
+  for (const image of ['koenswings/kolibri-postgres:1.0-2024.12.03', `koenswings/kolibri-postgres:1.0-2024.12.03@sha256:${D}`, 'ghcr.io/koenswings/kolibri-postgres:16']) {
+    const ay = { services: [{ name: 'not-this-service', image, upstream_tag: '16' }] };   // found by image only
+    assert.equal(upstreamVersion(P('2024.12.03'), { appYaml: ay, service: 'db' }), '16', image);
+  }
+  const other = { services: [{ name: 'x', image: 'koenswings/other-postgres:1.0-2024.12.03', upstream_tag: '16' }] };
+  assert.equal(upstreamVersion(P('2024.12.03'), { appYaml: other, service: 'db' }), null);
+});
