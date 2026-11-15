@@ -119,6 +119,8 @@ SUMS_TMP="$ROOT/apps/.sums-$APP_ID.$$"
 ROOT_SUMS_TMP="$ROOT/.SHA256SUMS.$$"
 trap 'rm -f "$SUMS_TMP" "$ROOT_SUMS_TMP"' EXIT
 # Bundle-relative SHA256SUMS: only this bundle's own files (Engine contract).
+# Includes nested SHA256SUMS (only the bundle-root file is omitted) and hashes
+# symlinks through their target (`sha256sum` default). Format is two spaces, no ./ prefix.
 (
   cd "$ROOT/$BUNDLE"
   find . \( -type f -o -type l \) ! -path ./SHA256SUMS ! -path './.idea-*'     | sed 's|^\./||' | LC_ALL=C sort -u | while IFS= read -r f; do sha256sum -- "$f"; done
