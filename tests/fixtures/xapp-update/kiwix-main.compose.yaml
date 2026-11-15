@@ -1,0 +1,101 @@
+x-app:
+  name: kiwix
+  title: Wikipedia
+  description: >
+    Kiwix is an offline reader for web content such as Wikipedia, Wiktionary,
+    Project Gutenberg and TED talks. It serves ZIM archives to any browser on
+    the school network, with full-text search, without internet access.
+
+    This app serves every *.zim file in the instance's data/ folder. Add or
+    replace ZIM files there and restart the app.
+  url: https://www.kiwix.org
+  category: education
+  icon: kiwix.png
+  author: IDEA
+  version: "1.3-3.8.2"
+  instanceName: kiwix
+  # updateApp (idea#351, agent-app-dev#23). healthTimeout: integer seconds.
+  # No migration (ZIM files only): default 600 s.
+  healthCheck:
+    path: /
+  healthTimeout: 600
+  updatesFrom: []
+  migrationNote: Kiwix keeps its ZIM files; nothing in them is changed by an update.
+  snapshotExclude:
+    - data                   # ZIM files only, mounted read-only: an update never changes them
+  # idea#403 (agent-engine-dev#404): no backup. ZIM files are read-only content that is
+  # re-downloadable (Kiwix library), and the instance holds no school data. The access logs in
+  # logs/ only feed the usage hook, which the Engine reads every day. Engine: no borg, no lock,
+  # no stop, no hooks; the backup op is Done with lastResult {method: none, result: OK}.
+  backup:
+    method: none
+  # idea#413: Engine idea-usage runner (agent-engine-dev#308).
+  usage:
+    service: proxy
+    command: /hooks/usage.sh
+    timeoutS: 30
+
+services:
+  kiwix:
+    # Official multi-arch (arm64) kiwix-serve. Not yet retagged as
+    # koenswings/kiwix (see app.yaml). pull_policy never: the image must be
+    # present on the Engine before start (docker pull ghcr.io/kiwix/kiwix-serve:3.8.2).
+    image: ghcr.io/kiwix/kiwix-serve:3.8.2@sha256:e478554a9920412eeb5ce1d73f24e4b28445ebed233187cdd03c623c32be46a5
+    labels:
+      x-app-version: "1.3-3.8.2"
+    restart: no
+    pull_policy: never
+    # ZIM selection: serve every *.zim in /data. compose passes exec-form
+    # command args to start.sh without a shell, so a bare "*.zim" reaches
+    # kiwix-serve literally (idea: app-kiwix 1.0 bug on wizardly-hugle).
+    # Run our own shell instead: /bin/sh expands the glob, fails with a clear
+    # error if there is no ZIM, and execs kiwix-serve under dumb-init.
+    # ($$ is compose's escape for a literal $.)
+    entrypoint: ["/usr/bin/dumb-init", "--", "/bin/sh", "-c"]
+    command:
+      - |
+        set -- /data/*.zim
+        if [ ! -f "$$1" ]; then
+          echo "kiwix: ERROR: no .zim file in /data (the instance data/ folder). Add a ZIM file there and restart the app." >&2
+          echo "kiwix: contents of /data:" >&2; ls -la /data >&2
+          exit 1
+        fi
+        echo "kiwix: serving $$*"
+        exec /usr/local/bin/kiwix-serve --port=8080 "$$@"
+    volumes:
+      - ./data:/data:ro
+    # No host port: the proxy publishes ${port}. kiwix-serve stays on the compose network.
+    expose:
+      - "8080"
+    # Internal health; the Engine healthCheck hits the proxy on ${port}.
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  proxy:
+    # Official multi-arch nginx (arm64 verified 2026-11-10 via docker manifest inspect).
+    image: nginx:1.28-alpine@sha256:a8b39bd9cf0f83869a2162827a0caf6137ddf759d50a171451b335cecc87d236
+    labels:
+      x-app-version: "1.3-3.8.2"
+    restart: no
+    pull_policy: never
+    depends_on:
+      - kiwix
+    entrypoint: ["/bin/sh", "/entrypoint.sh"]
+    volumes:
+      - ./proxy/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./proxy/entrypoint.sh:/entrypoint.sh:ro
+      - ./hooks/usage.sh:/hooks/usage.sh:ro
+      - ./logs:/logs
+      - ./data:/data:ro
+    ports:
+      - ${port}:8080
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
