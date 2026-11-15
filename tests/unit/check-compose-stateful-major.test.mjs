@@ -99,8 +99,29 @@ it('Axle should-fix 7: date-tagged retags read the upstream version from app.yam
   assert.match(chk(compose('1.0', P('2024.12.03')), compose('1.1', P('2025.03.01')), { baseAppYaml: ay('16'), appYaml: ay('17') })[0], /postgres 16 -> 17 without/);
   assert.deepEqual(chk(compose('1.0', P('2024.12.03')), compose('1.1', P('2025.03.01')), { baseAppYaml: ay('16'), appYaml: ay('16') }), []);
   assert.match(chk(compose('1.0', P('2024.12.03')), compose('1.1', P('2025.03.01')))[0], /cannot read the postgres series/);   // fail closed
+});
+
+it('Axle re-check fix 7a: an app.yaml entry that names another image is not used (fails closed)', () => {
+  const P = (d) => `koenswings/kolibri-postgres:1.0-${d}`;
+  // app-kolibri-studio today: service postgres runs koenswings/kolibri-postgres, its app.yaml entry describes kolibri-studio-postgres
+  const studio = { services: [{ name: 'postgres', image: 'koenswings/kolibri-studio-postgres', upstream: 'postgres', upstream_tag: '16' }] };
+  assert.equal(upstreamVersion(P('2024.12.03'), { appYaml: studio, service: 'postgres' }), null);
+  assert.equal(upstreamVersion(P('2024.12.03'), { appYaml: { services: [{ name: 'db', image: 'koenswings/other', upstream_tag: '16' }] }, service: 'db' }), null);
+  assert.match(chk(compose('1.0', P('2024.12.03'), '', 'postgres'), compose('1.1', P('2025.03.01'), '', 'postgres'), { baseAppYaml: studio, appYaml: studio })[0], /cannot read the postgres series/);
+  // same image after normalisation (ghcr.io/koenswings, docker.io/koenswings, digest) is used; an entry without image matches by name
+  for (const image of ['ghcr.io/koenswings/kolibri-postgres', 'docker.io/koenswings/kolibri-postgres', `koenswings/kolibri-postgres@sha256:${D}`]) {
+    assert.equal(upstreamVersion(P('2024.12.03'), { appYaml: { services: [{ name: 'db', image, upstream_tag: '16' }] }, service: 'db' }), '16', image);
+  }
+  assert.equal(upstreamVersion(P('2024.12.03'), { appYaml: { services: [{ name: 'db', upstream_tag: '16' }] }, service: 'db' }), '16');
+});
+
+it('Axle re-check fix 7b: current_version is not a fallback (a stale value cannot pass a date-tag move)', () => {
+  const P = (d) => `koenswings/kolibri-postgres:${d}`;
+  const stale = { services: [{ name: 'db', image: 'koenswings/kolibri-postgres', current_version: '1.0-16.1' }] };
+  assert.equal(upstreamVersion(P('1.0-2024.12.03'), { appYaml: stale, service: 'db' }), null);
+  assert.match(chk(compose('1.0', P('1.0-2024.12.03')), compose('1.1', P('1.1-2025.03.01')), { baseAppYaml: stale, appYaml: stale })[0], /cannot read the postgres series/);
   const cv = { services: [{ name: 'db', image: 'koenswings/kolibri-postgres', upstream_tag: 'latest', current_version: '1.0-16.4' }] };
-  assert.equal(upstreamVersion(P('2024.12.03'), { appYaml: cv, service: 'db' }), '16.4');
+  assert.equal(upstreamVersion(P('1.0-2024.12.03'), { appYaml: cv, service: 'db' }), null);
 });
 
 it('a MariaDB series bump inside an App minor fails; with an App major it passes; patch and other images pass', () => {
