@@ -13,10 +13,12 @@
  * single-shot check (including 200 and 302).
  *
  * DEVICE is a throwaway fixture name. idea03's permanent stick is refused by
- * USB/disk serial / UUID from hw-roundtrip-disks.json (fail closed if missing).
+ * USB/disk serial / UUID from hw-roundtrip-disks.json (skip if the file is
+ * missing, issue #56; fail closed if it exists but is invalid).
  */
 import { runWithFixture } from '../../lib/harness.mjs';
-import { assertNotIdea03Stick } from '../../lib/refuse-idea03-stick.mjs';
+import { test } from 'node:test';
+import { assertNotIdea03Stick, skipHwRoundtripIfMissing } from '../../lib/refuse-idea03-stick.mjs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { readFileSync, existsSync } from 'fs';
@@ -178,12 +180,14 @@ async function testSuite(port) {
   return { passed, failed };
 }
 
-async function main() {
+test('app-nextcloud Files Disk smoke (idea#137)', async (t) => {
   console.log('═══════════════════════════════════════════════');
   console.log('  app-nextcloud Files Disk smoke (idea#137)');
   console.log('═══════════════════════════════════════════════\n');
 
-  // Refuse idea03 hardware stick by ID (fail closed if JSON missing)
+  // Refuse idea03 hardware stick by ID. Missing fixture file: native skip
+  // (issue #56). File present but invalid: fail closed.
+  if (skipHwRoundtripIfMissing(t)) return;
   try {
     assertNotIdea03Stick([DEVICE]); // device name alone never matches IDs — also probe lsblk if any
     // If SMOKE_PROBE_SERIALS is set (comma-separated), check those too
@@ -193,7 +197,7 @@ async function main() {
     console.log(`Device "${DEVICE}" is a throwaway fixture name; idea03 stick IDs loaded and not matched.\n`);
   } catch (e) {
     console.error(`\n❌ ${e.message}`);
-    process.exit(1);
+    throw e;
   }
 
   let result;
@@ -209,13 +213,11 @@ async function main() {
     });
   } catch (e) {
     console.error(`\n❌ Harness error: ${e.message}`);
-    process.exit(1);
+    throw e;
   }
 
   console.log('\n═══════════════════════════════════════════════');
   console.log(`  Results: ${result.passed} passed, ${result.failed} failed`);
   console.log('═══════════════════════════════════════════════\n');
-  process.exit(result.ok ? 0 : 1);
-}
-
-main();
+  if (!result.ok) throw new Error(`${result.failed} failed`);
+});

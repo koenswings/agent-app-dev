@@ -147,7 +147,7 @@ The smoke test exits non-zero if any assertion fails. On a passing run the harne
 
 Apps that use Files Disks set `x-app.filesMount` and keep `restart: no`. See [docs/files-mount.md](docs/files-mount.md). Nextcloud's wrapper/hook live in `koenswings/app-nextcloud`; unit-test fixture copies are under `tests/fixtures/idea-files/`.
 
-Harness: `INSTANCE_TIMEOUT_MS` (default 180000) can be raised for slow first-starts (Nextcloud). Smoke device names are throwaways; idea03's hardware stick is refused by serial/UUID via `lib/refuse-idea03-stick.mjs` reading `script/hw-roundtrip-disks.json` (fail closed if missing).
+Harness: `INSTANCE_TIMEOUT_MS` (default 180000) can be raised for slow first-starts (Nextcloud). Smoke device names are throwaways; idea03's hardware stick is refused by serial/UUID via `lib/refuse-idea03-stick.mjs` reading `script/hw-roundtrip-disks.json` (skip if the file is missing, issue #56; fail closed if it exists but is invalid).
 
 ## Quality rules (every PR, no exceptions)
 
