@@ -1,7 +1,7 @@
 // agent-app-dev#23 (idea#351 updateApp): build-time SHA256SUMS, image+tag tar names, file modes.
 import { it } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, writeFileSync, readFileSync, statSync, chmodSync, mkdirSync, existsSync, appendFileSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, readFileSync, statSync, chmodSync, mkdirSync, existsSync, appendFileSync, symlinkSync } from 'node:fs';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { join, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -183,13 +183,13 @@ it('idea#139: bundled compose x-app.version is the folder version', () => {
   assert.match(c, /#image: upstream\/web/);
 });
 
-// Engine contract (agent-engine-dev cc219476 src/data/UpdateApp.ts).
-// defaultVerifySums (lines 137–139):
+// Engine contract (agent-engine-dev main d366432 src/data/UpdateApp.ts).
+// defaultVerifySums (lines 154–155):
 //   const defaultVerifySums = async (dir: string): Promise<boolean> => {
 //     if (!await fs.pathExists(path.join(dir, 'SHA256SUMS'))) return false
 //     try { await $({ cwd: dir })`sha256sum --check --strict --quiet SHA256SUMS`.quiet(); return true } catch { return false }
 //   }
-// sumsLookUsable (lines 536–537):
+// sumsLookUsable (line 737; call sites 741–742):
 //   export const sumsLookUsable = (sums: string | null): boolean =>
 //     !!sums && sums.split('\n').some(l => /^[0-9a-f]{64} [ *]\.?\/?compose\.yaml$/.test(l.trim()))
 const sumsLookUsable = (sums) =>
@@ -200,8 +200,8 @@ it('Engine-exact defaultVerifySums and sumsLookUsable pass on the bundle SHA256S
   assert.equal(build(s).status, 0);
   const bundle = join(s.disk, 'apps/demo-1.2');
   const sums = readFileSync(join(bundle, 'SHA256SUMS'), 'utf8');
-  assert.equal(sumsLookUsable(sums), true, 'sumsLookUsable (UpdateApp.ts:536-537) must match a bare compose.yaml line');
-  // defaultVerifySums (UpdateApp.ts:137-139): cd into the bundle dir and run sha256sum --check --strict SHA256SUMS
+  assert.equal(sumsLookUsable(sums), true, 'sumsLookUsable (UpdateApp.ts:737) must match a bare compose.yaml line');
+  // defaultVerifySums (UpdateApp.ts:154-155): cd into the bundle dir and run sha256sum --check --strict SHA256SUMS
   const ev = spawnSync('sha256sum', ['--check', '--strict', 'SHA256SUMS'], { cwd: bundle, encoding: 'utf8' });
   assert.equal(ev.status, 0, ev.stdout + ev.stderr);
   const root = spawnSync('sha256sum', ['--check', '--strict', 'SHA256SUMS'], { cwd: s.disk, encoding: 'utf8' });
@@ -225,4 +225,41 @@ it('disk-root SHA256SUMS check does not flag unlisted top-level content (live Ap
   assert.equal(root.status, 0, root.stdout + root.stderr);
   const v = verify(s);
   assert.equal(v.status, 0, v.stderr);
+});
+
+it('idea#374: bundle SHA256SUMS covers symlinks and nested SHA256SUMS, lists compose.yaml, omits itself and bundle-root .idea-*', () => {
+  // Nextcloud-shaped tree: hook symlinks + bundled-apps/SHA256SUMS. A packer that
+  // uses `find . -type f ! -name SHA256SUMS` would drop the symlink and the nested SHA256SUMS.
+  const s = setup();
+  mkdirSync(join(s.app, 'hooks/post-installation'), { recursive: true });
+  mkdirSync(join(s.app, 'hooks/before-starting'), { recursive: true });
+  mkdirSync(join(s.app, 'bundled-apps'), { recursive: true });
+  writeFileSync(join(s.app, 'hooks/post-installation/20-x.sh'), '#!/bin/sh\necho x\n');
+  chmodSync(join(s.app, 'hooks/post-installation/20-x.sh'), 0o755);
+  symlinkSync('../post-installation/20-x.sh', join(s.app, 'hooks/before-starting/20-x.sh'));
+  writeFileSync(join(s.app, 'bundled-apps/SHA256SUMS'), 'not-the-bundle-root\n');
+  execFileSync('git', ['-C', s.app, 'add', 'hooks', 'bundled-apps'], { stdio: 'pipe' });
+  execFileSync('git', ['-C', s.app, '-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'nc-shape']);
+  const r = build(s);
+  assert.equal(r.status, 0, r.stderr);
+  const bundle = join(s.disk, 'apps/demo-1.2');
+  const sums = readFileSync(join(bundle, 'SHA256SUMS'), 'utf8');
+  const names = listed(join(bundle, 'SHA256SUMS'));
+  assert.ok(names.includes('compose.yaml'));
+  assert.ok(names.includes('hooks/before-starting/20-x.sh'), 'symlink is listed');
+  assert.ok(names.includes('hooks/post-installation/20-x.sh'));
+  assert.ok(names.includes('bundled-apps/SHA256SUMS'), 'nested SHA256SUMS is listed');
+  assert.ok(!names.includes('SHA256SUMS'), 'bundle-root SHA256SUMS does not list itself');
+  assert.ok(!names.some((n) => !n.includes('/') && n.startsWith('.idea-')), 'no bundle-root .idea-* in the list');
+  assert.ok(!existsSync(join(bundle, '.idea-fetched')) && !existsSync(join(bundle, '.idea-fetching')));
+  const linkLine = sums.split('\n').find((l) => l.endsWith('  hooks/before-starting/20-x.sh'));
+  const targetLine = sums.split('\n').find((l) => l.endsWith('  hooks/post-installation/20-x.sh'));
+  assert.ok(linkLine && targetLine);
+  assert.equal(linkLine.slice(0, 64), targetLine.slice(0, 64), 'symlink is hashed through its target');
+  assert.match(sums, /^[0-9a-f]{64}  compose\.yaml$/m, 'two spaces, no ./ prefix');
+  assert.doesNotMatch(sums, /\s\.\/compose\.yaml$/m);
+  assert.equal(sumsLookUsable(sums), true, 'sumsLookUsable (UpdateApp.ts:737) must match a bare compose.yaml line');
+  const ev = spawnSync('sha256sum', ['--check', '--strict', 'SHA256SUMS'], { cwd: bundle, encoding: 'utf8' });
+  assert.equal(ev.status, 0, ev.stdout + ev.stderr);
+  assert.equal(verify(s).status, 0, verify(s).stderr);
 });
