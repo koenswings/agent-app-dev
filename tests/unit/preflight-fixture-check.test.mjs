@@ -78,14 +78,12 @@ function kolibriDb(dir, { lesson = true, learners = ['learner01', 'learner02', '
 import sqlite3, sys
 c = sqlite3.connect(sys.argv[1] + "/db.sqlite3")
 c.executescript("""
-create table kolibriauth_facility(id text, name text);
 create table kolibriauth_collection(id text, name text, kind text, parent_id text);
 create table kolibriauth_facilityuser(id text, username text, facility_id text);
 create table kolibriauth_membership(id text, collection_id text, user_id text);
 create table kolibriauth_role(id text, kind text, collection_id text, user_id text);
 create table lessons_lesson(id text, title text, is_active bool, collection_id text);
 create table content_contentnode(id text, kind text, available bool);
-insert into kolibriauth_facility values('f1','Duration Tests Facility');
 insert into kolibriauth_collection values('f1','Duration Tests Facility','facility',null);
 insert into kolibriauth_collection values('c1','Grade 5A','classroom','f1');
 insert into kolibriauth_facilityuser values('u0','teacher','f1');

@@ -379,23 +379,28 @@ except TypeError:
     con = sqlite3.connect(db)
 con.execute("PRAGMA query_only=ON")
 q = lambda s, a=(): con.execute(s, a).fetchall()
-out["facilities"] = [r[0] for r in q("select name from kolibriauth_facility")]
-cls = q("select id, parent_id from kolibriauth_collection where kind=? and name=?", ("classroom", cls_name))
-out["class"] = bool(cls)
-users = dict((r[1], r[0]) for r in q("select id, username from kolibriauth_facilityuser"))
-out["users"] = sorted(u for u in [coach] + learners if u in users)
-if cls:
-    cid, fid = cls[0]
-    mem = set(r[0] for r in q("select u.username from kolibriauth_membership m join kolibriauth_facilityuser u on u.id=m.user_id where m.collection_id=?", (cid,)))
-    out["members"] = sorted(u for u in learners if u in mem)
-    roles = q("select r.kind, r.collection_id from kolibriauth_role r join kolibriauth_facilityuser u on u.id=r.user_id where u.username=?", (coach,))
-    out["coach"] = any((c == cid and "coach" in k) or (c == fid and k in ("admin", "coach")) for k, c in roles)
-    out["lesson"] = [bool(r[0]) for r in q("select is_active from lessons_lesson where collection_id=? and title=?", (cid, lesson_title))]
-nodes = {}
-for n in (vid, exe):
-    r = q("select kind, available from content_contentnode where id=?", (n.replace("-", ""),))
-    nodes[n] = {"kind": r[0][0], "available": bool(r[0][1])} if r else None
-out["nodes"] = nodes
+# Kolibri has no kolibriauth_facility table (Facility is a Collection proxy,
+# kind="facility"); 0.15.5 failed kc5 preflight on the old query.
+try:
+    out["facilities"] = [r[0] for r in q("select name from kolibriauth_collection where kind=?", ("facility",))]
+    cls = q("select id, parent_id from kolibriauth_collection where kind=? and name=?", ("classroom", cls_name))
+    out["class"] = bool(cls)
+    users = dict((r[1], r[0]) for r in q("select id, username from kolibriauth_facilityuser"))
+    out["users"] = sorted(u for u in [coach] + learners if u in users)
+    if cls:
+        cid, fid = cls[0]
+        mem = set(r[0] for r in q("select u.username from kolibriauth_membership m join kolibriauth_facilityuser u on u.id=m.user_id where m.collection_id=?", (cid,)))
+        out["members"] = sorted(u for u in learners if u in mem)
+        roles = q("select r.kind, r.collection_id from kolibriauth_role r join kolibriauth_facilityuser u on u.id=r.user_id where u.username=?", (coach,))
+        out["coach"] = any((c == cid and "coach" in k) or (c == fid and k in ("admin", "coach")) for k, c in roles)
+        out["lesson"] = [bool(r[0]) for r in q("select is_active from lessons_lesson where collection_id=? and title=?", (cid, lesson_title))]
+    nodes = {}
+    for n in (vid, exe):
+        r = q("select kind, available from content_contentnode where id=?", (n.replace("-", ""),))
+        nodes[n] = {"kind": r[0][0], "available": bool(r[0][1])} if r else None
+    out["nodes"] = nodes
+except Exception as e:
+    out["error"] = "query failed: %s" % e
 print(json.dumps(out))
 '
 
