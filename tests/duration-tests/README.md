@@ -306,13 +306,22 @@ bash tests/duration-tests/scripts/preflight-fixture-check.sh --apps nextcloud,ki
 
 | App | Checked (walk steps) |
 |-----|----------------------|
-| Nextcloud | installed; users teacher, student01..03 enabled (21, 27, 77, 80); group **Grade 5A** = all four (share_to_class 22, 73); firstrunwizard disabled; files_external, files_sharing, text, viewer enabled; core shareapi_enabled / allow_group_sharing / allow_links / allow_public_upload not `no`; every live `/mnt/idea-files/` mount `enable_sharing=true` and applicable to Grade 5A or All users (`--strict-applicable` = explicit group); Class Materials present; `Drop Zone/inbox` writable by www-data (after_upload 29); `Collab/Grade5A-collab-notes.md` writable by www-data (keep_editing 82); `/status.php`; link share `grade5adropzone` = type 3, permissions 4, on `…Drop Zone/inbox` (open_file_drop 28, 78; teacher OCS read, falls back to the public `/s/<token>` page) |
+| Nextcloud | installed; users teacher, student01..03 enabled (21, 27, 77, 80); student01..03 homes initialized (`data/<user>/files` exists — a never-logged-in learner makes the walk's first login slow, kc4 FAIL@27); group **Grade 5A** = all four (share_to_class 22, 73); firstrunwizard disabled; files_external, files_sharing, text, viewer enabled; core shareapi_enabled / allow_group_sharing / allow_links / allow_public_upload not `no`; every live `/mnt/idea-files/` mount `enable_sharing=true` and applicable to Grade 5A or All users (`--strict-applicable` = explicit group); Class Materials present; `Drop Zone/inbox` writable by www-data (after_upload 29); `Collab/Grade5A-collab-notes.md` writable by www-data (keep_editing 82); `/status.php`; link share `grade5adropzone` = type 3, permissions 4, on `…Drop Zone/inbox` (open_file_drop 28, 78; teacher OCS read, falls back to the public `/s/<token>` page) |
 | Kolibri | facility; classroom Grade 5A; teacher + learner01..03; learners enrolled; teacher coach; lesson "Grade 5A Duration Lesson" active; Console intents' open_video / open_exercise ContentNodes available (`KOLIBRI_VIDEO_NODE` / `KOLIBRI_EXERCISE_NODE`); HTTP / |
 | Kiwix | `/data/duration_wikipedia_en_grade5a_stub_2026-10.zim`; `/`, `content/<book>/Main_Page`; search "fraction" → Fraction (Results 1-4 of 4) |
 
-Read-only by construction: only `occ status|user:list|user:info|group:list|app:list|config:app:get|files_external:list`,
+Read-only by construction: only `occ status|user:list|user:info|group:list|app:list|config:app:get|config:system:get|files_external:list`,
 `test -d/-f/-w`, a `mode=ro` + `query_only` SQLite read in the Kolibri container, and
 HTTP GETs (enforced by `tests/unit/preflight-fixture-check.test.mjs`).
+
+**Learner warm-up (NOT read-only, only when asked).** If `nc.learner_home` fails,
+initialize each learner's home with one WebDAV PROPFIND (`Depth: 0`, as
+`<user>:<user>911!`, expects 207) so the walk's first learner login is fast:
+
+```bash
+bash tests/duration-tests/scripts/warm-nextcloud-learners.sh --nc-container nextcloud-grade5a-001-nextcloud-app-1
+# or: preflight-fixture-check.sh --warm-learners   (warm-up first, then the read-only checks)
+```
 
 ## Post-dock Running restore (Atlas one-shot — idea#168)
 

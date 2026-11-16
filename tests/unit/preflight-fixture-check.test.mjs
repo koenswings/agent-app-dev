@@ -21,6 +21,10 @@ const MNT = '/mnt/idea-files/grade-5a-files-durati';
 const VIDEO = '4a1a1b923f6d59eba94c3f91f0011dd5';
 const EXERCISE = '94a47ec7f30d5cd193f8ad08c42b6c2a';
 const BOOK = 'duration_wikipedia_en_grade5a_stub_2026-10';
+const LEARNERS = ['student01', 'student02', 'student03'];
+const LEARNER_HOMES = LEARNERS.map((u) => `/var/www/html/data/${u}/files`);
+const DAV = (u) => `http://127.0.0.1:61820/remote.php/dav/files/${u}/`;
+const WARM = join(root, 'tests/duration-tests/scripts/warm-nextcloud-learners.sh');
 
 const FAKE_DOCKER = `#!/usr/bin/env node
 import { readFileSync, appendFileSync } from 'node:fs';
@@ -114,6 +118,7 @@ function goodState(dir) {
       'user:info student01 --output=json': { enabled: true },
       'user:info student02 --output=json': { enabled: true },
       'user:info student03 --output=json': { enabled: true },
+      'config:system:get datadirectory': '/var/www/html/data',
       'group:list --output=json': { admin: ['teacher'], 'Grade 5A': ['teacher', 'student01', 'student02', 'student03'] },
       'app:list --output=json': { enabled: { files_external: '1', files_sharing: '1', text: '1', viewer: '1' }, disabled: { firstrunwizard: '4' } },
       'files_external:list --output=json': [
@@ -121,7 +126,7 @@ function goodState(dir) {
         { mount_id: 3, mount_point: '/School Files', configuration: { datadir: '/mnt/idea-files/school-files-b' }, options: { enable_sharing: false }, applicable_users: [], applicable_groups: [] },
       ],
     },
-    dirs: [MNT, `${MNT}/Class Materials`, `${MNT}/Drop Zone/inbox`],
+    dirs: [MNT, `${MNT}/Class Materials`, `${MNT}/Drop Zone/inbox`, ...LEARNER_HOMES],
     files: [`${MNT}/Collab/Grade5A-collab-notes.md`],
     writable: [`${MNT}/Drop Zone/inbox`, `${MNT}/Collab/Grade5A-collab-notes.md`],
     kolibriHome: dir,
@@ -139,7 +144,7 @@ function goodState(dir) {
   };
 }
 
-function run(state, args = [], mkdb = {}) {
+function run(state, args = [], mkdb = {}, script = SCRIPT) {
   const dir = mkdtempSync(join(tmpdir(), 'preflight-'));
   kolibriDb(dir, mkdb);
   state.kolibriHome = dir;
@@ -151,7 +156,7 @@ function run(state, args = [], mkdb = {}) {
     writeFileSync(join(dir, n + '.mjs'), body);
     chmodSync(join(dir, n + '.mjs'), 0o755);
   }
-  const r = spawnSync('bash', [SCRIPT, ...args], {
+  const r = spawnSync('bash', [script, ...args], {
     encoding: 'utf8',
     env: { ...process.env, DOCKER: join(dir, 'docker.mjs'), CURL: join(dir, 'curl.mjs'), FAKE_STATE: statePath, FAKE_LOG: logPath },
   });
@@ -248,7 +253,7 @@ test('auto mode only checks Apps present on this host (idea03: NC + Kiwix)', () 
 
 test('read-only: only list/info/get occ verbs, docker exec/ps/port, HTTP GET', () => {
   const r = run(goodState(''));
-  const OCC_RO = new Set(['status', 'user:list', 'user:info', 'group:list', 'app:list', 'config:app:get', 'files_external:list']);
+  const OCC_RO = new Set(['config:system:get', 'status', 'user:list', 'user:info', 'group:list', 'app:list', 'config:app:get', 'files_external:list']);
   for (const c of r.calls) {
     if (c[0] === 'curl') {
       assert.ok(!c.some((x) => /^-(X|d|T|F)$|^--(data|request|upload-file|form)/.test(x)), `curl write flag: ${c.join(' ')}`);
@@ -265,7 +270,53 @@ test('read-only: only list/info/get occ verbs, docker exec/ps/port, HTTP GET', (
   }
 });
 
+// kc4 (2026-11-16) FAIL@27 open_nextcloud_as_learner: learners exist but never
+// logged in, so student01's first login built the home and the click timed out.
+const kc4 = () => withState((s) => {
+  s.dirs = s.dirs.filter((d) => !LEARNER_HOMES.includes(d));
+  for (const u of LEARNERS) s.occ[`user:info ${u} --output=json`] = { enabled: true, last_seen: '1970-01-01T00:00:00+00:00' };
+});
+
+test('kc4 state (learners present, never logged in) → FAIL with warm-up hint; default stays read-only', () => {
+  const r = run(kc4());
+  assert.equal(r.code, 1, r.out);
+  for (const u of LEARNERS) {
+    assert.match(r.out, new RegExp(`FAIL\\s+nc\\.learner_home\\s+${u} never logged in / home not initialized`));
+  }
+  assert.match(r.out, /run warm-nextcloud-learners\.sh \(WebDAV PROPFIND warm-up\) or preflight --warm-learners/);
+  assert.ok(!r.calls.some((c) => c[0] === 'curl' && c.includes('PROPFIND')), 'no PROPFIND without --warm-learners');
+  assert.match(run(goodState('')).out, /PASS\s+nc\.learner_home\s+student03 home initialized/);
+});
+
+test('warm-nextcloud-learners.sh: PROPFIND Depth 0 as <u>:<u>911! per learner, 207 → exit 0', () => {
+  const s = withState((s) => { for (const u of LEARNERS) s.http[DAV(u)] = { code: 207 }; });
+  const r = run(s, ['--nc-container', NC], {}, WARM);
+  assert.equal(r.code, 0, r.out);
+  const props = r.calls.filter((c) => c[0] === 'curl');
+  assert.equal(props.length, 3);
+  for (const [i, u] of LEARNERS.entries()) {
+    const c = props[i];
+    assert.deepEqual(c.slice(c.indexOf('-u'), c.indexOf('-u') + 2), ['-u', `${u}:${u}911!`]);
+    assert.ok(c.includes('PROPFIND') && c.includes('Depth: 0') && c[c.length - 1] === DAV(u), c.join(' '));
+  }
+  const s2 = withState((s) => { s.http[DAV('student01')] = { code: 207 }; s.http[DAV('student02')] = { code: 401 }; s.http[DAV('student03')] = { code: 207 }; });
+  const r2 = run(s2, ['--nc-url', 'http://127.0.0.1:61820'], {}, WARM);
+  assert.equal(r2.code, 1);
+  assert.match(r2.out, /FAIL\s+warm\.learner\s+student02 PROPFIND → 401/);
+});
+
+test('preflight --warm-learners runs the warm-up first, then the read-only checks', () => {
+  const s = kc4();
+  for (const u of LEARNERS) s.http[DAV(u)] = { code: 207 };
+  const r = run(s, ['--warm-learners', '--apps', 'nextcloud']);
+  assert.match(r.out, /== warm-up \(NOT read-only, --warm-learners\)/);
+  assert.match(r.out, /PASS\s+warm\.learner\s+student01 PROPFIND/);
+  assert.equal(r.calls.filter((c) => c[0] === 'curl' && c.includes('PROPFIND')).length, 3);
+  // The fake does not create homes, so the read-only check still reports them.
+  assert.match(r.out, /FAIL\s+nc\.learner_home/);
+});
+
 test('shellcheck clean (when available)', { skip: spawnSync('shellcheck', ['--version']).status !== 0 }, () => {
-  const r = spawnSync('shellcheck', [SCRIPT], { encoding: 'utf8' });
+  const r = spawnSync('shellcheck', [SCRIPT, WARM], { encoding: 'utf8' });
   assert.equal(r.status, 0, r.stdout);
 });

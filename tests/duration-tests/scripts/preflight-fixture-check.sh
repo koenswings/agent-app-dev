@@ -39,6 +39,9 @@
 #   --no-auth              skip the teacher OCS read of the file request share
 #   --strict-applicable    every live /mnt/idea-files mount must list group Grade 5A
 #                          explicitly (default: "All users" is also accepted)
+#   --warm-learners        NOT read-only: first run warm-nextcloud-learners.sh (one
+#                          WebDAV PROPFIND per learner → 207) so each learner home is
+#                          initialized, then run the read-only checks
 #   -h | --help
 # Env:
 #   DOCKER, CURL           command overrides (unit tests use fakes)
@@ -54,7 +57,8 @@ CURL="${CURL:-curl}"
 APPS="auto"
 NC_C=""; KOL_C=""; KIWIX_C=""
 NC_URL=""; KOL_URL=""; KIWIX_URL=""
-DO_HTTP=1; DO_AUTH=1; STRICT_APPLICABLE=0
+DO_HTTP=1; DO_AUTH=1; STRICT_APPLICABLE=0; WARM_LEARNERS=0
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 NC_GROUP="Grade 5A"
 NC_USERS=(teacher student01 student02 student03)
@@ -63,6 +67,7 @@ NC_TEACHER_PASS="${NC_TEACHER_PASS:-teacher911!}"
 DROP_ZONE_TOKEN="${DROP_ZONE_TOKEN:-grade5adropzone}"
 NC_COLLAB_DOC="Collab/Grade5A-collab-notes.md"
 NC_REQUIRED_APPS=(files_external files_sharing text viewer)
+NC_LEARNERS=(student01 student02 student03)
 
 KOL_CLASS="Grade 5A"
 KOL_LESSON="Grade 5A Duration Lesson"
@@ -90,6 +95,7 @@ while [[ $# -gt 0 ]]; do
     --no-http) DO_HTTP=0; shift ;;
     --no-auth) DO_AUTH=0; shift ;;
     --strict-applicable) STRICT_APPLICABLE=1; shift ;;
+    --warm-learners) WARM_LEARNERS=1; shift ;;
     -h|--help) usage 0 ;;
     *) echo "unknown arg: $1" >&2; usage 2 ;;
   esac
@@ -178,6 +184,22 @@ check_nextcloud() {
       pass nc.user "$u exists, enabled"
     else
       fail nc.user "$u is disabled (occ user:enable $u)"
+    fi
+  done
+
+  # Learner homes initialized (kc4 FAIL@27: student01's FIRST login built the
+  # home on the login request, the submit click waited > 8 s for navigation).
+  # Initialized = data/<user>/files exists; last_seen is reported for context.
+  local datadir last
+  datadir="$(occ config:system:get datadirectory | tr -d '[:space:]')"
+  datadir="${datadir:-/var/www/html/data}"
+  for u in "${NC_LEARNERS[@]}"; do
+    printf '%s' "$users" | json_py 'args[0] in (j or {})' "$u" | grep -qx true || continue
+    last="$(occ user:info "$u" --output=json | json_py '(j or {}).get("last_seen") or (j or {}).get("lastLogin") or ""' 2>/dev/null || true)"
+    if nc_test -d "$datadir/$u/files"; then
+      pass nc.learner_home "$u home initialized ($datadir/$u/files; last_seen ${last:-?})"
+    else
+      fail nc.learner_home "$u never logged in / home not initialized (no $datadir/$u/files; last_seen ${last:-never}) — first walk login will be slow (open_nextcloud_as_learner step 27): run warm-nextcloud-learners.sh (WebDAV PROPFIND warm-up) or preflight --warm-learners"
     fi
   done
 
@@ -475,6 +497,17 @@ case "$APPS" in
      done ;;
 esac
 command -v python3 >/dev/null 2>&1 || { echo "FAIL  python3 required on the host" >&2; exit 1; }
+
+if [[ "$WARM_LEARNERS" == "1" ]] && want nextcloud; then
+  [[ -n "$NC_C" ]] || NC_C="$(detect '^nextcloud-grade5a-001.*nextcloud-app' '^idea166-nextcloud-live-app$' || true)"
+  echo "== warm-up (NOT read-only, --warm-learners): WebDAV PROPFIND per learner =="
+  warm_args=()
+  [[ -n "$NC_URL" ]] && warm_args+=(--nc-url "$NC_URL")
+  [[ -n "$NC_C" ]] && warm_args+=(--nc-container "$NC_C")
+  DOCKER="$DOCKER" CURL="$CURL" bash "$SCRIPT_DIR/warm-nextcloud-learners.sh" "${warm_args[@]}" "${NC_LEARNERS[@]}" || \
+    echo "WARN  warm-up did not answer 207 for every learner (see above); checks follow"
+  echo
+fi
 
 echo "preflight-fixture-check $(date -u +%Y-%m-%dT%H:%M:%SZ) host=$(hostname -s 2>/dev/null || echo ?) apps=$APPS (read-only)"
 checked=0
