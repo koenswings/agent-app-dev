@@ -52,6 +52,8 @@
 #   KOLIBRI_PORT     default 18080 (idea03 may need override if :18080 taken)
 #   NEXTCLOUD_PORT   default 18280
 #   KIWIX_PORT       default 18380 (image ghcr.io/kiwix/kiwix-serve:3.8.2, pre-pull)
+#   SKIP_PREFLIGHT=1 skip the final read-only preflight-fixture-check.sh (exit 1 on any
+#                    missing fixture: users, Grade 5A group, sharing, file request, ...)
 set -euo pipefail
 
 MODE="sidecar"
@@ -933,13 +935,39 @@ restore_dock_compose() {
   echo "so instanceDB.status becomes Running and Open is clickable."
 }
 
+# Final step: read-only fixture preflight (idea#166 kc3 FAIL@22). Fails the run
+# loudly when the walk's fixtures are missing, instead of the walk finding out.
+run_preflight() {
+  if [[ "${SKIP_PREFLIGHT:-0}" == "1" || "${SKIP_PROVISION:-0}" == "1" ]]; then
+    echo "SKIP preflight (SKIP_PREFLIGHT/SKIP_PROVISION)"
+    return 0
+  fi
+  local -a apps=() args=()
+  want_nextcloud && apps+=(nextcloud)
+  want_kolibri && apps+=(kolibri)
+  want_kiwix && apps+=(kiwix)
+  [[ "${SKIP_HTTP:-0}" == "1" ]] && args+=(--no-http)
+  # $1 = sidecar | dock-compose; $2 = docked nextcloud-app container (dock-compose)
+  if [[ "${1:-}" == "sidecar" ]]; then
+    want_nextcloud && args+=(--nc-container idea166-nextcloud-live-app)
+    want_kolibri && args+=(--kolibri-container idea166-kolibri-live --kolibri-url "http://127.0.0.1:${KOLIBRI_PORT}")
+    want_kiwix && args+=(--kiwix-container idea166-kiwix-live)
+  elif [[ -n "${2:-}" ]]; then
+    args+=(--nc-container "$2")
+  fi
+  echo
+  echo "== preflight-fixture-check (read-only) =="
+  local IFS=,
+  bash "$SCRIPT_DIR/preflight-fixture-check.sh" --apps "${apps[*]}" "${args[@]}"
+}
+
 # Sourced (unit tests: tests/unit/duration-tests-fixtures.test.mjs) → define
 # functions only; executed → run the selected mode.
 if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
   case "$MODE" in
-    sidecar) restore_sidecar ;;
+    sidecar) restore_sidecar; run_preflight sidecar ;;
     dock-instances) restore_dock_instances ;;
-    dock-compose) restore_dock_compose ;;
+    dock-compose) restore_dock_compose; run_preflight dock-compose "${nc_cname:-}" ;;
     *) echo "unknown --mode $MODE (sidecar|dock-compose|dock-instances)" >&2; exit 2 ;;
   esac
 fi
