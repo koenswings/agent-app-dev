@@ -39,6 +39,8 @@
 #   --no-auth              skip the teacher OCS read of the file request share
 #   --strict-applicable    every live /mnt/idea-files mount must list group Grade 5A
 #                          explicitly (default: "All users" is also accepted)
+#   --nc-url also enables (with auth) the r56 learner check: student01 PROPFIND
+#                          Depth 0 on /Class Materials, /Collab, /Drop Zone → 207
 #   --warm-learners        NOT read-only: first run warm-nextcloud-learners.sh (one
 #                          WebDAV PROPFIND per learner → 207) so each learner home is
 #                          initialized, then run the read-only checks
@@ -56,7 +58,7 @@ DOCKER="${DOCKER:-docker}"
 CURL="${CURL:-curl}"
 APPS="auto"
 NC_C=""; KOL_C=""; KIWIX_C=""
-NC_URL=""; KOL_URL=""; KIWIX_URL=""
+NC_URL=""; KOL_URL=""; KIWIX_URL=""; NC_URL_GIVEN=0
 DO_HTTP=1; DO_AUTH=1; STRICT_APPLICABLE=0; WARM_LEARNERS=0
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
@@ -68,6 +70,11 @@ DROP_ZONE_TOKEN="${DROP_ZONE_TOKEN:-grade5adropzone}"
 NC_COLLAB_DOC="Collab/Grade5A-collab-notes.md"
 NC_REQUIRED_APPS=(files_external files_sharing text viewer)
 NC_LEARNERS=(student01 student02 student03)
+# r56 (2026-10-09 prep-r56/READY.md, replayed by nc-provision-r56-replay.sh):
+# three root Local mounts, so "Class Materials" is at every user's Files root and
+# the intents' class root is "/" (needs Collab + Drop Zone at root too: kc5 FAIL@30).
+NC_ROOT_MOUNTS=("/Class Materials" "/Collab" "/Drop Zone")
+NC_FILES_MOUNT="/Grade 5A Files"
 
 KOL_CLASS="Grade 5A"
 KOL_LESSON="Grade 5A Duration Lesson"
@@ -89,7 +96,7 @@ while [[ $# -gt 0 ]]; do
     --nc-container) NC_C="${2:-}"; shift 2 ;;
     --kolibri-container) KOL_C="${2:-}"; shift 2 ;;
     --kiwix-container) KIWIX_C="${2:-}"; shift 2 ;;
-    --nc-url) NC_URL="${2%/}"; shift 2 ;;
+    --nc-url) NC_URL="${2%/}"; NC_URL_GIVEN=1; shift 2 ;;
     --kolibri-url) KOL_URL="${2%/}"; shift 2 ;;
     --kiwix-url) KIWIX_URL="${2%/}"; shift 2 ;;
     --no-http) DO_HTTP=0; shift ;;
@@ -225,6 +232,18 @@ check_nextcloud() {
   else
     pass nc.firstrunwizard "disabled"
   fi
+  if [[ "$(printf '%s' "$apps" | json_py '"password_policy" in ((j or {}).get("enabled") or {})')" == "true" ]]; then
+    fail nc.password_policy "password_policy is ENABLED — <account>911! passwords may be refused (occ app:disable password_policy)"
+  else
+    pass nc.password_policy "disabled"
+  fi
+  local ro
+  ro="$(occ config:app:get text open_read_only_enabled | tr -d '[:space:]' || true)"
+  if [[ "$ro" == "0" ]]; then
+    pass nc.text_readonly "text open_read_only_enabled=0"
+  else
+    fail nc.text_readonly "text open_read_only_enabled=${ro:-unset} (r56 sets 0; occ config:app:set text open_read_only_enabled --value=0)"
+  fi
   for a in "${NC_REQUIRED_APPS[@]}"; do
     if [[ "$(printf '%s' "$apps" | json_py 'args[0] in ((j or {}).get("enabled") or {})' "$a")" == "true" ]]; then
       pass nc.app "$a enabled"
@@ -244,28 +263,46 @@ check_nextcloud() {
       pass nc.shareapi "core $k=${v:-<default yes>}"
     fi
   done
+  v="$(occ config:app:get core shareapi_allow_custom_tokens | tr -d '[:space:]' || true)"
+  if [[ "$v" == "yes" ]]; then
+    warn nc.shareapi "core shareapi_allow_custom_tokens=yes (r56 turned it off after setting the token: occ config:app:delete core shareapi_allow_custom_tokens)"
+  else
+    pass nc.shareapi "core shareapi_allow_custom_tokens=${v:-<unset>} (not yes)"
+  fi
+  local ocu
+  ocu="$(occ config:system:get overwrite.cli.url | tr -d '[:space:]' || true)"
+  if [[ -z "$ocu" ]]; then
+    fail nc.overwrite_cli_url "overwrite.cli.url unset (r56: occ config:system:set overwrite.cli.url --value=http://idea03:61820)"
+  elif [[ "$NC_URL_GIVEN" == "1" && "${ocu%/}" != "$NC_URL" ]]; then
+    warn nc.overwrite_cli_url "overwrite.cli.url=$ocu differs from --nc-url $NC_URL"
+  else
+    pass nc.overwrite_cli_url "overwrite.cli.url=$ocu"
+  fi
 
   # Files Disk mounts: every live /mnt/idea-files storage shares, and Grade 5A sees it.
-  local mounts lines id mp dd es groups_ users_ live=0 base=""
+  local mounts lines id mp dd es groups_ users_ fcc live=0 base=""
+  local -A RM_ID=() RM_DD=() RM_ES=() RM_GR=() RM_FCC=() RM_LIVE=()
   mounts="$(occ files_external:list --output=json || echo '[]')"
   lines="$(printf '%s' "$mounts" | json_py '[
-    "%s|%s|%s|%s|%s|%s" % (
+    "%s|%s|%s|%s|%s|%s|%s" % (
       m.get("mount_id") or m.get("id"),
       m.get("mount_point", ""),
       (m.get("configuration") or {}).get("datadir", ""),
       str((m.get("options") or {}).get("enable_sharing")).lower(),
       ",".join(m.get("applicable_groups") or []),
-      ",".join(m.get("applicable_users") or []))
+      ",".join(m.get("applicable_users") or []),
+      str((m.get("options") or {}).get("filesystem_check_changes")).lower())
     for m in (j if isinstance(j, list) else [])
     if str((m.get("configuration") or {}).get("datadir", "")).startswith("/mnt/idea-files/")]' 2>/dev/null || true)"
   local CM_PATH="" DZ_PATH="" CO_PATH="" DZ_NC=""
-  while IFS='|' read -r id mp dd es groups_ users_; do
+  while IFS='|' read -r id mp dd es groups_ users_ fcc; do
     [[ -n "$id" ]] || continue
+    RM_ID["$mp"]="$id"; RM_DD["$mp"]="$dd"; RM_ES["$mp"]="$es"; RM_GR["$mp"]="$groups_"; RM_FCC["$mp"]="$fcc"; RM_LIVE["$mp"]=0
     if ! nc_test -d "$dd"; then
       warn nc.mount "id=$id $mp → $dd: folder absent (undocked Files Disk) — not checked"
       continue
     fi
-    live=$((live + 1))
+    live=$((live + 1)); RM_LIVE["$mp"]=1
     if [[ "$es" == "true" || "$es" == "1" ]]; then
       pass nc.mount.sharing "id=$id $mp enable_sharing=true"
     else
@@ -291,6 +328,54 @@ check_nextcloud() {
   if [[ "$live" -eq 0 ]]; then
     fail nc.mount "no live /mnt/idea-files external storage (Files Disk not mounted, or 10-idea-files.sh hook never ran)"
   fi
+
+  # r56 root Local mounts: /Class Materials, /Collab, /Drop Zone at every
+  # user's Files root, datadir under /mnt/idea-files, applicable to Grade 5A,
+  # enable_sharing true, filesystem_check_changes 1. Without them a learner who
+  # received the step-22 "Class Materials" share has class root "/" but no
+  # Collab / Drop Zone there (kc5 FAIL@30 open_collab_doc, then 32 browse_folders).
+  local rm sub
+  for rm in "${NC_ROOT_MOUNTS[@]}"; do
+    sub="${rm#/}"
+    if [[ -z "${RM_ID[$rm]:-}" ]]; then
+      fail nc.root_mount "$rm missing (r56): occ files_external:create \"$rm\" local null::null -c datadir=\"<M>/$sub\"; then option <id> enable_sharing true, option <id> filesystem_check_changes 1, applicable --add-group=\"$NC_GROUP\" <id> (<M> = /mnt/idea-files/grade-5a-files-*)"
+      continue
+    fi
+    id="${RM_ID[$rm]}"; dd="${RM_DD[$rm]}"
+    if [[ "${RM_LIVE[$rm]}" != "1" ]]; then
+      fail nc.root_mount "$rm id=$id datadir $dd absent in the container"
+      continue
+    fi
+    if [[ "$(basename "$dd")" == "$sub" ]]; then
+      pass nc.root_mount "$rm id=$id → $dd"
+    else
+      fail nc.root_mount "$rm id=$id datadir $dd does not end in /$sub (occ files_external:config $id datadir \"<M>/$sub\")"
+    fi
+    if [[ "${RM_ES[$rm]}" == "true" || "${RM_ES[$rm]}" == "1" ]]; then pass nc.root_mount "$rm enable_sharing=true"
+    else fail nc.root_mount "$rm enable_sharing=${RM_ES[$rm]:-unset} (occ files_external:option $id enable_sharing true)"; fi
+    if [[ "${RM_FCC[$rm]}" == "1" || "${RM_FCC[$rm]}" == "true" ]]; then pass nc.root_mount "$rm filesystem_check_changes=1"
+    else fail nc.root_mount "$rm filesystem_check_changes=${RM_FCC[$rm]:-unset} (occ files_external:option $id filesystem_check_changes 1)"; fi
+    if [[ ",${RM_GR[$rm]}," == *",$NC_GROUP,"* ]]; then pass nc.root_mount "$rm applicable to group $NC_GROUP"
+    else fail nc.root_mount "$rm applicable groups=[${RM_GR[$rm]}], want $NC_GROUP (occ files_external:applicable --add-group=\"$NC_GROUP\" $id)"; fi
+  done
+  if [[ -n "${RM_ID[$NC_FILES_MOUNT]:-}" ]]; then
+    if [[ "${RM_ES[$NC_FILES_MOUNT]}" == "true" || "${RM_ES[$NC_FILES_MOUNT]}" == "1" ]]; then
+      pass nc.files_mount "$NC_FILES_MOUNT enable_sharing=true"
+    else
+      fail nc.files_mount "$NC_FILES_MOUNT enable_sharing=${RM_ES[$NC_FILES_MOUNT]:-unset} (occ files_external:option ${RM_ID[$NC_FILES_MOUNT]} enable_sharing true)"
+    fi
+  else
+    warn nc.files_mount "no \"$NC_FILES_MOUNT\" mount (kit layout has one; sidecar layout does not)"
+  fi
+  # Ownership uid 33 (www-data) on Collab + Drop Zone, as r56 (chown -R 33:33).
+  local co_dir="${RM_DD[/Collab]:-$CO_PATH}" dz_dir="${RM_DD[/Drop Zone]:-$DZ_PATH}" op
+  local -a owned=()
+  [[ -n "$co_dir" ]] && owned+=("$co_dir" "$co_dir/${NC_COLLAB_DOC#Collab/}")
+  [[ -n "$dz_dir" ]] && owned+=("$dz_dir" "$dz_dir/inbox")
+  for op in "${owned[@]}"; do
+    if nc_test -O "$op"; then pass nc.owner "$op owned by 33 (www-data)"
+    else fail nc.owner "$op not owned by 33 (chown -R 33:33 Collab / \"Drop Zone\" as root; never touch or re-copy files)"; fi
+  done
 
   # Walk folders + writability for www-data (Drop Zone upload, Text keep_editing).
   if [[ -n "$CM_PATH" ]]; then pass nc.folder "Class Materials at $CM_PATH"
@@ -333,17 +418,17 @@ check_nextcloud() {
     if [[ "$code" == "200" ]]; then
       local s
       s="$(printf '%s' "$shares" | json_py '[
-        "%s|%s|%s" % (d.get("share_type"), d.get("permissions"), d.get("path"))
+        "%s|%s|%s|%s" % (d.get("share_type"), d.get("permissions"), d.get("uid_owner"), d.get("path"))
         for d in ((j.get("ocs") or {}).get("data") or []) if d.get("token") == args[0]]' "$DROP_ZONE_TOKEN")"
       if [[ -z "$s" ]]; then
         fail nc.file_request "no share with token $DROP_ZONE_TOKEN (open_file_drop steps 28/78; create with nc-drop-zone-request.py, path \"${DZ_NC:-/Drop Zone}/inbox\")"
       else
         found=1
-        IFS='|' read -r stype perms spath <<< "$(echo "$s" | head -n 1)"
-        if [[ "$stype" == "3" && "$perms" == "4" && "$spath" == *"Drop Zone/inbox" ]]; then
-          pass nc.file_request "/s/$DROP_ZONE_TOKEN link, upload-only (4) on $spath"
+        IFS='|' read -r stype perms sowner spath <<< "$(echo "$s" | head -n 1)"
+        if [[ "$stype" == "3" && "$perms" == "4" && "$sowner" == "$NC_TEACHER_USER" && "$spath" == *"Drop Zone/inbox" ]]; then
+          pass nc.file_request "/s/$DROP_ZONE_TOKEN link, upload-only (4), owner $sowner, on $spath"
         else
-          fail nc.file_request "/s/$DROP_ZONE_TOKEN wrong: share_type=$stype permissions=$perms path=$spath (want 3 / 4 / …Drop Zone/inbox)"
+          fail nc.file_request "/s/$DROP_ZONE_TOKEN wrong: share_type=$stype permissions=$perms owner=$sowner path=$spath (want 3 / 4 / $NC_TEACHER_USER / …Drop Zone/inbox)"
         fi
       fi
     else
@@ -357,6 +442,19 @@ check_nextcloud() {
     elif [[ "$DO_AUTH" != "1" || -z "${code:-}" || "$code" != "200" ]]; then
       fail nc.file_request "$NC_URL/s/$DROP_ZONE_TOKEN → ${c:-000} (link missing; open_file_drop steps 28/78 will fail${c:+; 400 = untrusted host, retry with --nc-url http://<trusted-name>:<port>})"
     fi
+  fi
+  # r56 verify: student01 sees the three root folders (WebDAV PROPFIND Depth 0 is
+  # a read; only with an explicit --nc-url and auth allowed).
+  if [[ "$NC_URL_GIVEN" == "1" && "$DO_AUTH" == "1" ]]; then
+    local lu="${NC_LEARNERS[0]}" enc c
+    for rm in "${NC_ROOT_MOUNTS[@]}"; do
+      enc="${rm// /%20}"
+      c="$(http_code "$NC_URL/remote.php/dav/files/$lu$enc/" -u "$lu:${lu}911!" -X PROPFIND -H 'Depth: 0')"
+      if [[ "$c" == "207" ]]; then pass nc.learner_root "$lu PROPFIND $rm → 207"
+      else fail nc.learner_root "$lu PROPFIND $rm → ${c:-000} (learner cannot see $rm at Files root: open_collab_doc 30/81, browse_folders 32)"; fi
+    done
+  else
+    warn nc.learner_root "learner PROPFIND on the root folders skipped (needs --nc-url and auth)"
   fi
 }
 

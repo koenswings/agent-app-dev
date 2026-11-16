@@ -48,7 +48,7 @@ if (a[0] === 'exec') {
   }
   if (a[0] === 'test') {
     const [flag, p] = [a[1], a[2]];
-    const set = flag === '-d' ? s.dirs : flag === '-f' ? s.files : s.writable;
+    const set = flag === '-d' ? s.dirs : flag === '-f' ? s.files : flag === '-O' ? s.owned : s.writable;
     process.exit((set || []).includes(p) ? 0 : 1);
   }
   if (a[0] === 'python') {
@@ -101,8 +101,16 @@ c.commit()
   execFileSync('python3', ['-c', py, dir, learners.join(','), lesson ? '1' : '0', videoAvailable ? '1' : '0']);
 }
 
+// r56 (prep-r56/READY.md, nc-provision-r56-replay.sh): three root Local mounts.
+const ROOT = ['Class Materials', 'Collab', 'Drop Zone'];
+const ROOT_MOUNTS = (skip = []) => ROOT.filter((n) => !skip.includes(n)).map((n, i) => ({
+  mount_id: 10 + i, mount_point: `/${n}`, configuration: { datadir: `${MNT}/${n}` },
+  options: { enable_sharing: true, filesystem_check_changes: 1 }, applicable_users: [], applicable_groups: ['Grade 5A'],
+}));
+const ROOT_DAV = (n) => `http://idea03:61820/remote.php/dav/files/student01/${n.replace(/ /g, '%20')}/`;
+
 const OCS_SHARES = (tokenShare = true) => ({
-  ocs: { meta: { statuscode: 200 }, data: tokenShare ? [{ token: 'gradefoo', share_type: 0 }, { token: 'grade5adropzone', share_type: 3, permissions: 4, path: '/Grade 5A Files/Drop Zone/inbox' }] : [] },
+  ocs: { meta: { statuscode: 200 }, data: tokenShare ? [{ token: 'gradefoo', share_type: 0 }, { token: 'grade5adropzone', share_type: 3, permissions: 4, path: '/Drop Zone/inbox', uid_owner: 'teacher' }] : [] },
 });
 
 function goodState(dir) {
@@ -117,14 +125,18 @@ function goodState(dir) {
       'user:info student02 --output=json': { enabled: true },
       'user:info student03 --output=json': { enabled: true },
       'config:system:get datadirectory': '/var/www/html/data',
+      'config:system:get overwrite.cli.url': 'http://idea03:61820',
+      'config:app:get text open_read_only_enabled': '0',
       'group:list --output=json': { admin: ['teacher'], 'Grade 5A': ['teacher', 'student01', 'student02', 'student03'] },
-      'app:list --output=json': { enabled: { files_external: '1', files_sharing: '1', text: '1', viewer: '1' }, disabled: { firstrunwizard: '4' } },
+      'app:list --output=json': { enabled: { files_external: '1', files_sharing: '1', text: '1', viewer: '1' }, disabled: { firstrunwizard: '4', password_policy: '3' } },
       'files_external:list --output=json': [
         { mount_id: 1, mount_point: '/Grade 5A Files', configuration: { datadir: MNT }, options: { enable_sharing: true }, applicable_users: [], applicable_groups: ['Grade 5A'] },
+        ...ROOT_MOUNTS(),
         { mount_id: 3, mount_point: '/School Files', configuration: { datadir: '/mnt/idea-files/school-files-b' }, options: { enable_sharing: false }, applicable_users: [], applicable_groups: [] },
       ],
     },
-    dirs: [MNT, `${MNT}/Class Materials`, `${MNT}/Drop Zone/inbox`, ...LEARNER_HOMES],
+    dirs: [MNT, `${MNT}/Class Materials`, `${MNT}/Collab`, `${MNT}/Drop Zone`, `${MNT}/Drop Zone/inbox`, ...LEARNER_HOMES],
+    owned: [`${MNT}/Collab`, `${MNT}/Collab/Grade5A-collab-notes.md`, `${MNT}/Drop Zone`, `${MNT}/Drop Zone/inbox`],
     files: [`${MNT}/Collab/Grade5A-collab-notes.md`],
     writable: [`${MNT}/Drop Zone/inbox`, `${MNT}/Collab/Grade5A-collab-notes.md`],
     kolibriHome: dir,
@@ -314,7 +326,84 @@ test('preflight --warm-learners runs the warm-up first, then the read-only check
   assert.match(r.out, /FAIL\s+nc\.learner_home/);
 });
 
+// kc5 (2026-11-16) FAIL@30 open_collab_doc: kit WD had only "Grade 5A Files";
+// the learner's root held the received "Class Materials" share but no Collab.
+const kc5 = () => withState((s) => {
+  const l = s.occ['files_external:list --output=json'];
+  s.occ['files_external:list --output=json'] = l.filter((m) => !['/Class Materials', '/Collab', '/Drop Zone'].includes(m.mount_point));
+});
+
+test('kc5 state (only the Grade 5A Files mount, no root mounts) → FAIL per r56 root mount', () => {
+  const r = run(kc5());
+  assert.equal(r.code, 1, r.out);
+  for (const n of ROOT) assert.match(r.out, new RegExp(`FAIL\\s+nc\\.root_mount\\s+/${n} missing \\(r56\\): occ files_external:create`));
+  assert.match(r.out, /PASS\s+nc\.files_mount\s+\/Grade 5A Files enable_sharing=true/);
+});
+
+test('full r56 state: root mounts, sharing, fcc, Grade 5A, owner 33, overwrite.cli.url, teacher-owned link', () => {
+  const r = run(goodState(''));
+  assert.equal(r.code, 0, r.out);
+  for (const n of ROOT) {
+    assert.match(r.out, new RegExp(`PASS\\s+nc\\.root_mount\\s+/${n} filesystem_check_changes=1`));
+    assert.match(r.out, new RegExp(`PASS\\s+nc\\.root_mount\\s+/${n} applicable to group Grade 5A`));
+  }
+  assert.match(r.out, /PASS\s+nc\.owner\s+\S+\/Collab\/Grade5A-collab-notes\.md owned by 33/);
+  assert.match(r.out, /PASS\s+nc\.overwrite_cli_url\s+overwrite\.cli\.url=http:\/\/idea03:61820/);
+  assert.match(r.out, /PASS\s+nc\.file_request\s+\/s\/grade5adropzone link, upload-only \(4\), owner teacher, on \/Drop Zone\/inbox/);
+  assert.match(r.out, /PASS\s+nc\.password_policy\s+disabled/);
+  assert.match(r.out, /PASS\s+nc\.text_readonly/);
+  assert.match(r.out, /WARN\s+nc\.learner_root\s+learner PROPFIND on the root folders skipped/);
+});
+
+test('r56 item drift: fcc off, group missing, wrong datadir, owner, password_policy, text ro, custom tokens, overwrite url, link owner', () => {
+  const s = withState((s) => {
+    const l = s.occ['files_external:list --output=json'];
+    l.find((m) => m.mount_point === '/Collab').options.filesystem_check_changes = 0;
+    l.find((m) => m.mount_point === '/Drop Zone').applicable_groups = [];
+    l.find((m) => m.mount_point === '/Class Materials').configuration.datadir = `${MNT}/Collab`;
+    s.owned = s.owned.filter((p) => !p.endsWith('/inbox'));
+    s.occ['app:list --output=json'].enabled.password_policy = '3';
+    s.occ['config:app:get text open_read_only_enabled'] = '1';
+    s.occ['config:app:get core shareapi_allow_custom_tokens'] = 'yes';
+    delete s.occ['config:system:get overwrite.cli.url'];
+    s.http['http://127.0.0.1:61820/ocs/v2.php/apps/files_sharing/api/v1/shares?format=json'].body.ocs.data[1].uid_owner = 'admin';
+  });
+  const r = run(s);
+  assert.equal(r.code, 1, r.out);
+  assert.match(r.out, /FAIL\s+nc\.root_mount\s+\/Collab filesystem_check_changes=0/);
+  assert.match(r.out, /FAIL\s+nc\.root_mount\s+\/Drop Zone applicable groups=\[\], want Grade 5A/);
+  assert.match(r.out, /FAIL\s+nc\.root_mount\s+\/Class Materials id=10 datadir \S+\/Collab does not end in \/Class Materials/);
+  assert.match(r.out, /FAIL\s+nc\.owner\s+\S+\/Drop Zone\/inbox not owned by 33/);
+  assert.match(r.out, /FAIL\s+nc\.password_policy/);
+  assert.match(r.out, /FAIL\s+nc\.text_readonly\s+text open_read_only_enabled=1/);
+  assert.match(r.out, /WARN\s+nc\.shareapi\s+core shareapi_allow_custom_tokens=yes/);
+  assert.match(r.out, /FAIL\s+nc\.overwrite_cli_url\s+overwrite\.cli\.url unset/);
+  assert.match(r.out, /FAIL\s+nc\.file_request\s+\/s\/grade5adropzone wrong: .*owner=admin/);
+});
+
+test('--nc-url: student01 PROPFIND Depth 0 on the 3 root folders (207 PASS, 404 FAIL)', () => {
+  const base = 'http://idea03:61820';
+  const s = withState((s) => {
+    for (const [k, v] of Object.entries({ ...s.http })) if (k.startsWith('http://127.0.0.1:61820')) s.http[k.replace('http://127.0.0.1:61820', base)] = v;
+    s.http[ROOT_DAV('Class Materials')] = { code: 207 };
+    s.http[ROOT_DAV('Collab')] = { code: 404 };
+    s.http[ROOT_DAV('Drop Zone')] = { code: 207 };
+  });
+  const r = run(s, ['--apps', 'nextcloud', '--nc-url', base]);
+  assert.equal(r.code, 1, r.out);
+  assert.match(r.out, /PASS\s+nc\.learner_root\s+student01 PROPFIND \/Class Materials → 207/);
+  assert.match(r.out, /FAIL\s+nc\.learner_root\s+student01 PROPFIND \/Collab → 404/);
+  const props = r.calls.filter((c) => c[0] === 'curl' && c.includes('PROPFIND'));
+  assert.equal(props.length, 3);
+  for (const c of props) {
+    assert.ok(c.includes('Depth: 0') && c.includes('student01:student01911!'), c.join(' '));
+    assert.ok(!c.some((x) => /^(-d|--data)/.test(x)), 'PROPFIND carries no body');
+  }
+  const noAuth = run(s, ['--apps', 'nextcloud', '--nc-url', base, '--no-auth']);
+  assert.ok(!noAuth.calls.some((c) => c[0] === 'curl' && c.includes('PROPFIND')), '--no-auth sends no PROPFIND');
+});
+
 test('shellcheck clean (when available)', { skip: spawnSync('shellcheck', ['--version']).status !== 0 }, () => {
-  const r = spawnSync('shellcheck', [SCRIPT, WARM], { encoding: 'utf8' });
+  const r = spawnSync('shellcheck', [SCRIPT, WARM, join(root, 'tests/duration-tests/scripts/nc-provision-r56-replay.sh')], { encoding: 'utf8' });
   assert.equal(r.status, 0, r.stdout);
 });

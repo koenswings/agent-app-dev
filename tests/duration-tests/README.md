@@ -306,13 +306,44 @@ bash tests/duration-tests/scripts/preflight-fixture-check.sh --apps nextcloud,ki
 
 | App | Checked (walk steps) |
 |-----|----------------------|
-| Nextcloud | installed; users teacher, student01..03 enabled (21, 27, 77, 80); student01..03 homes initialized (`data/<user>/files` exists — a never-logged-in learner makes the walk's first login slow, kc4 FAIL@27); group **Grade 5A** = all four (share_to_class 22, 73); firstrunwizard disabled; files_external, files_sharing, text, viewer enabled; core shareapi_enabled / allow_group_sharing / allow_links / allow_public_upload not `no`; every live `/mnt/idea-files/` mount `enable_sharing=true` and applicable to Grade 5A or All users (`--strict-applicable` = explicit group); Class Materials present; `Drop Zone/inbox` writable by www-data (after_upload 29); `Collab/Grade5A-collab-notes.md` writable by www-data (keep_editing 82); `/status.php`; link share `grade5adropzone` = type 3, permissions 4, on `…Drop Zone/inbox` (open_file_drop 28, 78; teacher OCS read, falls back to the public `/s/<token>` page) |
+| Nextcloud | installed; users teacher, student01..03 enabled (21, 27, 77, 80); student01..03 homes initialized (`data/<user>/files` exists — a never-logged-in learner makes the walk's first login slow, kc4 FAIL@27); group **Grade 5A** = all four (share_to_class 22, 73); firstrunwizard and password_policy disabled; files_external, files_sharing, text, viewer enabled; text `open_read_only_enabled=0`; overwrite.cli.url set; core shareapi_allow_custom_tokens not `yes` (WARN); r56 root Local mounts **/Class Materials, /Collab, /Drop Zone** (datadir `<M>/<name>` under /mnt/idea-files, applicable Grade 5A, enable_sharing true, filesystem_check_changes 1; kc5 FAIL@30) and the Grade 5A Files mount sharing; Collab, the collab doc, Drop Zone and Drop Zone/inbox owned by uid 33; core shareapi_enabled / allow_group_sharing / allow_links / allow_public_upload not `no`; every live `/mnt/idea-files/` mount `enable_sharing=true` and applicable to Grade 5A or All users (`--strict-applicable` = explicit group); Class Materials present; `Drop Zone/inbox` writable by www-data (after_upload 29); `Collab/Grade5A-collab-notes.md` writable by www-data (keep_editing 82); `/status.php`; link share `grade5adropzone` = type 3, permissions 4, owner teacher, on `…Drop Zone/inbox` (open_file_drop 28, 78; teacher OCS read, falls back to the public `/s/<token>` page); with `--nc-url` (and auth allowed): student01 WebDAV PROPFIND `Depth: 0` on the 3 root folders → 207 |
 | Kolibri | facility; classroom Grade 5A; teacher + learner01..03; learners enrolled; teacher coach; lesson "Grade 5A Duration Lesson" active; Console intents' open_video / open_exercise ContentNodes available (`KOLIBRI_VIDEO_NODE` / `KOLIBRI_EXERCISE_NODE`); HTTP / |
 | Kiwix | `/data/duration_wikipedia_en_grade5a_stub_2026-10.zim`; `/`, `content/<book>/Main_Page`; search "fraction" → Fraction (Results 1-4 of 4) |
 
 Read-only by construction: only `occ status|user:list|user:info|group:list|app:list|config:app:get|config:system:get|files_external:list`,
 `test -d/-f/-w`, a `mode=ro` + `query_only` SQLite read in the Kolibri container, and
 HTTP GETs (enforced by `tests/unit/preflight-fixture-check.test.mjs`).
+
+### Nextcloud r56 provisioning replay (NOT read-only)
+
+`scripts/nc-provision-r56-replay.sh` replays Atlas's full r56 hand provisioning
+(`duration-evidence/path-a-stage2-20261009/prep-r56/READY.md` +
+`path-a-stage2/reset-r86t/nc-reset.txt`) onto the kit WD layout, idempotently and
+with `<account>911!` passwords. It covers:
+- apps
+- users and group Grade 5A
+- ownership of Collab and Drop Zone
+- the three root mounts
+- overwrite.cli.url
+- learner warm-up
+- the `grade5adropzone` file request
+- a learner PROPFIND check
+
+Run it on idea03 under a fleet-state claim, on a **freshly reset** instance
+(`nc-reset-path-a.sh` from the a5542f2 seed), then the preflight, which checks every
+item the replay sets:
+
+```bash
+bash tests/duration-tests/scripts/nc-provision-r56-replay.sh http://idea03:61820
+bash tests/duration-tests/scripts/preflight-fixture-check.sh --apps nextcloud,kiwix \
+     --nc-container nextcloud-grade5a-001-nextcloud-app-1 --nc-url http://idea03:61820
+```
+
+Why the root mounts matter: the Console intents use "/" as the class root when
+"Class Materials" is at the Files root, else they open "Grade 5A Files". After step 22,
+learners have the received "Class Materials" share at their root. They then look for
+Collab and Drop Zone at "/" too: kc5 failed at 30 (open_collab_doc), and step 32
+(browse_folders) would have failed next.
 
 **Learner warm-up (NOT read-only, only when asked).** If `nc.learner_home` fails,
 initialize each learner's home with one WebDAV PROPFIND (`Depth: 0`, as
