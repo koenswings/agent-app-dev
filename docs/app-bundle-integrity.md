@@ -39,6 +39,17 @@ Checked by `node script/check-xapp-update-fields.mjs <compose.yaml>`:
 | `migrationNote` | shown to the teacher before a major update |
 | `snapshotExclude: [<path>...]` | paths under `data/` left out of the pre-update copy |
 
+### Nextcloud keeps config/ and custom_apps/ in the snapshot (E3)
+
+`node script/check-compose.mjs` fails a Nextcloud App whose `x-app.backup.exclude` or `x-app.snapshotExclude` lists Nextcloud's `config/` or `custom_apps/` folder, a path inside one, or an ancestor of one (`data/nextcloud`, `data`, `.`).
+
+Why: an updateApp rollback (agent-engine-dev `src/data/UpdateApp.ts` `rollBack` → `restoreSnapshot` → `idea-app-data restore-snapshot`) restores the instance folder in place from `.pre-update/<id>` with `rsync --delete`. It leaves alone only the excluded paths (`backup.exclude` ∪ `snapshotExclude`, recorded in the snapshot's `EXCLUDE`). With either folder excluded, a rolled-back Nextcloud would keep the newer `config.php` (new `version`, `appstoreenabled` false) or `custom_apps/.idea-update-state/` next to the old code.
+
+- **Nextcloud App:** `x-app.name` is `nextcloud`, or a service image's repo name is exactly `nextcloud` (`nextcloud:31.0.14-apache`, `koenswings/nextcloud:…`). `nextcloud-code` and `nextcloud-mariadb` do not count.
+- **Folders:** `data/nextcloud/config` and `data/nextcloud/custom_apps` (app-nextcloud binds `./data/nextcloud:/var/www/html`). A Nextcloud service's other relative bind onto `/var/www/html` adds `<src>/config` and `<src>/custom_apps`, and a bind onto `/var/www/html/config` or `/var/www/html/custom_apps` adds `<src>`.
+- **Entries** are normalised like the Engine (`backupExclude.ts`): spaces, a leading `./` and a trailing `/` are dropped, and a bare name other than `data` means `data/<name>`, so `nextcloud` fails. A glob, which the Engine refuses anyway, fails when it could match a folder, a path inside it or an ancestor. `**` matches any depth.
+- Unrelated excludes such as `data/nextcloud/data/appdata_<id>/preview` pass. So do non-Nextcloud Apps. Tests: `tests/unit/check-compose-nextcloud-rollback.test.mjs`.
+
 `x-app.update` is optional. When it is present, `node script/check-compose.mjs` (and `check-xapp-update-fields.mjs`) also checks the **update stages** (gap 12, Axle addendum): `prepare`, `verify`, `work` and `settle`. Each stage is optional; a missing `x-app.update` is valid, and unknown `x-app` keys stay allowed. When a stage is declared:
 
 - `prepare`, `verify` and `work` take `{ service, command, timeout, user? }`
