@@ -13,7 +13,9 @@
 # One line, system-disk layout (default; discovers ids under /instances by x-app name):
 #   ssh pi@<pi> 'sudo -n bash -s -- before' < kit374-inventory.sh
 #   -> writes /home/pi/r374-inventory/kid-before/<instanceId>/summary.json (+ raw files)
-# Local:     sudo -n bash kit374-inventory.sh [LABEL|OUTDIR] [INSTANCE_ID ...]
+# ssh-drop safe: ssh pi@<pi> 'sudo -n bash -s -- --detach before' < kit374-inventory.sh   (nohup, own session, DONE marker)
+#              ssh pi@<pi> 'sudo -n bash -s -- wait before' < kit374-inventory.sh       (blocks, prints the log; `status before` = no wait)
+# Local:     sudo -n bash kit374-inventory.sh [--detach] [LABEL|OUTDIR] [INSTANCE_ID ...]
 # App Disk:  IDEA_ROOT=/disks/<dev> ...      both: IDEA_ROOT=auto
 #
 # Only `docker ps`, `docker inspect`, `docker image inspect` and `docker exec` of
@@ -32,7 +34,7 @@
 set -euo pipefail
 export LC_ALL=C
 command -v python3 >/dev/null || { echo "ERROR: python3 needed" >&2; exit 2; }
-exec python3 - "$@" <<'PY'
+KID374_SRC=$(cat <<'PY'
 import hashlib, json, os, re, shlex, sqlite3, subprocess, sys, time, base64, glob
 import urllib.request, urllib.error, urllib.parse, http.cookiejar
 from datetime import datetime
@@ -553,10 +555,7 @@ def kiwix(iid, inst, env, cont, odir, info):
 def main(argv):
     label = argv[0] if argv else "inv-" + time.strftime("%Y%m%dT%H%M%S")
     ids = argv[1:]
-    if "/" in label:
-        outdir = label
-    else:
-        outdir = os.path.join("/home/pi/r374-inventory" if os.path.isdir("/home/pi") else os.getcwd(), "kid-" + label)
+    outdir = outdir_for(label)
     root_env = os.environ.get("IDEA_ROOT", "")
     roots = ([""] + sorted(os.path.dirname(d) for d in glob.glob("/disks/*/instances"))) if root_env == "auto" else [root_env.rstrip("/")]
     if os.path.exists(os.path.join(outdir, "run.json")):
@@ -609,5 +608,73 @@ def main(argv):
     print("OUTDIR " + outdir)
     return rc
 
-sys.exit(main(sys.argv[1:]))
+def outdir_for(label):
+    if "/" in label:
+        return label
+    return os.path.join("/home/pi/r374-inventory" if os.path.isdir("/home/pi") else os.getcwd(), "kid-" + label)
+
+def pid_alive(pidfile):
+    try:
+        pid = int(open(pidfile).read().strip())
+        cmd = open("/proc/%d/cmdline" % pid, "rb").read().replace(b"\0", b" ").decode("utf-8", "replace")
+        return pid if "kit374-inventory.py" in cmd else None
+    except (OSError, ValueError):
+        return None
+
+def wait_status(mode, argv):
+    if not argv:
+        sys.exit("usage: kit374-inventory.sh %s <label|outdir> [seconds]" % mode)
+    out = outdir_for(argv[0])
+    limit = float(argv[1]) if mode == "wait" and len(argv) > 1 else (7200 if mode == "wait" else 0)
+    done, pidf, logf = os.path.join(out, "DONE"), os.path.join(out, "inventory.pid"), os.path.join(out, "inventory.log")
+    t0 = time.time()
+    while mode == "wait" and not os.path.exists(done) and time.time() - t0 < limit and pid_alive(pidf):
+        time.sleep(2)
+    if os.path.exists(done):
+        code = open(done).read().strip()
+        print("DONE rc=%s %s" % (code, out))
+        if mode == "wait" and os.path.exists(logf):
+            print(open(logf).read().rstrip())
+        return int(code or 1)
+    if pid_alive(pidf):
+        print("RUNNING pid=%s %s" % (open(pidf).read().strip(), out)); return 3
+    print("NOT RUNNING and no DONE marker in %s (interrupted? quarantine it and start a new label)" % out)
+    return 4
+
+def detach(argv):
+    label = argv[0] if argv else "inv-" + time.strftime("%Y%m%dT%H%M%S")
+    out = outdir_for(label)
+    if os.path.exists(os.path.join(out, "run.json")) or os.path.exists(os.path.join(out, "inventory.pid")):
+        sys.exit("ERROR: %s already used; pick a new label" % out)
+    os.makedirs(out, exist_ok=True)
+    src = os.path.join(out, "kit374-inventory.py")
+    with open(src, "w") as f:
+        f.write(os.environ["KID374_SRC"])
+    log = open(os.path.join(out, "inventory.log"), "a")
+    env = dict(os.environ, KID374_MARKER=os.path.join(out, "DONE"))
+    p = subprocess.Popen(["nohup", sys.executable, src, out] + argv[1:], stdin=subprocess.DEVNULL, stdout=log, stderr=log, start_new_session=True, env=env)
+    open(os.path.join(out, "inventory.pid"), "w").write(str(p.pid) + "\n")
+    print("DETACHED pid=%d out=%s  (then: wait %s)" % (p.pid, out, label))
+    return 0
+
+def entry(argv):
+    if argv[:1] in (["wait"], ["status"]):
+        return wait_status(argv[0], argv[1:])
+    if "--detach" in argv:
+        return detach([a for a in argv if a != "--detach"])
+    rc = 1
+    try:
+        rc = main(argv)
+    finally:
+        mk = os.environ.get("KID374_MARKER")
+        if mk:
+            with open(mk + ".tmp", "w") as f:
+                f.write("%d\n" % rc)
+            os.replace(mk + ".tmp", mk)
+    return rc
+
+sys.exit(entry(sys.argv[1:]))
 PY
+)
+export KID374_SRC
+exec python3 -c "$KID374_SRC" "$@"

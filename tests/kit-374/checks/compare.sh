@@ -11,6 +11,11 @@
 #   EXPECT_KIWIX_APP_VERSION=1.3-3.8.2
 #   NC_ALLOW_APP_DROP="app1 app2"  enabled apps allowed to disappear
 #   KOLIBRI_GROWING_TABLES="logger_usersessionlog"  tables allowed to grow (sign-ins add rows)
+#   EXPECT_NOT_UPDATED="<id> <id>"  instances the plan does not update: their version
+#                       expectations print INFO "not updated by plan" while the version is unchanged
+#   HOP_MINOR="nc18 ncd18"  hop labels that are same-major (no temp backup expected); a hop
+#                       started with `kit374-hopwatch.sh start <label> <id> --minor` is minor already
+#   HOPWATCH_TOL_MB=256     free-space tolerance when re-evaluating hop.json
 set -euo pipefail
 [ $# -ge 2 ] && [ -d "$1" ] && [ -d "$2" ] || { echo "usage: compare.sh BEFORE_DIR AFTER_DIR [HOP_DIR ...]" >&2; exit 2; }
 exec python3 - "$@" <<'PY'
@@ -41,14 +46,33 @@ def short(items, n=8):
     items = sorted(items)
     return ", ".join(map(str, items[:n])) + (" … (+%d)" % (len(items) - n) if len(items) > n else "")
 
-def expect(iid, app, check, actual, want, prefix=False):
+NOT_UPDATED = set(E.get("EXPECT_NOT_UPDATED", "").split())
+
+def expect(iid, app, check, actual, want, prefix=False, before=None):
+    if want and iid in NOT_UPDATED:
+        if actual == before:
+            out("INFO", iid, app, check, "not updated by plan (%r unchanged)" % (actual,))
+        else:
+            out("WARN", iid, app, check, "listed in EXPECT_NOT_UPDATED but changed %r -> %r" % (before, actual))
+        return
     if not want:
         out("INFO", iid, app, check, str(actual)); return
     good = str(actual or "").startswith(want) if prefix else actual == want
     ok(good, iid, app, check, "got %r want %s%r" % (actual, "prefix " if prefix else "", want))
 
+def baseline_ok(iid, app, check, before_bad, after_bad, describe):
+    """FAIL only when the problem grew since BEFORE; an identical baseline gap is INFO."""
+    new = [x for x in after_bad if x not in before_bad]
+    if new:
+        out("FAIL", iid, app, check, describe(new, "new since before"))
+    elif after_bad:
+        out("INFO", iid, app, check, describe(after_bad, "baseline, unchanged since before"))
+    else:
+        out("PASS", iid, app, check)
+
 def common(iid, app, b, a):
-    ok(not a.get("errors"), iid, app, "inventory-errors", "; ".join(a.get("errors", []))[:400])
+    baseline_ok(iid, app, "inventory-errors", b.get("errors") or [], a.get("errors") or [],
+                lambda xs, why: "%s: %s" % (why, "; ".join(xs))[:400])
     run = [c["name"] for c in a.get("containers", []) if c.get("state") != "running"]
     ok(a.get("containers") and not run, iid, app, "containers-running", short(run) or "no containers found for this instance")
     unh = [c["name"] for c in a.get("containers", []) if c.get("health") not in (None, "", "healthy")]
@@ -59,7 +83,7 @@ def common(iid, app, b, a):
 def nextcloud(iid, b, a):
     app = "nextcloud"
     common(iid, app, b, a)
-    expect(iid, app, "app-version", a["xapp"].get("version"), E.get("EXPECT_NEXTCLOUD_APP_VERSION"))
+    expect(iid, app, "app-version", a["xapp"].get("version"), E.get("EXPECT_NEXTCLOUD_APP_VERSION"), before=b["xapp"].get("version"))
     st = a.get("occStatus") or {}
     ok(st.get("installed") is True, iid, app, "installed", str(st.get("installed")))
     ok(st.get("needsDbUpgrade") is False, iid, app, "needsDbUpgrade-false", str(st.get("needsDbUpgrade")))
@@ -67,7 +91,8 @@ def nextcloud(iid, b, a):
     sp = (a.get("statusPhp") or {}).get("json") or {}
     ok((a.get("statusPhp") or {}).get("http") == 200 and sp.get("maintenance") is False and sp.get("needsDbUpgrade") is False,
        iid, app, "status.php", str(a.get("statusPhp")))
-    expect(iid, app, "nextcloud-version", st.get("versionstring") or st.get("version"), E.get("EXPECT_NC_VERSION_PREFIX"), prefix=True)
+    bst = b.get("occStatus") or {}
+    expect(iid, app, "nextcloud-version", st.get("versionstring") or st.get("version"), E.get("EXPECT_NC_VERSION_PREFIX"), prefix=True, before=bst.get("versionstring") or bst.get("version"))
     bu, au = b.get("users") or {}, a.get("users") or {}
     ok(bu == au, iid, app, "users", "missing=%s changed=%s new=%s" % (short(set(bu) - set(au)), short(u for u in bu if u in au and bu[u] != au[u]), short(set(au) - set(bu))))
     bg, ag = b.get("groups") or {}, a.get("groups") or {}
@@ -124,8 +149,8 @@ def nextcloud(iid, b, a):
 def kolibri(iid, b, a):
     app = "kolibri"
     common(iid, app, b, a)
-    expect(iid, app, "app-version", a["xapp"].get("version"), E.get("EXPECT_KOLIBRI_APP_VERSION"))
-    expect(iid, app, "kolibri-version", (a.get("publicInfo") or {}).get("kolibri_version"), E.get("EXPECT_KOLIBRI_VERSION_PREFIX"), prefix=True)
+    expect(iid, app, "app-version", a["xapp"].get("version"), E.get("EXPECT_KOLIBRI_APP_VERSION"), before=b["xapp"].get("version"))
+    expect(iid, app, "kolibri-version", (a.get("publicInfo") or {}).get("kolibri_version"), E.get("EXPECT_KOLIBRI_VERSION_PREFIX"), prefix=True, before=(b.get("publicInfo") or {}).get("kolibri_version"))
     ok(a.get("integrity") == "ok", iid, app, "sqlite-integrity", str(a.get("integrity")))
     ok(b.get("MORANGO_SYSTEM_ID") == a.get("MORANGO_SYSTEM_ID"), iid, app, "MORANGO_SYSTEM_ID", "%s -> %s" % (b.get("MORANGO_SYSTEM_ID"), a.get("MORANGO_SYSTEM_ID")))
     ok(b.get("facilities") == a.get("facilities"), iid, app, "facilities+dataset", "%s -> %s" % (b.get("facilities"), a.get("facilities")))
@@ -158,9 +183,10 @@ def kolibri(iid, b, a):
     bn, an = b.get("availableNodesByChannel") or {}, a.get("availableNodesByChannel") or {}
     low = ["%s %s->%s" % ((bch.get(k) or {}).get("name", k), v, an.get(k)) for k, v in bn.items() if (an.get(k) or 0) < v]
     ok(not low, iid, app, "channel-content-available", short(low))
-    cf = a.get("contentFiles") or {}
-    ok(not cf.get("missing") and not cf.get("sizeMismatch") and not cf.get("md5Mismatch"), iid, app, "content-files-present",
-       "available=%s missing=%d size=%d md5=%d" % (cf.get("available"), len(cf.get("missing") or []), len(cf.get("sizeMismatch") or []), len(cf.get("md5Mismatch") or [])))
+    cf, bcf = a.get("contentFiles") or {}, b.get("contentFiles") or {}
+    tag = lambda c: ["missing:" + x for x in c.get("missing") or []] + ["size:" + x for x in c.get("sizeMismatch") or []] + ["md5:" + x for x in c.get("md5Mismatch") or []]
+    baseline_ok(iid, app, "content-files-present", set(tag(bcf)), tag(cf),
+                lambda xs, why: "%s: %d of %s available files (%s)" % (why, len(xs), cf.get("available"), short(xs, 3)))
     pi, pf = a.get("publicInfo") or {}, a.get("publicFacilities") or {}
     ok(pi.get("http") == 200, iid, app, "http-public-info", str(pi.get("http")))
     ok(pf.get("http") == 200 and pf.get("ids") == sorted(f["id"] for f in a.get("facilities") or []), iid, app, "http-public-facilities", str(pf))
@@ -174,7 +200,7 @@ def kolibri(iid, b, a):
 def kiwix(iid, b, a):
     app = "kiwix"
     common(iid, app, b, a)
-    expect(iid, app, "app-version", a["xapp"].get("version"), E.get("EXPECT_KIWIX_APP_VERSION"))
+    expect(iid, app, "app-version", a["xapp"].get("version"), E.get("EXPECT_KIWIX_APP_VERSION"), before=b["xapp"].get("version"))
     bz, az = b.get("zims") or {}, a.get("zims") or {}
     gone = set(bz) - set(az)
     chg = [n for n in bz if n in az and any(bz[n].get(k) != az[n].get(k) for k in ("size", "sha256", "fingerprint") if k in bz[n] and k in az[n])]
@@ -190,6 +216,41 @@ def kiwix(iid, b, a):
     bad = [n for n, x in (a.get("browse") or {}).items() if x.get("http") != 200]
     ok(not bad and a.get("browse"), iid, app, "browse-books", short(bad) or "no books browsed")
 
+# --- hop_evaluate: keep byte-identical in kit374-hopwatch.sh and compare.sh (test/dry-run.sh checks) ---
+def hop_evaluate(h):
+    res = []
+    st, pre, post, ev = h["state"], h["pre"], h["post"], h.get("evidence", {})
+    tol = h.get("tolBytes", 256 * 1024 * 1024)
+    minor = bool(pre.get("minor"))
+    j = ev.get("journal", [])
+    jcreate = any("temp-backup-create:" in l and "complete" in l for l in j)
+    jdelete = any("temp-backup-delete: removed" in l for l in j)
+    seen = bool(st.get("firstSeen")) or jcreate
+    what = "seen %s..%s, max %d bytes, stamps %s, COMPLETE seen %s, journal create-complete %s" % (
+        st.get("firstSeen"), st.get("lastSeen"), st.get("maxTempBytes", 0), ",".join(st.get("stamps", [])) or "-", st.get("completeSeen"), jcreate)
+    if minor:
+        res.append(("PASS" if not seen else "FAIL", "no-temp-backup-minor-hop",
+                    "minor hop, no temp backup expected and none seen" if not seen else "a temp backup appeared on a minor hop: " + what))
+    else:
+        res.append(("PASS" if seen else "FAIL", "temp-backup-existed", what))
+    left = post.get("tempDirs") or []
+    res.append(("PASS" if not left else "FAIL", "temp-backup-gone",
+                "nothing under .idea-temp-backups/%s (journal delete %s)" % (h["id"], jdelete) if not left else
+                "still there: %s" % ", ".join("%s (%d bytes, COMPLETE %s)" % (x["stamp"], x["bytes"], x["complete"]) for x in left)))
+    raw = pre["freeBytes"] - post["freeBytes"]
+    grow = {k: (post["bytes"].get(k) or 0) - (pre["bytes"].get(k) or 0) for k in pre["bytes"]}
+    explained = sum(v for k, v in grow.items() if k != "tempBackups")
+    unexplained = raw - explained - grow.get("tempBackups", 0)
+    detail = "free before %d, after %d, used %+d; explained %+d (%s); unexplained %+d, tolerance %d" % (
+        pre["freeBytes"], post["freeBytes"], raw, explained,
+        ", ".join("%s %+d" % (k, v) for k, v in sorted(grow.items()) if v), unexplained, tol)
+    res.append(("PASS" if abs(unexplained) <= tol and not left else "FAIL", "free-space-recovered", detail))
+    res.append(("INFO", "free-space-min-during", "%s bytes at %s (pre-hop %d, dip %d)" % (
+        st.get("freeMin"), st.get("freeMinAt"), pre["freeBytes"], pre["freeBytes"] - (st.get("freeMin") or pre["freeBytes"]))))
+    res.append(("INFO", "watcher", "%s samples, stopped by %s at %s" % (st.get("samples"), st.get("stoppedBy"), st.get("stoppedAt"))))
+    return res
+# --- end hop_evaluate ---
+
 bi, ai = load(B), load(A)
 for iid in sorted(set(bi) | set(ai)):
     b, a = bi.get(iid), ai.get(iid)
@@ -204,7 +265,11 @@ for hd in HOPS:
         out("FAIL", "-", "hop", os.path.basename(hd.rstrip("/")), "no hop.json (assert not run?)"); continue
     with open(p) as f:
         h = json.load(f)
-    for lvl, chk, det in h.get("checks", []):
+    if h.get("label") in set(E.get("HOP_MINOR", "").split()):
+        h["pre"]["minor"] = True
+    if "HOPWATCH_TOL_MB" in E:
+        h["tolBytes"] = int(E["HOPWATCH_TOL_MB"]) * 1024 * 1024
+    for lvl, chk, det in hop_evaluate(h):  # re-evaluated from the raw numbers (same code as the assert)
         out(lvl, h.get("id", "?"), "hop-" + h.get("label", "?"), chk, det)
 print("RESULT %s (%d FAIL)" % ("FAIL" if fails else "PASS", fails))
 sys.exit(1 if fails else 0)
