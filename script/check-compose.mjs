@@ -11,11 +11,13 @@
 // Always (idea#403): x-app.backup structure, matching the Engine (method stop|hook|none, hook lists,
 //   step services in compose, path lists without globs); see docs/backup-hook.md.
 // Always (gap 12): x-app.update stages (prepare, verify, work, settle) when present; see docs/app-bundle-integrity.md.
+// Always (E3): a Nextcloud App must not list config/ or custom_apps/ (or a path inside or above them) in
+//   x-app.backup.exclude or x-app.snapshotExclude: an updateApp rollback would keep the newer files.
 import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { dirname, basename, join } from 'node:path';
 import { YAML } from 'zx';
-import { checkComposeVersion, checkComposeRelease, checkComposeBackup, checkComposeUpdate, checkStatefulMajor } from '../lib/check-compose.mjs';
+import { checkComposeVersion, checkComposeRelease, checkComposeBackup, checkComposeUpdate, checkStatefulMajor, checkNextcloudRollbackPaths } from '../lib/check-compose.mjs';
 const a = process.argv.slice(2); let tag; let release = false; let base; let baseRef; const files = [];
 for (let i = 0; i < a.length; i++) {
   if (a[i] === '--tag') { tag = a[++i]; continue; }
@@ -27,7 +29,7 @@ for (let i = 0; i < a.length; i++) {
 let bad = 0;
 for (const f of files) {
   const text = readFileSync(f, 'utf8'); const doc = YAML.parse(text);
-  const errs = [...checkComposeVersion(doc, tag), ...checkComposeBackup(doc), ...checkComposeUpdate(doc)];
+  const errs = [...checkComposeVersion(doc, tag), ...checkComposeBackup(doc), ...checkComposeUpdate(doc), ...checkNextcloudRollbackPaths(doc)];
   if (release) errs.push(...checkComposeRelease(doc, text));
   if (base !== undefined || baseRef !== undefined) {
     // app.yaml beside each compose (services[] upstream versions, for date-tagged retags), if any.

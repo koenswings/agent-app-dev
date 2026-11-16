@@ -125,3 +125,9 @@ Do not test with an in-place `restoreApp` on a kit; restore into a fresh instanc
 
 `node script/check-compose.mjs [--release] [--tag <v>] compose.yaml`. Tests:
 `tests/unit/check-compose-backup.test.mjs`.
+
+For a Nextcloud App, check-compose also fails an `exclude` (or `x-app.snapshotExclude`) entry that is
+Nextcloud's `config/` or `custom_apps/`, a path inside one or an ancestor of one, because an
+updateApp rollback would keep the newer files (E3). See
+[app-bundle-integrity.md](app-bundle-integrity.md#nextcloud-keeps-config-and-custom_apps-in-the-snapshot-e3).
+Tests: `tests/unit/check-compose-nextcloud-rollback.test.mjs`.
