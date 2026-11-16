@@ -290,6 +290,8 @@ describe('duration-tests fixtures (idea#166)', () => {
     assert.match(script, /nc-drop-zone-request\.py/);
     assert.match(read('scripts/nc-drop-zone-request.py'), /"permissions": 4/);
     assert.match(script, /provision_nextcloud_collab/);
+    assert.match(script, /local cname="\$\{1:-idea166-nextcloud-live-app\}"/);
+    assert.match(script, /provision_nextcloud_collab "\$nc_cname"/);
     assert.match(script, /enable_sharing/);
     assert.match(script, /chown -R 33:33/);
     assert.match(script, /--add-group="Grade 5A"/);
@@ -329,6 +331,48 @@ describe('duration-tests fixtures (idea#166)', () => {
       // first-run wizard overlay blocks Intent Files clicks — disabled on every start
       const frw = st.calls.filter((c) => c[0] === 'app:disable' && c[1] === 'firstrunwizard');
       assert.equal(frw.length, 2, 'occ app:disable firstrunwizard on each container start');
+    } finally {
+      rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+
+  it('duration hook sets enable_sharing on a pre-seeded Files Disk mount without idea_files', async () => {
+    // Today's Path A seed already had "/Grade 5A Files" in the DB (enable_sharing
+    // false, no idea_files marker). The hook used to skip those and leave sharing off.
+    const { mkdtempSync, mkdirSync, writeFileSync, rmSync } = await import('node:fs');
+    const { tmpdir } = await import('node:os');
+    const { spawnSync } = await import('node:child_process');
+    const rel = 'docker-entrypoint-hooks.d/before-starting/10-idea-files.sh';
+    const hook = join(FIX, 'nextcloud/instances/nextcloud-grade5a-001', rel);
+    const tmp = mkdtempSync(join(tmpdir(), 'dur-nc-hook-preseed-'));
+    try {
+      const files = join(tmp, 'files');
+      const datadir = join(files, 'grade-5a-files-durati');
+      mkdirSync(datadir, { recursive: true });
+      const state = join(tmp, 'occ.json');
+      writeFileSync(state, JSON.stringify({
+        ready: true,
+        filesExternalEnabled: true,
+        storages: [{
+          id: 1,
+          mountPoint: 'Grade 5A Files',
+          datadir,
+          options: { enable_sharing: false },
+        }],
+        nextId: 2,
+        calls: [],
+      }));
+      const env = { ...process.env, IDEA_FILES_ROOT: files, OCC: join(__dirname, 'fake-occ.mjs'), FAKE_OCC_STATE: state };
+      const r = spawnSync('sh', [hook], { env, encoding: 'utf8' });
+      assert.equal(r.status, 0, r.stderr + r.stdout);
+      const st = JSON.parse(readFileSync(state, 'utf8'));
+      assert.equal(st.storages.length, 1, 'must not recreate or delete the pre-seeded mount');
+      assert.ok(st.storages[0].options.enable_sharing, 'enable_sharing set on unmarked Files Disk mount');
+      assert.equal(st.storages[0].options.idea_files, undefined, 'does not retag admin/unmarked mounts as idea_files');
+      const deletes = st.calls.filter((c) => c[0] === 'files_external:delete');
+      assert.equal(deletes.length, 0, 'must not delete unmarked storages');
+      const creates = st.calls.filter((c) => c[0] === 'files_external:create');
+      assert.equal(creates.length, 0, 'must not create a second storage for the same datadir');
     } finally {
       rmSync(tmp, { recursive: true, force: true });
     }

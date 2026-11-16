@@ -455,9 +455,11 @@ NC_COLLAB_OK=0
 provision_nextcloud_collab() {
   # Prefer A keep_editing / open_collab_doc / share_to_class prerequisites.
   # Sets NC_COLLAB_OK=1 only when chown + mount options succeeded.
+  # $1 = nextcloud-app container name (default: sidecar). dock-compose passes
+  # the Engine-docked instance container, e.g. nextcloud-grade5a-001-nextcloud-app-1.
   local ok=1
   [[ "${SKIP_PROVISION:-0}" == "1" ]] && { echo "SKIP_PROVISION=1 — skip collab/share provisioning"; return 0; }
-  local cname="idea166-nextcloud-live-app"
+  local cname="${1:-idea166-nextcloud-live-app}"
   if ! docker ps --format '{{.Names}}' | grep -qx "$cname"; then
     echo "WARN: $cname not running — skip collab provisioning" >&2
     return 0
@@ -898,6 +900,22 @@ restore_dock_compose() {
   if want_nextcloud && [[ -d "$DOCK_ROOT/instances/$INST_NC" ]]; then
     (cd "$DOCK_ROOT/instances/$INST_NC" && docker compose up -d) || \
       echo "WARN: nextcloud compose up failed" >&2
+    # Sidecar provision used to be the only path that set enable_sharing.
+    # Engine-docked Path A (nextcloud-grade5a-001) never ran it, so share_to_class
+    # failed when the instance hook skipped (occ not ready) or left a pre-seeded
+    # mount at the NC 31 default enable_sharing=false.
+    nc_cname="$(
+      (cd "$DOCK_ROOT/instances/$INST_NC" && docker compose ps --format '{{.Name}}' 2>/dev/null) \
+        | grep -E 'nextcloud-app' | head -n 1 || true
+    )"
+    if [[ -z "$nc_cname" ]]; then
+      nc_cname="$(docker ps --format '{{.Names}}' 2>/dev/null | grep -E "${INST_NC}.*nextcloud-app" | head -n 1 || true)"
+    fi
+    if [[ -n "$nc_cname" ]]; then
+      provision_nextcloud_collab "$nc_cname"
+    else
+      echo "WARN: no nextcloud-app container for $INST_NC — skip collab/share provisioning" >&2
+    fi
   fi
   if want_kiwix && [[ -d "$DOCK_ROOT/instances/$INST_KIWIX" ]]; then
     (cd "$DOCK_ROOT/instances/$INST_KIWIX" && docker compose up -d) || \
