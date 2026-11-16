@@ -12,10 +12,21 @@
 # after create). Admin-created Local storages are never deleted, even when their
 # datadir is under /mnt/idea-files/.
 #
-# DURATION-TESTS FIXTURE VARIANT (idea#166 Prefer A): own storages also get
-# enable_sharing=true. Nextcloud 31 defaults external mounts to sharing off,
-# which makes share_to_class (view-only group share) and the Drop Zone file
-# request link impossible. The production app-nextcloud hook is unchanged.
+# DURATION-TESTS FIXTURE VARIANT (idea#166 Prefer A): every live Files Disk
+# mount (datadir under IDEA_FILES_ROOT, folder present) gets enable_sharing=true,
+# including storages that predate the idea_files=1 marker. Nextcloud 31 defaults
+# external mounts to sharing off, which makes share_to_class (view-only group
+# share) and the Drop Zone file request link impossible.
+#
+# Also waits for occ/DB (IDEA_OCC_WAIT, default 120s) before reconciling. A
+# single `occ status` often fails on first container start while MariaDB is
+# still coming up; skipping then leaves enable_sharing=false in a pre-seeded
+# database until a later restart (cover-all Path A 2026-11-16 step 22).
+#
+# Production app-nextcloud 10-idea-files.sh (cadea7d, 2026-10-14) also sets
+# enable_sharing on idea_files=1 own storages and waits for occ. Duration
+# fixtures vendor their own hook via compose (nextcloud-1.0 / instance copy),
+# so that App hook does not run on these disks.
 #
 # DURATION-TESTS ONLY: also disable the firstrunwizard app on every start. Its
 # first-login overlay (#firstrunwizard modal) covers the Files UI, so Intent
@@ -120,11 +131,33 @@ if [ ! -d "$IDEA_FILES_ROOT" ]; then
 	exit 0
 fi
 
-# Fail closed if occ is not usable yet (first install / upgrade in progress).
-if ! run_occ status >/dev/null 2>&1; then
-	echo "idea-files: occ not ready — skip reconcile (fail closed, nothing deleted)"
-	exit 0
-fi
+# Wait for occ: on container start MariaDB is often still coming up, so a single
+# `occ status` fails and this hook used to skip reconcile entirely (fail closed).
+# Retry with a bound. Not installed → nothing to reconcile (no wait). Timeout →
+# skip, delete nothing.
+OCC_WAIT="${IDEA_OCC_WAIT:-120}"
+OCC_INTERVAL="${IDEA_OCC_INTERVAL:-3}"
+case "$OCC_WAIT" in ''|*[!0-9]*) OCC_WAIT=120 ;; esac
+case "$OCC_INTERVAL" in ''|*[!0-9]*|0) OCC_INTERVAL=3 ;; esac
+waited=0
+while :; do
+	st="$(run_occ status 2>/dev/null)" && st_ok=1 || st_ok=0
+	if [ "$st_ok" = 1 ]; then
+		case "$st" in
+			*"installed: false"*)
+				echo "idea-files: Nextcloud not installed — skip reconcile"
+				exit 0 ;;
+		esac
+		break
+	fi
+	if [ "$waited" -ge "$OCC_WAIT" ]; then
+		echo "idea-files: occ not ready after ${OCC_WAIT}s — skip reconcile (nothing deleted)"
+		exit 0
+	fi
+	sleep "$OCC_INTERVAL"
+	waited=$((waited + OCC_INTERVAL))
+done
+[ "$waited" -gt 0 ] && echo "idea-files: occ ready after ${waited}s"
 
 # Duration-tests only: no first-run wizard overlay (blocks Intent Files clicks).
 # Idempotent; failure (app absent / already disabled) never blocks start.
@@ -195,28 +228,29 @@ for dir in "$IDEA_FILES_ROOT"/*; do
 	fi
 done
 
-# Refresh own list after creates, then delete own storages whose folder is gone.
+# Refresh the list after creates. For every live Files Disk mount (datadir under
+# our root, folder present) assert enable_sharing + filesystem_check_changes —
+# including storages that were created before idea_files=1, which the previous
+# loop skipped. Only delete own (idea_files=1) storages whose folder is gone.
 list_json="$(run_occ files_external:list --output=json 2>/dev/null || echo '[]')"
 printf '%s' "$list_json" | parse_list_json | while IFS= read -r line; do
 	[ -n "$line" ] || continue
 	id="${line%%|*}"; rest="${line#*|}"
 	mp="${rest%%|*}"; rest="${rest#*|}"
 	datadir="${rest%%|*}"; idea="${rest##*|}"
-	[ "$idea" = "1" ] || continue
-	# Only delete when datadir is under our root and the folder is gone.
 	case "$datadir" in
 		"$IDEA_FILES_ROOT"/*) ;;
 		*) continue ;;
 	esac
-	if [ ! -d "$datadir" ]; then
+	if [ -d "$datadir" ]; then
+		# Live Files Disk mount: sharing must be on (NC 31 defaults it off).
+		set_option "$id" filesystem_check_changes 1
+		set_option "$id" enable_sharing true
+	elif [ "$idea" = "1" ]; then
 		echo "idea-files: delete own storage id=$id (folder gone): $datadir"
 		# -y: config only; never touches files on disk (folder already absent).
 		run_occ files_external:delete -y "$id" >/dev/null 2>&1 || \
 			run_occ files_external:delete --yes "$id" >/dev/null 2>&1 || true
-	else
-		# Keep filesystem_check_changes + enable_sharing on for own storages that remain.
-		set_option "$id" filesystem_check_changes 1
-		set_option "$id" enable_sharing true
 	fi
 done
 

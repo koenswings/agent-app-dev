@@ -386,9 +386,15 @@ share on the `/Drop Zone` mount root first. Custom tokens must be
 token with `\w+`, so the retired `grade5a-drop-zone` was cut to `grade5a` and
 every public PROPFIND/upload returned HTTP 500 ("This directory is
 unavailable"). The fixture `10-idea-files.sh` copies (duration pack
-only — production app-nextcloud hook untouched) now set `enable_sharing=true`
-on every own mount at container start, so `share_to_class` works on both the
-sidecar folders and the docked `Grade 5A Files` mount.
+only; compose bind-mounts this hook, not the production app-nextcloud one)
+wait for occ and set `enable_sharing=true` on every live Files Disk mount
+at container start — including pre-seeded storages that lack `idea_files=1` —
+so `share_to_class` works on both the sidecar folders and the docked
+`Grade 5A Files` mount. `post-dock-restore-running.sh --mode dock-compose`
+now also runs that provision against the Engine-docked container (not only
+the sidecar). Re-extracting the Oct 2026 `duration-nextcloud-grade5a-001`
+tarball still carries the old hook until the seed is rebuilt from this tree
+or the instance hook is recopied and the app container restarted.
 
 **First-run wizard off (duration only).** NC 31's `firstrunwizard` opens a
 modal overlay (`#firstrunwizard`) on first login that covers the Files UI, so
