@@ -37,6 +37,27 @@ EXPECT_KIWIX_APP_VERSION=1.3-3.8.2 \
 Order: run it **after** Atlas's inventory. The login checks can add `oc_authtoken` / `oc_preferences`
 rows in Nextcloud, which his row-count diff would otherwise show.
 
+## Major hops: the temporary system-disk backup (agent-engine-dev#472)
+
+With no Backup Disk, a major `updateApp` (NC SHA→1.7, Kolibri SHA→1.3) makes a temporary Borg backup at
+`/.idea-temp-backups/<id>/<stamp>/` (stamp `YYYYMMDDTHHMMSSmmmZ`; `repo/`, `SOURCE`, `ARCHIVE`, `EXCLUDE`, then
+`COMPLETE`), inside the Snapshot stop, and deletes `<stamp>` (and the empty `<id>`) after the Health gate.
+`kit374-hopwatch.sh` checks that it (1) existed during the hop, (2) is gone afterwards and (3) free space on the
+system disk came back to the pre-hop level once the growth of `/apps`, `/services`, `/.pre-update`,
+`/.idea-quarantine`, the instance folder, the Docker root and `/var/log` (`du -sxb` before vs after) is
+subtracted. Tolerance: `HOPWATCH_TOL_MB` (default 256 MiB).
+
+```bash
+ssh pi@100.126.117.80 'sudo -n bash -s -- start  nc17 <ncId>' < tests/kit-374/checks/kit374-hopwatch.sh    # before updateApp
+ssh pi@100.126.117.80 'sudo -n bash -s -- stop   nc17'        < tests/kit-374/checks/kit374-hopwatch.sh    # optional; assert stops it too
+ssh pi@100.126.117.80 'sudo -n bash -s -- assert nc17'        < tests/kit-374/checks/kit374-hopwatch.sh    # after the hop: PASS/FAIL
+```
+
+Same with `kol13 <kolibriId>`. Output: `/home/pi/r374-inventory/hop-<label>/` (`timeline.tsv` with free bytes and
+temp size every 2 s, `state.json` with first/last seen, max size and the free-space minimum, `hop.json`).
+Evidence lines from `journalctl -t idea-app-data` (`temp-backup-create: … complete`, `temp-backup-delete: removed …`)
+and the pm2 Engine log are attached. `compare.sh BEFORE AFTER hop-nc17 hop-kol13` reprints the hop checks.
+
 ## Safety
 
 - Only `docker ps`, `docker inspect`, `docker image inspect` and `docker exec` of read-only commands
@@ -56,4 +77,5 @@ rows in Nextcloud, which his row-count diff would otherwise show.
 `tests/kit-374/checks/test/dry-run.sh`: a fake replica tree, a fake `docker` and a local mock HTTP server
 (no containers). It checks discovery, hands-off refusal, exclusions, no secrets in the output, an
 unchanged after → PASS, and a damaged after → the exact FAILs (changed file, `enable_sharing` false,
-lost progress, missing ZIM).
+lost progress, missing ZIM), and the hop watcher: a good hop PASS, a kept temp backup, an unexplained
+free-space loss and a hop with no temp backup each FAIL.

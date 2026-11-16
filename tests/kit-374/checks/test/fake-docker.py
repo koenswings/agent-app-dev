@@ -26,7 +26,9 @@ def container(name):
             "Labels": {"com.docker.compose.project": proj, "com.docker.compose.service": service, "x-app-version": st.get("appVersion", {}).get(proj, "")}},
             "State": {"Status": "running", "Health": {"Status": "healthy"}}, "HostConfig": {"NetworkMode": "default"}, "NetworkSettings": {"Ports": {}}}
 
-if args[:1] == ["ps"]:
+if args[:1] == ["info"]:
+    print(os.path.join(FX, "dockerroot"))
+elif args[:1] == ["ps"]:
     proj = next(a.split("=", 2)[2] for a in args if a.startswith("label=com.docker.compose.project="))
     print("\n".join(PROJECTS.get(proj, [])))
 elif args[:2] == ["image", "inspect"]:

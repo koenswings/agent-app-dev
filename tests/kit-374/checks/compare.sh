@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # idea#374: compare two kit374-inventory.sh runs. Prints PASS / FAIL / WARN / INFO per check.
-# Usage: compare.sh BEFORE_DIR AFTER_DIR
+# Usage: compare.sh BEFORE_DIR AFTER_DIR [HOP_DIR ...]
+#   HOP_DIR = a kit374-hopwatch.sh output dir (hop-<label>/ with hop.json): its temp-backup
+#   checks (existed, gone, free space recovered) are printed too and count as FAIL.
 # Exit 0 = no FAIL, 1 = at least one FAIL, 2 = usage.
 #
 # Optional expectations for the after run (unset = the version is only reported):
@@ -10,11 +12,12 @@
 #   NC_ALLOW_APP_DROP="app1 app2"  enabled apps allowed to disappear
 #   KOLIBRI_GROWING_TABLES="logger_usersessionlog"  tables allowed to grow (sign-ins add rows)
 set -euo pipefail
-[ $# -eq 2 ] && [ -d "$1" ] && [ -d "$2" ] || { echo "usage: compare.sh BEFORE_DIR AFTER_DIR" >&2; exit 2; }
-exec python3 - "$1" "$2" <<'PY'
+[ $# -ge 2 ] && [ -d "$1" ] && [ -d "$2" ] || { echo "usage: compare.sh BEFORE_DIR AFTER_DIR [HOP_DIR ...]" >&2; exit 2; }
+exec python3 - "$@" <<'PY'
 import json, os, sys
 
 B, A = sys.argv[1], sys.argv[2]
+HOPS = sys.argv[3:]
 E = os.environ
 fails = 0
 def out(level, iid, app, check, detail=""):
@@ -195,6 +198,14 @@ for iid in sorted(set(bi) | set(ai)):
     if not b:
         out("INFO", iid, a.get("app"), "instance-new", "only in AFTER"); continue
     {"nextcloud": nextcloud, "kolibri": kolibri, "kiwix": kiwix}[a["app"]](iid, b, a)
+for hd in HOPS:
+    p = os.path.join(hd, "hop.json")
+    if not os.path.isfile(p):
+        out("FAIL", "-", "hop", os.path.basename(hd.rstrip("/")), "no hop.json (assert not run?)"); continue
+    with open(p) as f:
+        h = json.load(f)
+    for lvl, chk, det in h.get("checks", []):
+        out(lvl, h.get("id", "?"), "hop-" + h.get("label", "?"), chk, det)
 print("RESULT %s (%d FAIL)" % ("FAIL" if fails else "PASS", fails))
 sys.exit(1 if fails else 0)
 PY

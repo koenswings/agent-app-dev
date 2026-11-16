@@ -71,6 +71,56 @@ check has '^PASS kol-fx kolibri kolibri-version' "$FX/cmp-bad.txt" "Kolibri vers
 check has '^FAIL kiwix-fx kiwix zims-identical: gone=simple.zim' "$FX/cmp-bad.txt" "missing ZIM caught"
 check has '^PASS kol-fx kolibri MORANGO_SYSTEM_ID' "$FX/cmp-bad.txt" "kit id unchanged PASS"
 
+# 4. hop watcher (#472 temp backup): pass case, then fail cases
+export HOPWATCH_SYSROOT="$FX" HOPWATCH_OUT_BASE="$FX/hops" HOPWATCH_FREE_FILE="$FX/free" HOPWATCH_INTERVAL_S=0.2 \
+  HOPWATCH_JOURNALCTL="$HERE/fake-journalctl.sh" HOPWATCH_ENGINE_LOG="$FX/engine.log" HOPWATCH_TOL_MB=1
+mkdir -p "$FX/dockerroot" "$FX/apps" "$FX/.pre-update"
+echo 10000000000 > "$FX/free"
+setfree() { python3 -c 'import os,sys; f=sys.argv[1]; v=int(open(f).read())+int(sys.argv[2]); open(f+".t","w").write(str(v)); os.replace(f+".t",f)' "$FX/free" "$1"; }
+mkbytes() { mkdir -p "$(dirname "$1")"; head -c "$2" /dev/zero > "$1"; }
+HW="$CHK/kit374-hopwatch.sh"
+bash -s -- start okhop nc-fx < "$HW" > "$FX/hop-ok-start.txt"
+check has '^STARTED hop-okhop id=nc-fx' "$FX/hop-ok-start.txt" "watcher started (bash -s)"
+T="$FX/.idea-temp-backups/nc-fx/20261116T120000123Z"
+mkbytes "$T/repo/data" 5000000; setfree -5000000; sleep 0.5
+echo "complete 2026-11-16T12:00:05Z kb=4883 archive=x" > "$T/COMPLETE"; sleep 0.5
+python3 -c 'import shutil,sys; shutil.rmtree(sys.argv[1])' "$FX/.idea-temp-backups/nc-fx"; setfree 5000000
+mkbytes "$FX/apps/nextcloud-1.7-31.0.1/blob" 2000000; setfree -2000000
+mkbytes "$FX/.pre-update/nc-fx/data/blob" 1000000; setfree -1000000
+printf '%s\n' "2026-11-16T12:00:05+0100 idea03 idea-app-data[1]: temp-backup-create: $T complete (4883 KB)" \
+  "2026-11-16T12:03:00+0100 idea03 idea-app-data[2]: temp-backup-delete: removed $T" > "$FX/journal.txt"
+bash -s -- stop okhop < "$HW" > /dev/null
+bash "$HW" assert okhop > "$FX/hop-ok.txt" || true
+check has '^PASS nc-fx hop-okhop temp-backup-existed: .*COMPLETE seen True, journal create-complete True' "$FX/hop-ok.txt" "hop: temp backup seen during the update"
+check has '^PASS nc-fx hop-okhop temp-backup-gone' "$FX/hop-ok.txt" "hop: temp backup gone"
+check has '^PASS nc-fx hop-okhop free-space-recovered: .*apps \+2000000.*preUpdate \+1000000' "$FX/hop-ok.txt" "hop: free space back, bundle+snapshot subtracted"
+check has '^INFO nc-fx hop-okhop free-space-min-during: 9995000000 ' "$FX/hop-ok.txt" "hop: free-space minimum recorded"
+check has '^HOP okhop PASS' "$FX/hop-ok.txt" "hop: overall PASS"
+check python3 -c 'import json,sys; s=json.load(open(sys.argv[1])); sys.exit(not (s["maxTempBytes"]>=5000000 and s["stoppedBy"]=="stop-file"))' "$FX/hops/hop-okhop/state.json" "hop: max size + stop file"
+: > "$FX/journal.txt"
+bash -s -- start badhop nc-fx < "$HW" > /dev/null
+sleep 0.4
+mkbytes "$FX/.idea-temp-backups/nc-fx/20261116T130000456Z/repo/data" 3000000; setfree -3000000
+setfree -500000000   # unexplained loss
+sleep 0.5
+bash "$HW" assert badhop > "$FX/hop-bad.txt" || true
+check has '^FAIL nc-fx hop-badhop temp-backup-gone: still there: 20261116T130000456Z' "$FX/hop-bad.txt" "hop: kept temp backup caught"
+check has '^FAIL nc-fx hop-badhop free-space-recovered: .*unexplained \+500000000' "$FX/hop-bad.txt" "hop: unexplained free-space loss caught"
+check has '^HOP badhop FAIL' "$FX/hop-bad.txt" "hop: overall FAIL"
+python3 -c 'import shutil,sys; shutil.rmtree(sys.argv[1])' "$FX/.idea-temp-backups/nc-fx"
+bash -s -- start nohop kol-fx < "$HW" > /dev/null
+sleep 0.4
+bash "$HW" assert nohop > "$FX/hop-none.txt" || true
+check has '^FAIL kol-fx hop-nohop temp-backup-existed' "$FX/hop-none.txt" "hop: no temp backup at all caught"
+check has '^PASS kol-fx hop-nohop temp-backup-gone' "$FX/hop-none.txt" "hop: nothing left"
+"$CHK/compare.sh" "$FX/out/before" "$FX/out/after-same" "$FX/hops/hop-okhop" > "$FX/cmp-hop-ok.txt" || true
+check has '^PASS nc-fx hop-okhop free-space-recovered' "$FX/cmp-hop-ok.txt" "compare.sh prints hop checks"
+check has '^RESULT PASS' "$FX/cmp-hop-ok.txt" "compare.sh with a good hop PASS"
+"$CHK/compare.sh" "$FX/out/before" "$FX/out/after-same" "$FX/hops/hop-okhop" "$FX/hops/hop-badhop" > "$FX/cmp-hop-bad.txt" || true
+check has '^FAIL nc-fx hop-badhop temp-backup-gone' "$FX/cmp-hop-bad.txt" "compare.sh shows the bad hop FAIL"
+check has '^RESULT FAIL' "$FX/cmp-hop-bad.txt" "compare.sh with a bad hop FAIL"
+echo "--- hop output (pass, fail) ---"; cat "$FX/hop-ok.txt" "$FX/hop-bad.txt"
+
 echo "--- compare output (damaged) ---"; cat "$FX/cmp-bad.txt"
 echo "fixture: $FX"
 if [ "$fail" = 0 ]; then echo "DRY RUN PASS"; else echo "DRY RUN FAIL"; exit 1; fi
