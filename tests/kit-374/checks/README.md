@@ -37,6 +37,20 @@ EXPECT_KIWIX_APP_VERSION=1.3-3.8.2 \
 Order: run it **after** Atlas's inventory. The login checks can add `oc_authtoken` / `oc_preferences`
 rows in Nextcloud, which his row-count diff would otherwise show.
 
+## ssh drops, baselines, minor hops (fixes from the idea03 rehearsal)
+
+- `--detach` (inventory, hopwatch `start`/`assert`) re-runs the step under `nohup` in its own session on the Pi and
+  writes a `DONE` / `START_DONE` / `ASSERT_DONE` marker with the exit code; `wait <label> [seconds]` blocks and prints
+  the log, `status <label>` doesn't wait. An interrupted run says so (pid gone, no marker). No pgrep/pkill.
+  `ssh pi@100.126.117.80 'sudo -n bash -s -- --detach after' < kit374-inventory.sh` then `... -- wait after' < kit374-inventory.sh`.
+- `compare.sh`: `inventory-errors` and `content-files-present` FAIL only for problems that are new since BEFORE;
+  an identical baseline gap (an undocked Files Disk, Kolibri content not copied to a replica) prints INFO.
+- `EXPECT_NOT_UPDATED="<id> …"`: instances the plan leaves alone print INFO "not updated by plan" for the version
+  expectations while their version is unchanged (WARN if it changed anyway).
+- Hop evidence (journal, Engine log) is limited to the hop's own start..assert window.
+- Same-major hops: `start nc18 <id> --minor` expects **no** temp backup (`no-temp-backup-minor-hop`) and still checks
+  free space. For an older hop.json, `HOP_MINOR="nc18"` makes `compare.sh` re-evaluate it as minor.
+
 ## Major hops: the temporary system-disk backup (agent-engine-dev#472)
 
 With no Backup Disk, a major `updateApp` (NC SHA→1.7, Kolibri SHA→1.3) makes a temporary Borg backup at

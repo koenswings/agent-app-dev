@@ -8,10 +8,16 @@
 #   A failed update keeps it (op arg tempBackupState=kept).
 #
 # Per hop (system-disk layout, run from the box):
-#   start : ssh pi@<pi> 'sudo -n bash -s -- start  nc17 <instanceId>' < kit374-hopwatch.sh   (pre-hop snapshot, then a detached watcher)
+#   start : ssh pi@<pi> 'sudo -n bash -s -- start  nc17 <instanceId> --detach' < kit374-hopwatch.sh  (pre-hop snapshot, then a detached watcher)
+#           same-major hop (no temp backup expected): add --minor, e.g. start nc18 <id> --minor --detach
+#   wait  : ssh pi@<pi> 'sudo -n bash -s -- wait   nc17' < kit374-hopwatch.sh       (blocks until a detached start/assert is done; prints its log)
 #   (run the updateApp)
-#   stop  : ssh pi@<pi> 'sudo -n bash -s -- stop   nc17' < kit374-hopwatch.sh                (stop file; assert also stops it)
-#   assert: ssh pi@<pi> 'sudo -n bash -s -- assert nc17' < kit374-hopwatch.sh                (post-hop snapshot, PASS/FAIL, hop.json)
+#   stop  : ssh pi@<pi> 'sudo -n bash -s -- stop   nc17' < kit374-hopwatch.sh       (stop file; assert also stops it)
+#   assert: ssh pi@<pi> 'sudo -n bash -s -- assert nc17 --detach' < kit374-hopwatch.sh, then `wait nc17` (PASS/FAIL, hop.json)
+#   status: ssh pi@<pi> 'sudo -n bash -s -- status nc17' < kit374-hopwatch.sh       (watcher alive? samples, DONE markers)
+#   --detach re-runs the step under nohup in its own session (survives an ssh drop) and writes
+#   START_DONE / ASSERT_DONE with the exit code. Evidence (journal, Engine log) is limited to the
+#   hop's own start..assert window (Engine log read from its byte offset at start).
 # Output: /home/pi/r374-inventory/hop-<label>/ (pre.json, timeline.tsv, state.json, post.json, hop.json, watch.log)
 # compare.sh BEFORE AFTER hop-nc17 hop-kol13 reprints the hop checks.
 #
@@ -27,7 +33,7 @@ set -euo pipefail
 export LC_ALL=C
 HOPWATCH_SRC=$(cat <<'PY'
 import json, os, re, subprocess, sys, time
-from datetime import datetime
+from datetime import datetime, timezone
 
 SYS = os.environ.get("HOPWATCH_SYSROOT", "").rstrip("/")
 TB = SYS + "/.idea-temp-backups"
@@ -152,37 +158,63 @@ def watch(out, iid):
     st["stoppedAt"] = now()
     wjson(os.path.join(out, "state.json"), st)
 
-def evidence(iid, since_epoch):
-    ev = {"journal": [], "engineLog": []}
+ENGINE_LOG = os.environ.get("HOPWATCH_ENGINE_LOG", "/home/pi/.pm2/logs/engine-out.log")
+RE_LINE_STAMP = re.compile(r"/([0-9]{8}T[0-9]{6})[0-9]{0,9}Z")
+
+def log_size(path):
+    try:
+        return os.path.getsize(path)
+    except OSError:
+        return None
+
+def in_window(line, start_epoch, end_epoch):
+    """Drop lines naming a temp-backup stamp outside this hop's start..assert window."""
+    m = RE_LINE_STAMP.search(line)
+    if not m:
+        return True
+    t = datetime.strptime(m.group(1), "%Y%m%dT%H%M%S").replace(tzinfo=timezone.utc).timestamp()
+    return start_epoch - 120 <= t <= end_epoch + 120
+
+def evidence(iid, start_epoch, end_epoch, log_offset):
+    ev = {"journal": [], "engineLog": [], "window": [start_epoch, end_epoch]}
     jc = os.environ.get("HOPWATCH_JOURNALCTL", "journalctl")
-    since = datetime.fromtimestamp(since_epoch - 5).strftime("%Y-%m-%d %H:%M:%S")
-    rc, out, _ = run([jc, "-t", "idea-app-data", "--since", since, "--no-pager", "-o", "short-iso"], timeout=120)
+    fmt = lambda t: datetime.fromtimestamp(t).strftime("%Y-%m-%d %H:%M:%S")
+    rc, out, _ = run([jc, "-t", "idea-app-data", "--since", fmt(start_epoch - 5), "--until", fmt(end_epoch + 5), "--no-pager", "-o", "short-iso"], timeout=120)
     if rc == 0:
-        ev["journal"] = [l for l in out.splitlines() if "temp-backup" in l and ("/" + iid + "/") in l][-20:]
+        ev["journal"] = [l for l in out.splitlines() if "temp-backup" in l and ("/" + iid + "/") in l and in_window(l, start_epoch, end_epoch)][-20:]
     else:
         ev["journalError"] = "journalctl rc=%s" % rc
-    lp = os.environ.get("HOPWATCH_ENGINE_LOG", "/home/pi/.pm2/logs/engine-out.log")
     try:
-        with open(lp, "rb") as f:
-            f.seek(0, 2); size = f.tell(); f.seek(max(0, size - (8 << 20)))
+        with open(ENGINE_LOG, "rb") as f:
+            f.seek(0, 2); size = f.tell()
+            if log_offset is not None and log_offset <= size:
+                f.seek(max(log_offset, size - (32 << 20)))  # only what the Engine wrote since start
+            else:
+                ev["engineLogNote"] = "log rotated or no start offset; stamp-filtered tail"
+                f.seek(max(0, size - (8 << 20)))
             tail = f.read().decode("utf-8", "replace").splitlines()
-        ev["engineLog"] = [l for l in tail if iid in l and "temporary pre-update backup" in l][-20:]
+        ev["engineLog"] = [l for l in tail if iid in l and "temporary pre-update backup" in l and in_window(l, start_epoch, end_epoch)][-20:]
     except OSError as e:
         ev["engineLogError"] = str(e)
     return ev
 
-def evaluate(h):
-    """Shared by assert and compare.sh (kept identical there). Returns [(level, check, detail)]."""
+# --- hop_evaluate: keep byte-identical in kit374-hopwatch.sh and compare.sh (test/dry-run.sh checks) ---
+def hop_evaluate(h):
     res = []
     st, pre, post, ev = h["state"], h["pre"], h["post"], h.get("evidence", {})
-    tol = h.get("tolBytes", TOL)
+    tol = h.get("tolBytes", 256 * 1024 * 1024)
+    minor = bool(pre.get("minor"))
     j = ev.get("journal", [])
     jcreate = any("temp-backup-create:" in l and "complete" in l for l in j)
     jdelete = any("temp-backup-delete: removed" in l for l in j)
-    existed = bool(st.get("firstSeen")) or jcreate
-    res.append(("PASS" if existed else "FAIL", "temp-backup-existed",
-                "seen %s..%s, max %d bytes, stamps %s, COMPLETE seen %s, journal create-complete %s" % (
-                    st.get("firstSeen"), st.get("lastSeen"), st.get("maxTempBytes", 0), ",".join(st.get("stamps", [])) or "-", st.get("completeSeen"), jcreate)))
+    seen = bool(st.get("firstSeen")) or jcreate
+    what = "seen %s..%s, max %d bytes, stamps %s, COMPLETE seen %s, journal create-complete %s" % (
+        st.get("firstSeen"), st.get("lastSeen"), st.get("maxTempBytes", 0), ",".join(st.get("stamps", [])) or "-", st.get("completeSeen"), jcreate)
+    if minor:
+        res.append(("PASS" if not seen else "FAIL", "no-temp-backup-minor-hop",
+                    "minor hop, no temp backup expected and none seen" if not seen else "a temp backup appeared on a minor hop: " + what))
+    else:
+        res.append(("PASS" if seen else "FAIL", "temp-backup-existed", what))
     left = post.get("tempDirs") or []
     res.append(("PASS" if not left else "FAIL", "temp-backup-gone",
                 "nothing under .idea-temp-backups/%s (journal delete %s)" % (h["id"], jdelete) if not left else
@@ -199,19 +231,78 @@ def evaluate(h):
         st.get("freeMin"), st.get("freeMinAt"), pre["freeBytes"], pre["freeBytes"] - (st.get("freeMin") or pre["freeBytes"]))))
     res.append(("INFO", "watcher", "%s samples, stopped by %s at %s" % (st.get("samples"), st.get("stoppedBy"), st.get("stoppedAt"))))
     return res
+# --- end hop_evaluate ---
+
+def pid_alive(pidfile, needle):
+    """Read-only: is the pid in <pidfile> alive and running <needle>? (/proc, no pgrep)"""
+    try:
+        pid = int(open(pidfile).read().strip())
+        cmd = open("/proc/%d/cmdline" % pid, "rb").read().replace(b"\0", b" ").decode("utf-8", "replace")
+        return pid if needle in cmd else None
+    except (OSError, ValueError):
+        return None
+
+def detach(out, mode, args):
+    """Re-run <mode> in a new session (survives an ssh drop); writes <MODE>_DONE with the exit code."""
+    src = os.path.join(out, "hopwatch.py")
+    if not os.path.exists(src):
+        with open(src, "w") as f:
+            f.write(os.environ["HOPWATCH_SRC"])
+    marker = os.path.join(out, mode.upper() + "_DONE")
+    if os.path.exists(marker):
+        sys.exit("ERROR: %s already done (%s)" % (mode, marker))
+    log = open(os.path.join(out, mode + ".log"), "a")
+    env = dict(os.environ, HOPWATCH_MARKER=marker)
+    p = subprocess.Popen(["nohup", sys.executable, src] + args, stdin=subprocess.DEVNULL, stdout=log, stderr=log, start_new_session=True, env=env)
+    open(os.path.join(out, mode + ".pid"), "w").write(str(p.pid) + "\n")
+    print("DETACHED %s pid=%d log=%s marker=%s  (then: wait %s)" % (mode, p.pid, log.name, marker, os.path.basename(out)[4:]))
+    return 0
 
 def main(argv):
+    detached = "--detach" in argv
+    minor = "--minor" in argv
+    argv = [a for a in argv if a not in ("--detach", "--minor")]
     mode = argv[0] if argv else ""
     if mode == "watch":
         return watch(argv[1], argv[2])
-    if mode not in ("start", "stop", "assert") or len(argv) < 2:
-        sys.exit("usage: kit374-hopwatch.sh start <label> <instanceId> | stop <label> | assert <label>")
+    if mode not in ("start", "stop", "assert", "wait", "status") or len(argv) < 2:
+        sys.exit("usage: kit374-hopwatch.sh start <label> <instanceId> [--minor] [--detach] | stop <label> | assert <label> [--detach] | wait <label> [seconds] | status <label>")
     label = argv[1]
     if not RE_ID.match(label):
         sys.exit("bad label")
     base = os.environ.get("HOPWATCH_OUT_BASE") or ("/home/pi/r374-inventory" if os.path.isdir("/home/pi") else os.getcwd())
     out = os.path.join(base, "hop-" + label)
     stopf = os.path.join(out, "STOP")
+    if mode in ("wait", "status"):
+        if not os.path.isdir(out):
+            sys.exit("ERROR: no %s" % out)
+        limit = float(argv[2]) if mode == "wait" and len(argv) > 2 else (3600 if mode == "wait" else 0)
+        t0 = time.time()
+        while True:
+            pending = [m for m in ("start", "assert") if os.path.exists(os.path.join(out, m + ".pid")) and not os.path.exists(os.path.join(out, m.upper() + "_DONE"))]
+            if mode == "status" or not pending or time.time() - t0 > limit:
+                break
+            time.sleep(2)
+        try:
+            st = json.load(open(os.path.join(out, "state.json")))
+        except (OSError, ValueError):
+            st = {}
+        w = pid_alive(os.path.join(out, "watch.pid"), "hopwatch.py")
+        print("STATUS hop-%s watcher=%s samples=%s stoppedBy=%s firstSeen=%s maxTempBytes=%s freeMin=%s" % (
+            label, ("running pid %d" % w) if w else "not running", st.get("samples"), st.get("stoppedBy"), st.get("firstSeen"), st.get("maxTempBytes"), st.get("freeMin")))
+        rc = 0
+        for m in ("start", "assert"):
+            mk = os.path.join(out, m.upper() + "_DONE")
+            if os.path.exists(mk):
+                code = open(mk).read().strip()
+                print("%s done rc=%s" % (m, code)); rc = rc or int(code or 1)
+                lp = os.path.join(out, m + ".log")
+                if mode == "wait" and os.path.exists(lp):
+                    print(open(lp).read().rstrip())
+            elif os.path.exists(os.path.join(out, m + ".pid")):
+                alive = pid_alive(os.path.join(out, m + ".pid"), "hopwatch.py")
+                print("%s %s" % (m, "running" if alive else "NOT running and no DONE marker (interrupted?)")); rc = rc or 3
+        return rc
     if mode == "start":
         iid = argv[2] if len(argv) > 2 else ""
         if not RE_ID.match(iid) or not os.path.isdir(SYS + "/instances/" + iid):
@@ -219,21 +310,29 @@ def main(argv):
         if os.path.exists(os.path.join(out, "pre.json")):
             sys.exit("ERROR: %s already used; pick a new label" % out)
         os.makedirs(out, exist_ok=True)
+        if detached:
+            return detach(out, "start", ["start", label, iid] + (["--minor"] if minor else []))
         pre = snapshot(iid)
         pre["id"] = iid
+        pre["minor"] = minor
+        pre["engineLogOffset"] = log_size(ENGINE_LOG)
         if pre["tempDirs"]:
             print("WARN leftover temp backups for %s before the hop: %s" % (iid, [x["stamp"] for x in pre["tempDirs"]]))
         wjson(os.path.join(out, "pre.json"), pre)
         src = os.path.join(out, "hopwatch.py")
-        with open(src, "w") as f:
-            f.write(os.environ["HOPWATCH_SRC"])
+        if not os.path.exists(src):
+            with open(src, "w") as f:
+                f.write(os.environ["HOPWATCH_SRC"])
         log = open(os.path.join(out, "watch.log"), "a")
-        p = subprocess.Popen([sys.executable, src, "watch", out, iid], stdin=subprocess.DEVNULL, stdout=log, stderr=log, start_new_session=True, env=os.environ.copy())
+        env = {k: v for k, v in os.environ.items() if k != "HOPWATCH_MARKER"}
+        p = subprocess.Popen(["nohup", sys.executable, src, "watch", out, iid], stdin=subprocess.DEVNULL, stdout=log, stderr=log, start_new_session=True, env=env)
         open(os.path.join(out, "watch.pid"), "w").write(str(p.pid) + "\n")
-        print("STARTED hop-%s id=%s pid=%d free=%d instance=%s bytes out=%s" % (label, iid, p.pid, pre["freeBytes"], pre["bytes"]["instance"], out))
+        print("STARTED hop-%s id=%s %s pid=%d free=%d instance=%s bytes out=%s" % (label, iid, "minor" if minor else "major", p.pid, pre["freeBytes"], pre["bytes"]["instance"], out))
         return 0
     if not os.path.exists(os.path.join(out, "pre.json")):
-        sys.exit("ERROR: no pre.json in %s (start first)" % out)
+        sys.exit("ERROR: no pre.json in %s (start first, or wait for a detached start)" % out)
+    if mode == "assert" and detached:
+        return detach(out, "assert", ["assert", label])
     open(stopf, "a").close()
     st_path = os.path.join(out, "state.json")
     for _ in range(int(float(os.environ.get("HOPWATCH_INTERVAL_S", "2")) * 5 + 20)):
@@ -252,8 +351,9 @@ def main(argv):
         st = {}
     iid = pre["id"]
     post = snapshot(iid)
-    h = {"label": label, "id": iid, "pre": pre, "post": post, "state": st, "tolBytes": TOL, "evidence": evidence(iid, pre["epoch"])}
-    h["checks"] = [list(c) for c in evaluate(h)]
+    h = {"label": label, "id": iid, "pre": pre, "post": post, "state": st, "tolBytes": TOL,
+         "evidence": evidence(iid, pre["epoch"], post["epoch"], pre.get("engineLogOffset"))}
+    h["checks"] = [list(c) for c in hop_evaluate(h)]
     wjson(os.path.join(out, "post.json"), post)
     wjson(os.path.join(out, "hop.json"), h)
     fails = 0
@@ -265,8 +365,20 @@ def main(argv):
     print("HOP %s %s" % (label, "FAIL" if fails else "PASS"))
     return 1 if fails else 0
 
+def entry():
+    rc = 1
+    try:
+        rc = main(sys.argv[1:]) or 0
+    finally:
+        mk = os.environ.get("HOPWATCH_MARKER")
+        if mk:
+            with open(mk + ".tmp", "w") as f:
+                f.write("%d\n" % rc)
+            os.replace(mk + ".tmp", mk)
+    return rc
+
 if __name__ == "__main__":
-    sys.exit(main(sys.argv[1:]) or 0)
+    sys.exit(entry())
 PY
 )
 export HOPWATCH_SRC
