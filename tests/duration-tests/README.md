@@ -289,6 +289,31 @@ Axle: `infra_dock_fixture` → `duration-empty-001` (RealFleetOps copy+sentinel)
 Pixel: select disk in tree → assert `EmptyDiskPanel` for `install_app` /
 `make_files_disk` / `make_backup_disk`. Pack README: [`fixtures/empty/README.md`](fixtures/empty/README.md).
 
+## Fixture preflight (read-only, before every walk launch)
+
+`scripts/preflight-fixture-check.sh` checks, read-only, that the docked Grade 5A
+Apps hold every fixture the cover-all / Markov walk needs, and exits 1 with a
+loud `PREFLIGHT FAIL — DO NOT LAUNCH THE WALK` list otherwise. Run it on each Pi
+that hosts the Apps (kit layout: Nextcloud + Kiwix on idea03, Kolibri on idea01)
+right before launching, and after any seed rebuild. `post-dock-restore-running.sh`
+runs it as its final step (`SKIP_PREFLIGHT=1` to skip).
+
+```bash
+bash tests/duration-tests/scripts/preflight-fixture-check.sh                 # auto-detect containers
+bash tests/duration-tests/scripts/preflight-fixture-check.sh --apps nextcloud,kiwix \
+     --nc-container nextcloud-grade5a-001-nextcloud-app-1
+```
+
+| App | Checked (walk steps) |
+|-----|----------------------|
+| Nextcloud | installed; users teacher, student01..03 enabled (21, 27, 77, 80); group **Grade 5A** = all four (share_to_class 22, 73); firstrunwizard disabled; files_external, files_sharing, text, viewer enabled; core shareapi_enabled / allow_group_sharing / allow_links / allow_public_upload not `no`; every live `/mnt/idea-files/` mount `enable_sharing=true` and applicable to Grade 5A or All users (`--strict-applicable` = explicit group); Class Materials present; `Drop Zone/inbox` writable by www-data (after_upload 29); `Collab/Grade5A-collab-notes.md` writable by www-data (keep_editing 82); `/status.php`; link share `grade5adropzone` = type 3, permissions 4, on `…Drop Zone/inbox` (open_file_drop 28, 78; teacher OCS read, falls back to the public `/s/<token>` page) |
+| Kolibri | facility; classroom Grade 5A; teacher + learner01..03; learners enrolled; teacher coach; lesson "Grade 5A Duration Lesson" active; Console intents' open_video / open_exercise ContentNodes available (`KOLIBRI_VIDEO_NODE` / `KOLIBRI_EXERCISE_NODE`); HTTP / |
+| Kiwix | `/data/duration_wikipedia_en_grade5a_stub_2026-10.zim`; `/`, `content/<book>/Main_Page`; search "fraction" → Fraction (Results 1-4 of 4) |
+
+Read-only by construction: only `occ status|user:list|user:info|group:list|app:list|config:app:get|files_external:list`,
+`test -d/-f/-w`, a `mode=ro` + `query_only` SQLite read in the Kolibri container, and
+HTTP GETs (enforced by `tests/unit/preflight-fixture-check.test.mjs`).
+
 ## Post-dock Running restore (Atlas one-shot — idea#168)
 
 RealFleetOps `infra_dock_fixture` **defaults to stripping `instances/`**, so Engine
