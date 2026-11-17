@@ -1,0 +1,47 @@
+# Throwaway update-rollback fixture (Pixel console #243 / idea#243 Remove backup).
+# Identical to 1.0 except the version metadata, updatesFrom, and a health check
+# that always fails, so updateApp 1.0 -> 2.0 fails the Health gate and rolls back.
+# NOT for any release channel, catalog, or school kit. Test only.
+x-app:
+  name: updtest
+  title: Update Test
+  description: >
+    Throwaway busybox httpd fixture for proving a failed major updateApp leaves
+    its temporary system-disk backup in place. NOT for any release channel.
+  url: https://github.com/koenswings/agent-app-dev
+  category: test
+  author: IDEA
+  version: "2.0"
+  instanceName: updtest
+  healthCheck:
+    path: /
+    expect: "updtest 2.0"
+  healthTimeout: 60
+  updatesFrom: [1]
+  migrationNote: "Test major bump so updateApp takes a temporary backup; no real migration. The 2.0 health check is designed to fail."
+  snapshotExclude: []
+  backup:
+    method: stop
+
+services:
+  web:
+    # Top-level index digest of busybox:1.36.1 (linux/arm64 confirmed via docker manifest inspect).
+    image: busybox:1.36.1@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662
+    restart: no
+    pull_policy: never
+    labels:
+      x-app-version: "2.0"
+    # Same httpd + data marker as 1.0 (version string only differs), so Start can succeed.
+    command: ["/bin/sh", "-c", "mkdir -p /data /www && echo 'updtest 2.0' > /www/index.html && echo 'updtest 2.0 marker' > /data/updtest-marker.txt && date >> /data/visits.log && exec httpd -f -p 8080 -h /www"]
+    volumes:
+      - ./data:/data
+    ports:
+      - ${port}:8080
+    # Fails deterministically. Engine healthGate waits until healthTimeout (60 s, the
+    # check-compose minimum) and then fails Health; starting/unhealthy is not a fail by itself.
+    healthcheck:
+      test: ["CMD", "false"]
+      interval: 2s
+      timeout: 1s
+      retries: 1
+      start_period: 0s
