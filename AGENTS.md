@@ -67,7 +67,7 @@ Build and maintain Apps — compose.yaml files that assemble Services into App D
 - `koenswings/app-kolibri` — Kolibri educational platform
 - `koenswings/app-nextcloud` — Nextcloud file sharing
 - `koenswings/app-kiwix` — Kiwix offline Wikipedia
-- `koenswings/app-milkwise` — MilkWise as an IDEA App
+- `koenswings/app-milkwise` — MilkWise as an IDEA App Disk (separate from the standalone product in `koenswings/baby-milk-tracker` / `koenswings/milkwise`)
 
 ## Repo layout
 

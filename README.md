@@ -19,6 +19,8 @@ An App Disk is a USB/SSD drive that the Engine auto-detects when docked. The dis
 | Kolibri Studio (not production-ready) | `koenswings/app-kolibri-studio` |
 | Seafile (not yet at current App Disk conventions) | `koenswings/app-seafile` |
 
+`koenswings/app-milkwise` is the IDEA App Disk for MilkWise. It is separate from the standalone MilkWise product in `koenswings/baby-milk-tracker` and `koenswings/milkwise`, which this workspace does not maintain.
+
 ## This repo contains
 
 - `lib/harness.mjs` — App Harness: integration test framework that spawns a real Engine in testMode
