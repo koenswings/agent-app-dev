@@ -34,10 +34,31 @@ Checked by `node script/check-xapp-update-fields.mjs <compose.yaml>`:
 | Field | Meaning |
 |-------|---------|
 | `healthCheck: {path, expect?}` | URL path on the instance's main port; must return 2xx/3xx and contain `expect` when given |
-| `healthTimeout` | seconds the health gate waits (placeholder 600 = 10 min until the #351 measurements) |
+| `healthTimeout` | seconds the health gate waits (integer 60–7200). Use a measured value; `600` is only a placeholder when unmeasured |
 | `updatesFrom: [<major>...]` | earlier App majors this release may update from; minor updates need no entry |
 | `migrationNote` | shown to the teacher before a major update |
-| `snapshotExclude: [<path>...]` | paths under `data/` left out of the pre-update copy |
+| `snapshotExclude: [<path>...]` | paths under `data/` left out of the pre-update copy (rules below) |
+
+### snapshotExclude rules (idea#396)
+
+Each `snapshotExclude` entry is normalised like `x-app.backup.exclude` (a bare
+name other than `data` becomes `data/<name>`; a leading `./` and trailing `/`
+are dropped) and then **must be `data` or a path under `data/`**. No globs
+(`* ? [ ]`), no absolute paths, no `.` or `..` components, no leading `-`. At
+most 256 characters per token after trim, and at most 32 unique entries after
+de-duplication. A bad list is refused as `INVALID_EXCLUDE` before anything is
+stopped. Full path rules: [backup-hook.md](backup-hook.md#paths-exclude-hookexclude-verifypresent-verifyabsent)
+and [compose-conventions.md](compose-conventions.md).
+
+**updateApp** does not use only this list. The pre-update snapshot exclude list
+is the merge of (1) the live instance's `x-app.backup.exclude`, (2) the new
+bundle's `x-app.backup.exclude`, and (3) the **live** instance's
+`x-app.snapshotExclude`. The new bundle's `snapshotExclude` is not used — the
+snapshot is of the live instance. The merged list is then re-checked against the
+snapshot rules, so a `backup.exclude` path that is not under `data/` (for
+example `.env`) would refuse the update. A temporary pre-update Borg backup
+(major hop, no linked Backup Disk) uses only the live `x-app.backup.exclude`.
+
 
 ### Nextcloud keeps config/ and custom_apps/ in the snapshot (E3)
 

@@ -8,9 +8,10 @@ Update this file whenever an authoritative doc is added or significantly revised
 
 | Doc | Purpose |
 |-----|---------|
+| [compose-conventions.md](./compose-conventions.md) | App Disk layout, compose.yaml rules, `./data` bind mounts (idea#141), ports, health checks, ARM64, `x-app` / `x-app-version`, snapshotExclude and backup.exclude, `app.yaml` (still used) |
 | [app-bundle-integrity.md](./app-bundle-integrity.md) | Build-time `SHA256SUMS`, image tar names, updateApp `x-app` fields, stateful images that need an App major, and Nextcloud's config/ and custom_apps/ kept in the snapshot (idea#351, #23, idea#403, E3) |
 | [backup-hook.md](./backup-hook.md) | `x-app.backup` contract for App authors: methods stop/hook/none, hook lists, exec, failure order, cold backups, exclude paths, verify, restore (idea#403, engine#404) |
-| [files-mount.md](./files-mount.md) | `x-app.filesMount` convention, `restart: no`, Engine Files Disk binds allowed (idea#137) |
+| [files-mount.md](./files-mount.md) | `x-app.filesMount` convention, `restart: no`, Engine Files Disk binds allowed; App data uses `./data` binds, never named volumes (idea#137, idea#141) |
 
 User-facing manuals and the PDF house style are kept in the idea repo (DOCUMENTATION-RULES.md rule 7, idea#191):
 the teacher tutorial is at [koenswings/idea `docs/manuals/teachers/teacher-tutorial/`](https://github.com/koenswings/idea/tree/main/docs/manuals/teachers/teacher-tutorial)

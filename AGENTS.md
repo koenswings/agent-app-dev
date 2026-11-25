@@ -158,12 +158,12 @@ Harness: `INSTANCE_TIMEOUT_MS` (default 180000) can be raised for slow first-sta
 
 - No source files in docs/ — .md, .pdf, .png, .svg only
 - No hardcoded credentials in compose.yaml or scripts
-- No host absolute-path bind mounts in App Disk compose.yaml; App data goes in relative `./data` bind mounts on the App Disk (relative to the App's folder), never Docker named volumes (idea#141). Engine-generated Files Disk binds are allowed
+- No host absolute-path bind mounts in App Disk compose.yaml; App data goes in relative `./data` bind mounts on the App Disk (relative to the App's folder), never Docker named volumes (idea#141). Engine-generated Files Disk binds are allowed. Full rules: [`docs/compose-conventions.md`](docs/compose-conventions.md)
 - ARM64 images only — verified with docker manifest inspect
 - x-app-version label on every service (== x-app.version == release tag, `script/check-compose.mjs`) and x-app metadata block required
 - Health check required on primary service
 - No ports below 3000
-- Build/conventions changed → update this file in same PR
+- Build/conventions changed → update this file and `docs/compose-conventions.md` in the same PR
 
 ## Known gotchas
 
