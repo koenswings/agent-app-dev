@@ -57,7 +57,7 @@ This matches what `koenswings/idea/tools/quality/quality-scan.sh` expects: it de
 The harness imports `@automerge/automerge-repo` (pinned to the Engine's 2.3.1) from this repo's own `node_modules`. A checkout without installed deps fails every smoke test with `ERR_MODULE_NOT_FOUND`, so run `sh script/ensure-deps.sh` (or `npm run setup`) after cloning or pulling. `npm test` does this automatically through `pretest`.
 
 ```bash
-# On a claimed pool Pi (idea01 / idea03 / idea04; never golden idea02 — see AGENTS.md
+# On a claimed pool Pi (idea03 / idea04; never golden idea01, never idea02 — see AGENTS.md
 # claim protocol) with the Engine checked out and built
 cd /home/pi/idea/agents/agent-app-dev
 sh script/ensure-deps.sh   # npm ci if node_modules is missing/stale (idea#335); re-run after every pull
