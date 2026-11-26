@@ -13,13 +13,13 @@ An App Disk is a USB/SSD drive that the Engine auto-detects when docked. The dis
 | Kolibri (educational content) | `koenswings/app-kolibri` |
 | Nextcloud (file sharing) | `koenswings/app-nextcloud` |
 | Kiwix (offline Wikipedia) | `koenswings/app-kiwix` |
-| MilkWise (baby milk tracker) | `koenswings/app-milkwise` |
+| MilkWise | `koenswings/app-milkwise` |
 | Field usage dashboard (idea only, not school kits) | `koenswings/app-usage-dashboard` |
 | Kolibri Channel Builder | `koenswings/app-kolibri-channel-builder` |
 | Kolibri Studio (not production-ready) | `koenswings/app-kolibri-studio` |
 | Seafile (not yet at current App Disk conventions) | `koenswings/app-seafile` |
 
-`koenswings/app-milkwise` is the IDEA App Disk for MilkWise. It is separate from the standalone MilkWise product in `koenswings/baby-milk-tracker` and `koenswings/milkwise`, which this workspace does not maintain.
+`koenswings/app-milkwise` is the IDEA App Disk for MilkWise. It is separate from the standalone MilkWise product, which this workspace does not maintain.
 
 ## This repo contains
 
