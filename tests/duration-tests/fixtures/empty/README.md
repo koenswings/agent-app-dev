@@ -67,4 +67,4 @@ right panel `empty-disk` (`EmptyDiskPanel`). No demo remap; live `demoMode=false
 - Separate diskId from Path A Running packs (`duration-kolibri-grade5a-001`,
   `duration-nextcloud-grade5a-001`)
 - Do not merge App#10 until Koen asks
-- Never golden idea02
+- Never golden idea01; never idea02

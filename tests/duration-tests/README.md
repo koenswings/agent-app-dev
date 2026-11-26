@@ -47,7 +47,7 @@ these **exact** action keys (do not invent aliases):
 | `infra_undock_fixtures` | Undock these disks |
 | `infra_dock_fixture` | Dock `duration-empty-001` / `duration-empty-002` / `duration-empty-003` and/or Grade5A `duration-kolibri-grade5a-001` / `duration-nextcloud-grade5a-001` |
 | `infra_move_disk` | Move a docked fixture disk across pool Engines |
-| `infra_reboot_engine` | Reboot a **pool** Engine (never golden idea02) |
+| `infra_reboot_engine` | Reboot a **pool** Engine (never golden idea01; never idea02) |
 
 Phase 3 deeper Intents are documented under
 [Phase 3 deeper Intents](#phase-3-deeper-intents-app-owned) and
@@ -367,7 +367,7 @@ Engine auto-starts instances on dock when `instances/` is present
 
 1. **Axle:** set RealFleetOps `startInstances: true` (constructor opt exists;
    **CLI `--start-instances` not wired yet** — Axle follow-up).
-2. **Atlas:** claim idea01/idea03; never idea02; never idea03 Intenso `sdb1`.
+2. **Atlas:** claim idea03/idea04; never golden idea01; never idea02; never idea03 Intenso `sdb1`.
 3. Dock `duration-kolibri-grade5a-001` / `duration-nextcloud-grade5a-001`.
 4. **Kid** (images + data ready):
 

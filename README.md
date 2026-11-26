@@ -4,7 +4,7 @@ This is the App Dev workspace for the IDEA platform. It contains the App Harness
 
 ## What are App Disks?
 
-An App Disk is a USB/SSD drive that the Engine auto-detects when docked. It contains a `compose.yaml` and `META.yaml` that tell the Engine which Docker containers to start. App Disks are the distribution mechanism for getting educational apps into schools — no download, no internet, no installer.
+An App Disk is a USB/SSD drive that the Engine auto-detects when docked. The disk root holds `META.yaml` (disk identity). Each App lives as a bundle under `apps/<appId>/` (`compose.yaml` and the rest of the App repo) and as installed instances under `instances/<id>/` (a copy of the compose file, `.env`, and `./data`). App data uses relative `./data` bind mounts on the disk, never Docker named volumes ([idea#141](https://github.com/koenswings/idea/issues/141)). Conventions: [docs/compose-conventions.md](docs/compose-conventions.md). App Disks are the distribution mechanism for getting educational apps into schools — no download, no internet, no installer.
 
 ## Current IDEA Apps
 
@@ -13,13 +13,19 @@ An App Disk is a USB/SSD drive that the Engine auto-detects when docked. It cont
 | Kolibri (educational content) | `koenswings/app-kolibri` |
 | Nextcloud (file sharing) | `koenswings/app-nextcloud` |
 | Kiwix (offline Wikipedia) | `koenswings/app-kiwix` |
-| MilkWise (baby milk tracker) | `koenswings/app-milkwise` |
+| MilkWise | `koenswings/app-milkwise` |
+| Field usage dashboard (idea only, not school kits) | `koenswings/app-usage-dashboard` |
+| Kolibri Channel Builder | `koenswings/app-kolibri-channel-builder` |
+| Kolibri Studio (not production-ready) | `koenswings/app-kolibri-studio` |
+| Seafile (not yet at current App Disk conventions) | `koenswings/app-seafile` |
+
+`koenswings/app-milkwise` is the IDEA App Disk for MilkWise. It is separate from the standalone MilkWise product, which this workspace does not maintain.
 
 ## This repo contains
 
 - `lib/harness.mjs` — App Harness: integration test framework that spawns a real Engine in testMode
 - `lib/engine-tested.mjs` — records the tested Engine build in an App's `app.yaml` after a passing run
-- `tests/<app>/smoke.mjs` — per-App smoke tests, each with a `fixture/` App Disk (e.g. `tests/app-milkwise/`)
+- `tests/<app>/smoke.mjs` — per-App smoke tests, each with a `fixture/` App Disk (`tests/app-milkwise/`, `tests/app-nextcloud/`, `tests/app-erase-test/`)
 - `proposals/` — past decisions and design reasoning
 
 The harness was moved here from the former `koenswings/app-harness` repo (history preserved) — see koenswings/idea#96.
@@ -53,7 +59,7 @@ This matches what `koenswings/idea/tools/quality/quality-scan.sh` expects: it de
 The harness imports `@automerge/automerge-repo` (pinned to the Engine's 2.3.1) from this repo's own `node_modules`. A checkout without installed deps fails every smoke test with `ERR_MODULE_NOT_FOUND`, so run `sh script/ensure-deps.sh` (or `npm run setup`) after cloning or pulling. `npm test` does this automatically through `pretest`.
 
 ```bash
-# On a claimed pool Pi (idea01 / idea03 / idea04; never golden idea02 — see AGENTS.md
+# On a claimed pool Pi (idea03 / idea04; never golden idea01, never idea02 — see AGENTS.md
 # claim protocol) with the Engine checked out and built
 cd /home/pi/idea/agents/agent-app-dev
 sh script/ensure-deps.sh   # npm ci if node_modules is missing/stale (idea#335); re-run after every pull
